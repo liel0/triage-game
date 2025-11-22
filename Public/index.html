@@ -46,7 +46,6 @@
 
     .vital { margin-bottom: 0.4rem; }
 
-    /* TIMER STYLING */
     .timer-seconds {
       font-size: 2rem;
       font-weight: 700;
@@ -94,7 +93,7 @@
   </p>
 
   <div class="row">
-    <!-- CURRENT GAME BOX -->
+    <!-- CURRENT GAME -->
     <div class="card">
       <div class="label">Current Team</div>
       <div class="value" id="teamInfo">Waiting for player...</div>
@@ -147,8 +146,8 @@
     </div>
   </div>
 
-  <!-- RESULTS & LEADERBOARD -->
   <div class="row">
+    <!-- RESULTS -->
     <div class="card">
       <h2>🤖 Human vs AI Results</h2>
       <table>
@@ -167,6 +166,7 @@
       <div class="value" id="scoreDisplay">–</div>
     </div>
 
+    <!-- LEADERBOARD -->
     <div class="card">
       <h2>🏆 Leaderboard</h2>
       <table>
@@ -187,9 +187,6 @@
   <script>
     const socket = io();
 
-    // ===============================
-    // GLOBAL REFERENCES
-    // ===============================
     let currentGame = null;
 
     const teamInfoEl = document.getElementById("teamInfo");
@@ -202,9 +199,7 @@
     const scoreDisplayEl = document.getElementById("scoreDisplay");
     const leaderboardBody = document.getElementById("leaderboardBody");
 
-    // ===============================
-    // TIMER WITH 2 DECIMALS + STYLING
-    // ===============================
+    // ===== TIMER (2 decimals, ms smaller) =====
     let timerInterval = null;
     let timerStart = null;
 
@@ -225,7 +220,7 @@
         }
 
         const totalSeconds = remaining / 1000;
-        const formatted = totalSeconds.toFixed(2); // SS.mm
+        const formatted = totalSeconds.toFixed(2);
         const [sec, ms] = formatted.split(".");
 
         timerDisplayEl.innerHTML =
@@ -258,14 +253,11 @@
       timerDisplayEl.textContent = "Timer: --";
     }
 
-    // ===============================
-    // HANDLE SERVER STATE
-    // ===============================
+    // ===== STATE UPDATE =====
     socket.on("stateUpdate", (data) => {
       currentGame = data.currentGame || null;
-      leaderboardBody.innerHTML = "";
 
-      // RENDER LEADERBOARD
+      leaderboardBody.innerHTML = "";
       (data.leaderboard || []).forEach((entry, i) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -278,7 +270,6 @@
         leaderboardBody.appendChild(tr);
       });
 
-      // RENDER GAME STATUS
       if (!currentGame) {
         teamInfoEl.textContent = "Waiting for player...";
         patientInfoEl.textContent = "–";
@@ -291,11 +282,8 @@
       patientInfoEl.textContent = currentGame.patientName;
     });
 
-    // ===============================
-    // VITALS — NO DUPLICATES
-    // ===============================
+    // ===== VITALS – NO DUPLICATES =====
     socket.on("vitalScanned", (payload) => {
-      // Remove placeholder
       if (
         vitalsListEl.firstChild &&
         vitalsListEl.firstChild.classList &&
@@ -304,10 +292,8 @@
         vitalsListEl.innerHTML = "";
       }
 
-      // Find existing element
       let line = vitalsListEl.querySelector(`.vital[data-key="${payload.vitalKey}"]`);
 
-      // Create if missing
       if (!line) {
         line = document.createElement("div");
         line.className = "vital";
@@ -315,18 +301,15 @@
         vitalsListEl.appendChild(line);
       }
 
-      // Always update text
       line.textContent = `${payload.vitalKey}: ${payload.vitalValue}`;
     });
 
     socket.on("allVitalsCollected", (payload) => {
-      infoMessageEl.textContent = "🚨 Vitals complete! Make your triage decision!";
+      infoMessageEl.textContent = "🚨 Vitals complete! Move to the Triage Zone and make your decisions.";
       startTimer(payload.triageTimerSeconds || 60);
     });
 
-    // ===============================
-    // RESULTS
-    // ===============================
+    // ===== RESULTS =====
     socket.on("resultsReady", (result) => {
       stopTimerAndFreeze();
 
@@ -340,14 +323,12 @@
 
       rows.forEach(r => {
         const tr = document.createElement("tr");
-
         let match = "–";
         if (r.category !== "Time") {
           match = r.human === r.ai ? "✅" : "❌";
         } else {
           match = parseFloat(result.human.timeSeconds) < parseFloat(result.ai.aiTimeSeconds) ? "⚡" : "⏱";
         }
-
         tr.innerHTML = `
           <td>${r.category}</td>
           <td>${r.human}</td>
@@ -360,9 +341,7 @@
       scoreDisplayEl.textContent = `${result.points} / 12 points`;
     });
 
-    // ===============================
-    // RESET BUTTONS
-    // ===============================
+    // ===== BUTTONS =====
     document.getElementById("resetBtn").onclick = () => {
       socket.emit("resetGame");
       resetTimerDisplay();
@@ -375,9 +354,6 @@
       socket.emit("resetLeaderboard");
     };
 
-    // ===============================
-    // SUBMIT DECISION
-    // ===============================
     document.getElementById("submitDecisionBtn").onclick = () => {
       const triage = document.getElementById("triageSelect").value;
       const treatment = document.getElementById("treatmentSelect").value;
@@ -392,7 +368,7 @@
       }
 
       socket.emit("submitHumanDecision", { triage, tests, treatment });
-      submitStatusEl.textContent = "Sending decision...";
+      submitStatusEl.textContent = "Decision sent. Waiting for AI comparison...";
     };
   </script>
 </body>
