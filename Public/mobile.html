@@ -84,10 +84,6 @@
 
   <div class="card">
     <div class="small">Step 2: Scan vitals on the mannequin</div>
-    <p class="small">
-      Tap the body part → your camera opens → scan the QR code on that body part.
-      The image (X-ray / injury photo) will appear below.
-    </p>
 
     <!-- Each button decides WHICH vital we send to server -->
     <button class="secondary vital-btn"
@@ -176,7 +172,7 @@
       }
 
       scanningFor = vitalKey;
-      scanStatus.textContent = `Point your camera at the QR on the ${bodyPartName(vitalKey)}...`;
+      scanStatus.textContent = `Scan the QR on the ${bodyPartName(vitalKey)}.`;
       scanImageEl.style.display = "none";
       scanImageEl.src = "";
 
@@ -238,11 +234,11 @@
 
     function bodyPartName(vitalKey) {
       switch (vitalKey) {
-        case "consciousness": return "forehead (consciousness)";
-        case "respiratoryRate": return "chest (respiratory rate / X-ray)";
-        case "pulse": return "wrist (pulse)";
-        case "bloodPressure": return "arm tag (blood pressure)";
-        case "oxygenSaturation": return "leg tag (O₂ saturation)";
+        case "consciousness": return "forehead";
+        case "respiratoryRate": return "chest";
+        case "pulse": return "wrist";
+        case "bloodPressure": return "arm tag";
+        case "oxygenSaturation": return "leg tag";
         default: return "correct body part";
       }
     }
