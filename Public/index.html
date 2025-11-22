@@ -83,13 +83,14 @@
       <div class="value" id="patientInfo">–</div>
 
       <div class="label">Vitals (collected)</div>
-      <div id="vitalsList"></div>
+      <div id="vitalsList">
+        <span class="small">No vitals scanned yet.</span>
+      </div>
 
       <div class="timer" id="timerDisplay">Timer: --</div>
       <div class="small" id="infoMessage"></div>
 
       <button class="danger" id="resetBtn">Reset Simulation</button>
-      <!-- ⭐ NEW BUTTON -->
       <button class="danger" id="resetLeaderboardBtn">Reset Leaderboard</button>
     </div>
 
@@ -97,7 +98,7 @@
     <div class="card">
       <h2>🧩 Human Triage Control</h2>
       <p class="small">
-        Once all vitals are collected, make your decision before 60 seconds are up.
+        Once all vitals are collected, make your decision before time runs out.
       </p>
 
       <div class="label">Triage Category</div>
@@ -170,8 +171,6 @@
     const socket = io();
 
     let currentGame = null;
-    let timerInterval = null;
-    let timerRemaining = null;
 
     const teamInfoEl = document.getElementById("teamInfo");
     const patientInfoEl = document.getElementById("patientInfo");
@@ -188,8 +187,60 @@
     const testCheckboxes = document.querySelectorAll(".testCheckbox");
     const submitDecisionBtn = document.getElementById("submitDecisionBtn");
     const resetBtn = document.getElementById("resetBtn");
-    const resetLeaderboardBtn = document.getElementById("resetLeaderboardBtn"); // ⭐ NEW
+    const resetLeaderboardBtn = document.getElementById("resetLeaderboardBtn");
 
+    // ===== TIMER WITH MILLISECONDS =====
+    let timerInterval = null;
+    let timerStart = null;
+    let timerDurationSeconds = null;
+
+    function startTimer(durationSeconds) {
+      timerStart = performance.now();
+      timerDurationSeconds = durationSeconds;
+      const endTime = timerStart + durationSeconds * 1000;
+
+      if (timerInterval) clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        const now = performance.now();
+        let remaining = endTime - now;
+
+        if (remaining <= 0) {
+          remaining = 0;
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+
+        const seconds = Math.floor(remaining / 1000);
+        const ms = Math.floor(remaining % 1000);
+        timerDisplayEl.textContent = `${seconds}.${ms.toString().padStart(3, "0")} s`;
+      }, 16); // ~60fps
+    }
+
+    function stopTimerAndFreeze() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      if (timerStart !== null) {
+        const elapsedMs = performance.now() - timerStart;
+        const seconds = (elapsedMs / 1000).toFixed(3);
+        timerDisplayEl.textContent = `${seconds} s (final)`;
+      }
+    }
+
+    function resetTimerDisplay() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      timerStart = null;
+      timerDurationSeconds = null;
+      timerDisplayEl.textContent = "Timer: --";
+    }
+
+    // ===== RENDER FUNCTIONS =====
     function renderGameState(state) {
       currentGame = state.currentGame || null;
 
@@ -197,14 +248,14 @@
         teamInfoEl.textContent = "Waiting for player...";
         patientInfoEl.textContent = "–";
         vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
-        timerDisplayEl.textContent = "Timer: --";
+        resetTimerDisplay();
         infoMessageEl.textContent = "Scan QR code on the banner to join the simulation.";
         return;
       }
 
       teamInfoEl.textContent = `${currentGame.playerName} (${currentGame.mode === "group" ? "Group" : "Solo"})`;
       patientInfoEl.textContent = currentGame.patientName || "Selected patient";
-      // vitals are rendered live via events; here we just keep what's already there
+      // vitals rendered live via events
     }
 
     function renderLeaderboard(leaderboard) {
@@ -216,28 +267,13 @@
           <td>${entry.playerName}</td>
           <td>${entry.mode === "group" ? "Group" : "Solo"}</td>
           <td>${entry.points}</td>
-          <td>${entry.timeSeconds.toFixed(1)}</td>
+          <td>${entry.timeSeconds.toFixed(3)}</td>
         `;
         leaderboardBody.appendChild(tr);
       });
     }
 
-    function startTimer(seconds) {
-      if (timerInterval) clearInterval(timerInterval);
-      timerRemaining = seconds;
-      timerDisplayEl.textContent = `Timer: ${timerRemaining}s`;
-
-      timerInterval = setInterval(() => {
-        timerRemaining--;
-        if (timerRemaining < 0) {
-          clearInterval(timerInterval);
-          timerDisplayEl.textContent = "Timer: 0s (time up!)";
-          return;
-        }
-        timerDisplayEl.textContent = `Timer: ${timerRemaining}s`;
-      }, 1000);
-    }
-
+    // ===== SOCKET EVENTS =====
     socket.on("stateUpdate", (data) => {
       renderGameState(data);
       renderLeaderboard(data.leaderboard || []);
@@ -249,6 +285,9 @@
     });
 
     socket.on("vitalScanned", (payload) => {
+      if (vitalsListEl.firstChild && vitalsListEl.firstChild.classList && vitalsListEl.firstChild.classList.contains("small")) {
+        vitalsListEl.innerHTML = "";
+      }
       const line = document.createElement("div");
       line.className = "vital";
       line.textContent = `${payload.vitalKey}: ${payload.vitalValue}`;
@@ -262,6 +301,9 @@
     });
 
     socket.on("resultsReady", (result) => {
+      // Stop timer & freeze at final time
+      stopTimerAndFreeze();
+
       resultsTableBody.innerHTML = "";
 
       const rows = [
@@ -282,8 +324,8 @@
         },
         {
           category: "Time",
-          human: `${result.human.timeSeconds.toFixed(1)} s`,
-          ai: `${result.ai.aiTimeSeconds.toFixed(1)} s`
+          human: `${result.human.timeSeconds.toFixed(3)} s`,
+          ai: `${result.ai.aiTimeSeconds.toFixed(3)} s`
         }
       ];
 
@@ -293,8 +335,8 @@
         if (row.category === "Triage" || row.category === "Treatment" || row.category === "Tests") {
           match = row.human === row.ai ? "✅" : "❌";
         } else if (row.category === "Time") {
-          const humanNum = parseFloat(row.human);
-          const aiNum = parseFloat(row.ai);
+          const humanNum = parseFloat(result.human.timeSeconds);
+          const aiNum = parseFloat(result.ai.aiTimeSeconds);
           match = humanNum < aiNum ? "⚡" : "⏱";
         }
         tr.innerHTML = `
@@ -310,7 +352,7 @@
       submitStatusEl.textContent = `Result recorded for ${result.playerName}.`;
     });
 
-    // submit decision
+    // ===== BUTTON HANDLERS =====
     submitDecisionBtn.addEventListener("click", () => {
       const triage = triageSelect.value;
       const treatment = treatmentSelect.value;
@@ -327,11 +369,9 @@
       submitStatusEl.textContent = "Decision submitted. Comparing with AI...";
     });
 
-    // reset only current game
     resetBtn.addEventListener("click", () => {
       socket.emit("resetGame");
-      if (timerInterval) clearInterval(timerInterval);
-      timerDisplayEl.textContent = "Timer: --";
+      resetTimerDisplay();
       infoMessageEl.textContent = "Simulation reset. Waiting for new team.";
       resultsTableBody.innerHTML = "";
       scoreDisplayEl.textContent = "–";
@@ -341,7 +381,6 @@
       vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
     });
 
-    // ⭐ reset leaderboard completely
     resetLeaderboardBtn.addEventListener("click", () => {
       socket.emit("resetLeaderboard");
     });
