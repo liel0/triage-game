@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emergency Drone Simulation – Big Screen</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2, h3 { margin: 0.4rem 0; }
+    .row {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .card {
+      flex: 1;
+      min-width: 320px;
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 0 20px rgba(15, 23, 42, 0.7);
+    }
+    .label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: #9ca3af;
+      letter-spacing: 0.08em;
+    }
+    .value {
+      font-size: 1rem;
+      margin-bottom: 0.4rem;
+    }
+    .vital { margin-bottom: 0.4rem; }
+    .timer {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      margin-top: 8px;
+      margin-right: 6px;
+    }
+    button.primary { background: #2563eb; color: white; }
+    button.danger { background: #b91c1c; color: white; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+    th, td {
+      border-bottom: 1px solid #1f2937;
+      padding: 6px 4px;
+      text-align: left;
+    }
+    .small { font-size: 0.8rem; color: #9ca3af; }
+  </style>
+</head>
+<body>
+  <h1>🚨 Emergency Drone Simulation – Human vs AI Triage</h1>
+  <p class="small">
+    Players join from their phones (scan QR banner) → scan vitals on the mannequin → race the AI to triage.
+  </p>
+
+  <div class="row">
+    <!-- Current game info & vitals -->
+    <div class="card">
+      <div class="label">Current Team</div>
+      <div class="value" id="teamInfo">Waiting for player...</div>
+
+      <div class="label">Patient</div>
+      <div class="value" id="patientInfo">–</div>
+
+      <div class="label">Vitals (collected)</div>
+      <div id="vitalsList"></div>
+
+      <div class="timer" id="timerDisplay">Timer: --</div>
+      <div class="small" id="infoMessage"></div>
+
+      <button class="danger" id="resetBtn">Reset Simulation</button>
+      <!-- ⭐ NEW BUTTON -->
+      <button class="danger" id="resetLeaderboardBtn">Reset Leaderboard</button>
+    </div>
+
+    <!-- Triage decision controls -->
+    <div class="card">
+      <h2>🧩 Human Triage Control</h2>
+      <p class="small">
+        Once all vitals are collected, make your decision before 60 seconds are up.
+      </p>
+
+      <div class="label">Triage Category</div>
+      <select id="triageSelect">
+        <option value="">Select...</option>
+        <option value="Red">🔴 Red – Immediate</option>
+        <option value="Yellow">🟡 Yellow – Delayed</option>
+        <option value="Green">🟢 Green – Minor</option>
+        <option value="Black">⚫ Black – Expectant</option>
+      </select>
+
+      <div class="label" style="margin-top: 10px;">Initial ER Tests</div>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="IV Fluids" /> IV Fluids</label><br />
+      <label class="small"><input type="checkbox" class="testCheckbox" value="X-ray" /> X-ray</label><br />
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Oxygen" /> Oxygen</label><br />
+      <label class="small"><input type="checkbox" class="testCheckbox" value="CT Scan" /> CT Scan</label><br />
+
+      <div class="label" style="margin-top: 10px;">Initial Treatment</div>
+      <select id="treatmentSelect">
+        <option value="">Select...</option>
+        <option value="Emergency Surgery">Emergency Surgery</option>
+        <option value="Observation">Observation</option>
+        <option value="Discharge with analgesia">Discharge with analgesia</option>
+        <option value="CPR / ACLS as appropriate">CPR / ACLS as appropriate</option>
+      </select>
+
+      <br />
+      <button class="primary" id="submitDecisionBtn">Submit Decision</button>
+      <div class="small" id="submitStatus"></div>
+    </div>
+  </div>
+
+  <!-- Results & Leaderboard -->
+  <div class="row">
+    <div class="card">
+      <h2>🤖 Human vs AI Comparison</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Human Team</th>
+            <th>AI Drone</th>
+            <th>Match</th>
+          </tr>
+        </thead>
+        <tbody id="resultsTableBody"></tbody>
+      </table>
+      <div class="label" style="margin-top: 10px;">Score</div>
+      <div class="value" id="scoreDisplay">–</div>
+    </div>
+
+    <div class="card">
+      <h2>🏆 Live Leaderboard</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Team</th>
+            <th>Mode</th>
+            <th>Points</th>
+            <th>Time (s)</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+
+    let currentGame = null;
+    let timerInterval = null;
+    let timerRemaining = null;
+
+    const teamInfoEl = document.getElementById("teamInfo");
+    const patientInfoEl = document.getElementById("patientInfo");
+    const vitalsListEl = document.getElementById("vitalsList");
+    const timerDisplayEl = document.getElementById("timerDisplay");
+    const infoMessageEl = document.getElementById("infoMessage");
+    const submitStatusEl = document.getElementById("submitStatus");
+    const resultsTableBody = document.getElementById("resultsTableBody");
+    const scoreDisplayEl = document.getElementById("scoreDisplay");
+    const leaderboardBody = document.getElementById("leaderboardBody");
+
+    const triageSelect = document.getElementById("triageSelect");
+    const treatmentSelect = document.getElementById("treatmentSelect");
+    const testCheckboxes = document.querySelectorAll(".testCheckbox");
+    const submitDecisionBtn = document.getElementById("submitDecisionBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const resetLeaderboardBtn = document.getElementById("resetLeaderboardBtn"); // ⭐ NEW
+
+    function renderGameState(state) {
+      currentGame = state.currentGame || null;
+
+      if (!currentGame) {
+        teamInfoEl.textContent = "Waiting for player...";
+        patientInfoEl.textContent = "–";
+        vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
+        timerDisplayEl.textContent = "Timer: --";
+        infoMessageEl.textContent = "Scan QR code on the banner to join the simulation.";
+        return;
+      }
+
+      teamInfoEl.textContent = `${currentGame.playerName} (${currentGame.mode === "group" ? "Group" : "Solo"})`;
+      patientInfoEl.textContent = currentGame.patientName || "Selected patient";
+      // vitals are rendered live via events; here we just keep what's already there
+    }
+
+    function renderLeaderboard(leaderboard) {
+      leaderboardBody.innerHTML = "";
+      leaderboard.forEach((entry, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${entry.playerName}</td>
+          <td>${entry.mode === "group" ? "Group" : "Solo"}</td>
+          <td>${entry.points}</td>
+          <td>${entry.timeSeconds.toFixed(1)}</td>
+        `;
+        leaderboardBody.appendChild(tr);
+      });
+    }
+
+    function startTimer(seconds) {
+      if (timerInterval) clearInterval(timerInterval);
+      timerRemaining = seconds;
+      timerDisplayEl.textContent = `Timer: ${timerRemaining}s`;
+
+      timerInterval = setInterval(() => {
+        timerRemaining--;
+        if (timerRemaining < 0) {
+          clearInterval(timerInterval);
+          timerDisplayEl.textContent = "Timer: 0s (time up!)";
+          return;
+        }
+        timerDisplayEl.textContent = `Timer: ${timerRemaining}s`;
+      }, 1000);
+    }
+
+    socket.on("stateUpdate", (data) => {
+      renderGameState(data);
+      renderLeaderboard(data.leaderboard || []);
+    });
+
+    socket.on("gameRegistered", (game) => {
+      infoMessageEl.textContent = "Team registered. Scan mannequin vitals using your phone.";
+      currentGame = game;
+    });
+
+    socket.on("vitalScanned", (payload) => {
+      const line = document.createElement("div");
+      line.className = "vital";
+      line.textContent = `${payload.vitalKey}: ${payload.vitalValue}`;
+      vitalsListEl.appendChild(line);
+      infoMessageEl.textContent = `✅ Vital ${payload.count} of ${payload.total} received — scan the next vital!`;
+    });
+
+    socket.on("allVitalsCollected", (payload) => {
+      infoMessageEl.textContent = "🚨 Vitals complete! Move to the Triage Zone and make your decisions.";
+      startTimer(payload.triageTimerSeconds || 60);
+    });
+
+    socket.on("resultsReady", (result) => {
+      resultsTableBody.innerHTML = "";
+
+      const rows = [
+        {
+          category: "Triage",
+          human: result.human.triage,
+          ai: result.ai.triage
+        },
+        {
+          category: "Tests",
+          human: result.human.tests.join(", ") || "None",
+          ai: result.ai.tests.join(", ") || "None"
+        },
+        {
+          category: "Treatment",
+          human: result.human.treatment,
+          ai: result.ai.treatment
+        },
+        {
+          category: "Time",
+          human: `${result.human.timeSeconds.toFixed(1)} s`,
+          ai: `${result.ai.aiTimeSeconds.toFixed(1)} s`
+        }
+      ];
+
+      rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        let match = "–";
+        if (row.category === "Triage" || row.category === "Treatment" || row.category === "Tests") {
+          match = row.human === row.ai ? "✅" : "❌";
+        } else if (row.category === "Time") {
+          const humanNum = parseFloat(row.human);
+          const aiNum = parseFloat(row.ai);
+          match = humanNum < aiNum ? "⚡" : "⏱";
+        }
+        tr.innerHTML = `
+          <td>${row.category}</td>
+          <td>${row.human}</td>
+          <td>${row.ai}</td>
+          <td>${match}</td>
+        `;
+        resultsTableBody.appendChild(tr);
+      });
+
+      scoreDisplayEl.textContent = `${result.points} / 12 points`;
+      submitStatusEl.textContent = `Result recorded for ${result.playerName}.`;
+    });
+
+    // submit decision
+    submitDecisionBtn.addEventListener("click", () => {
+      const triage = triageSelect.value;
+      const treatment = treatmentSelect.value;
+      const tests = Array.from(testCheckboxes)
+        .filter((c) => c.checked)
+        .map((c) => c.value);
+
+      if (!triage || !treatment) {
+        submitStatusEl.textContent = "Please select a triage category and treatment.";
+        return;
+      }
+
+      socket.emit("submitHumanDecision", { triage, tests, treatment });
+      submitStatusEl.textContent = "Decision submitted. Comparing with AI...";
+    });
+
+    // reset only current game
+    resetBtn.addEventListener("click", () => {
+      socket.emit("resetGame");
+      if (timerInterval) clearInterval(timerInterval);
+      timerDisplayEl.textContent = "Timer: --";
+      infoMessageEl.textContent = "Simulation reset. Waiting for new team.";
+      resultsTableBody.innerHTML = "";
+      scoreDisplayEl.textContent = "–";
+      triageSelect.value = "";
+      treatmentSelect.value = "";
+      testCheckboxes.forEach((c) => (c.checked = false));
+      vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
+    });
+
+    // ⭐ reset leaderboard completely
+    resetLeaderboardBtn.addEventListener("click", () => {
+      socket.emit("resetLeaderboard");
+    });
+  </script>
+</body>
+</html>
