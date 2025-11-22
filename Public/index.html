@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Emergency Drone Simulation – Big Screen</title>
   <script src="/socket.io/socket.io.js"></script>
+
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -12,13 +13,16 @@
       margin: 0;
       padding: 20px;
     }
+
     h1, h2, h3 { margin: 0.4rem 0; }
+
     .row {
       display: flex;
       gap: 20px;
       margin-top: 20px;
       flex-wrap: wrap;
     }
+
     .card {
       flex: 1;
       min-width: 320px;
@@ -27,22 +31,33 @@
       padding: 16px;
       box-shadow: 0 0 20px rgba(15, 23, 42, 0.7);
     }
+
     .label {
       font-size: 0.8rem;
       text-transform: uppercase;
       color: #9ca3af;
       letter-spacing: 0.08em;
     }
+
     .value {
       font-size: 1rem;
       margin-bottom: 0.4rem;
     }
+
     .vital { margin-bottom: 0.4rem; }
-    .timer {
+
+    /* TIMER STYLING */
+    .timer-seconds {
       font-size: 2rem;
-      font-weight: bold;
-      margin-top: 10px;
+      font-weight: 700;
     }
+
+    .timer-ms {
+      font-size: 1.2rem;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
     button {
       padding: 8px 16px;
       border-radius: 999px;
@@ -51,30 +66,35 @@
       margin-top: 8px;
       margin-right: 6px;
     }
+
     button.primary { background: #2563eb; color: white; }
     button.danger { background: #b91c1c; color: white; }
+
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
       margin-top: 8px;
     }
+
     th, td {
       border-bottom: 1px solid #1f2937;
       padding: 6px 4px;
       text-align: left;
     }
+
     .small { font-size: 0.8rem; color: #9ca3af; }
   </style>
 </head>
+
 <body>
   <h1>🚨 Emergency Drone Simulation – Human vs AI Triage</h1>
   <p class="small">
-    Players join from their phones (scan QR banner) → scan vitals on the mannequin → race the AI to triage.
+    Players scan QR codes on the mannequins → vitals appear here → players race the AI.
   </p>
 
   <div class="row">
-    <!-- Current game info & vitals -->
+    <!-- CURRENT GAME BOX -->
     <div class="card">
       <div class="label">Current Team</div>
       <div class="value" id="teamInfo">Waiting for player...</div>
@@ -87,36 +107,33 @@
         <span class="small">No vitals scanned yet.</span>
       </div>
 
-      <div class="timer" id="timerDisplay">Timer: --</div>
+      <div id="timerDisplay" style="margin-top: 10px;">Timer: --</div>
       <div class="small" id="infoMessage"></div>
 
       <button class="danger" id="resetBtn">Reset Simulation</button>
       <button class="danger" id="resetLeaderboardBtn">Reset Leaderboard</button>
     </div>
 
-    <!-- Triage decision controls -->
+    <!-- TRIAGE CONTROL -->
     <div class="card">
-      <h2>🧩 Human Triage Control</h2>
-      <p class="small">
-        Once all vitals are collected, make your decision before time runs out.
-      </p>
+      <h2>🧩 Human Triage</h2>
 
       <div class="label">Triage Category</div>
       <select id="triageSelect">
         <option value="">Select...</option>
-        <option value="Red">🔴 Red – Immediate</option>
-        <option value="Yellow">🟡 Yellow – Delayed</option>
-        <option value="Green">🟢 Green – Minor</option>
-        <option value="Black">⚫ Black – Expectant</option>
+        <option value="Red">🔴 Red</option>
+        <option value="Yellow">🟡 Yellow</option>
+        <option value="Green">🟢 Green</option>
+        <option value="Black">⚫ Black</option>
       </select>
 
-      <div class="label" style="margin-top: 10px;">Initial ER Tests</div>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="IV Fluids" /> IV Fluids</label><br />
-      <label class="small"><input type="checkbox" class="testCheckbox" value="X-ray" /> X-ray</label><br />
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Oxygen" /> Oxygen</label><br />
-      <label class="small"><input type="checkbox" class="testCheckbox" value="CT Scan" /> CT Scan</label><br />
+      <div class="label" style="margin-top: 10px;">ER Tests</div>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="IV Fluids"> IV Fluids</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="X-ray"> X-ray</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Oxygen"> Oxygen</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="CT Scan"> CT Scan</label><br>
 
-      <div class="label" style="margin-top: 10px;">Initial Treatment</div>
+      <div class="label" style="margin-top: 10px;">Treatment</div>
       <select id="treatmentSelect">
         <option value="">Select...</option>
         <option value="Emergency Surgery">Emergency Surgery</option>
@@ -125,33 +142,33 @@
         <option value="CPR / ACLS as appropriate">CPR / ACLS as appropriate</option>
       </select>
 
-      <br />
       <button class="primary" id="submitDecisionBtn">Submit Decision</button>
       <div class="small" id="submitStatus"></div>
     </div>
   </div>
 
-  <!-- Results & Leaderboard -->
+  <!-- RESULTS & LEADERBOARD -->
   <div class="row">
     <div class="card">
-      <h2>🤖 Human vs AI Comparison</h2>
+      <h2>🤖 Human vs AI Results</h2>
       <table>
         <thead>
           <tr>
             <th>Category</th>
-            <th>Human Team</th>
-            <th>AI Drone</th>
+            <th>Human</th>
+            <th>AI</th>
             <th>Match</th>
           </tr>
         </thead>
         <tbody id="resultsTableBody"></tbody>
       </table>
+
       <div class="label" style="margin-top: 10px;">Score</div>
       <div class="value" id="scoreDisplay">–</div>
     </div>
 
     <div class="card">
-      <h2>🏆 Live Leaderboard</h2>
+      <h2>🏆 Leaderboard</h2>
       <table>
         <thead>
           <tr>
@@ -170,6 +187,9 @@
   <script>
     const socket = io();
 
+    // ===============================
+    // GLOBAL REFERENCES
+    // ===============================
     let currentGame = null;
 
     const teamInfoEl = document.getElementById("teamInfo");
@@ -182,21 +202,14 @@
     const scoreDisplayEl = document.getElementById("scoreDisplay");
     const leaderboardBody = document.getElementById("leaderboardBody");
 
-    const triageSelect = document.getElementById("triageSelect");
-    const treatmentSelect = document.getElementById("treatmentSelect");
-    const testCheckboxes = document.querySelectorAll(".testCheckbox");
-    const submitDecisionBtn = document.getElementById("submitDecisionBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const resetLeaderboardBtn = document.getElementById("resetLeaderboardBtn");
-
-    // ===== TIMER WITH MILLISECONDS =====
+    // ===============================
+    // TIMER WITH 2 DECIMALS + STYLING
+    // ===============================
     let timerInterval = null;
     let timerStart = null;
-    let timerDurationSeconds = null;
 
     function startTimer(durationSeconds) {
       timerStart = performance.now();
-      timerDurationSeconds = durationSeconds;
       const endTime = timerStart + durationSeconds * 1000;
 
       if (timerInterval) clearInterval(timerInterval);
@@ -211,10 +224,14 @@
           timerInterval = null;
         }
 
-        const seconds = Math.floor(remaining / 1000);
-        const ms = Math.floor(remaining % 1000);
-        timerDisplayEl.textContent = `${seconds}.${ms.toString().padStart(3, "0")} s`;
-      }, 16); // ~60fps
+        const totalSeconds = remaining / 1000;
+        const formatted = totalSeconds.toFixed(2); // SS.mm
+        const [sec, ms] = formatted.split(".");
+
+        timerDisplayEl.innerHTML =
+          `<span class="timer-seconds">${sec}</span>` +
+          `<span class="timer-ms">.${ms}</span> s`;
+      }, 16);
     }
 
     function stopTimerAndFreeze() {
@@ -224,166 +241,159 @@
       }
 
       if (timerStart !== null) {
-        const elapsedMs = performance.now() - timerStart;
-        const seconds = (elapsedMs / 1000).toFixed(3);
-        timerDisplayEl.textContent = `${seconds} s (final)`;
+        const elapsedSec = (performance.now() - timerStart) / 1000;
+        const formatted = elapsedSec.toFixed(2);
+        const [sec, ms] = formatted.split(".");
+
+        timerDisplayEl.innerHTML =
+          `<span class="timer-seconds">${sec}</span>` +
+          `<span class="timer-ms">.${ms}</span> s (final)`;
       }
     }
 
     function resetTimerDisplay() {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
       timerStart = null;
-      timerDurationSeconds = null;
       timerDisplayEl.textContent = "Timer: --";
     }
 
-    // ===== RENDER FUNCTIONS =====
-    function renderGameState(state) {
-      currentGame = state.currentGame || null;
+    // ===============================
+    // HANDLE SERVER STATE
+    // ===============================
+    socket.on("stateUpdate", (data) => {
+      currentGame = data.currentGame || null;
+      leaderboardBody.innerHTML = "";
 
+      // RENDER LEADERBOARD
+      (data.leaderboard || []).forEach((entry, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${entry.playerName}</td>
+          <td>${entry.mode}</td>
+          <td>${entry.points}</td>
+          <td>${entry.timeSeconds.toFixed(2)}</td>
+        `;
+        leaderboardBody.appendChild(tr);
+      });
+
+      // RENDER GAME STATUS
       if (!currentGame) {
         teamInfoEl.textContent = "Waiting for player...";
         patientInfoEl.textContent = "–";
         vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
         resetTimerDisplay();
-        infoMessageEl.textContent = "Scan QR code on the banner to join the simulation.";
         return;
       }
 
-      teamInfoEl.textContent = `${currentGame.playerName} (${currentGame.mode === "group" ? "Group" : "Solo"})`;
-      patientInfoEl.textContent = currentGame.patientName || "Selected patient";
-      // vitals rendered live via events
-    }
-
-    function renderLeaderboard(leaderboard) {
-      leaderboardBody.innerHTML = "";
-      leaderboard.forEach((entry, index) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${entry.playerName}</td>
-          <td>${entry.mode === "group" ? "Group" : "Solo"}</td>
-          <td>${entry.points}</td>
-          <td>${entry.timeSeconds.toFixed(3)}</td>
-        `;
-        leaderboardBody.appendChild(tr);
-      });
-    }
-
-    // ===== SOCKET EVENTS =====
-    socket.on("stateUpdate", (data) => {
-      renderGameState(data);
-      renderLeaderboard(data.leaderboard || []);
+      teamInfoEl.textContent = currentGame.playerName;
+      patientInfoEl.textContent = currentGame.patientName;
     });
 
-    socket.on("gameRegistered", (game) => {
-      infoMessageEl.textContent = "Team registered. Scan mannequin vitals using your phone.";
-      currentGame = game;
-    });
-
+    // ===============================
+    // VITALS — NO DUPLICATES
+    // ===============================
     socket.on("vitalScanned", (payload) => {
-      if (vitalsListEl.firstChild && vitalsListEl.firstChild.classList && vitalsListEl.firstChild.classList.contains("small")) {
+      // Remove placeholder
+      if (
+        vitalsListEl.firstChild &&
+        vitalsListEl.firstChild.classList &&
+        vitalsListEl.firstChild.classList.contains("small")
+      ) {
         vitalsListEl.innerHTML = "";
       }
-      const line = document.createElement("div");
-      line.className = "vital";
+
+      // Find existing element
+      let line = vitalsListEl.querySelector(`.vital[data-key="${payload.vitalKey}"]`);
+
+      // Create if missing
+      if (!line) {
+        line = document.createElement("div");
+        line.className = "vital";
+        line.dataset.key = payload.vitalKey;
+        vitalsListEl.appendChild(line);
+      }
+
+      // Always update text
       line.textContent = `${payload.vitalKey}: ${payload.vitalValue}`;
-      vitalsListEl.appendChild(line);
-      infoMessageEl.textContent = `✅ Vital ${payload.count} of ${payload.total} received — scan the next vital!`;
     });
 
     socket.on("allVitalsCollected", (payload) => {
-      infoMessageEl.textContent = "🚨 Vitals complete! Move to the Triage Zone and make your decisions.";
+      infoMessageEl.textContent = "🚨 Vitals complete! Make your triage decision!";
       startTimer(payload.triageTimerSeconds || 60);
     });
 
+    // ===============================
+    // RESULTS
+    // ===============================
     socket.on("resultsReady", (result) => {
-      // Stop timer & freeze at final time
       stopTimerAndFreeze();
 
       resultsTableBody.innerHTML = "";
-
       const rows = [
-        {
-          category: "Triage",
-          human: result.human.triage,
-          ai: result.ai.triage
-        },
-        {
-          category: "Tests",
-          human: result.human.tests.join(", ") || "None",
-          ai: result.ai.tests.join(", ") || "None"
-        },
-        {
-          category: "Treatment",
-          human: result.human.treatment,
-          ai: result.ai.treatment
-        },
-        {
-          category: "Time",
-          human: `${result.human.timeSeconds.toFixed(3)} s`,
-          ai: `${result.ai.aiTimeSeconds.toFixed(3)} s`
-        }
+        { category: "Triage", human: result.human.triage, ai: result.ai.triage },
+        { category: "Tests", human: result.human.tests.join(", ") || "None", ai: result.ai.tests.join(", ") || "None" },
+        { category: "Treatment", human: result.human.treatment, ai: result.ai.treatment },
+        { category: "Time", human: `${result.human.timeSeconds.toFixed(2)} s`, ai: `${result.ai.aiTimeSeconds.toFixed(2)} s` }
       ];
 
-      rows.forEach((row) => {
+      rows.forEach(r => {
         const tr = document.createElement("tr");
+
         let match = "–";
-        if (row.category === "Triage" || row.category === "Treatment" || row.category === "Tests") {
-          match = row.human === row.ai ? "✅" : "❌";
-        } else if (row.category === "Time") {
-          const humanNum = parseFloat(result.human.timeSeconds);
-          const aiNum = parseFloat(result.ai.aiTimeSeconds);
-          match = humanNum < aiNum ? "⚡" : "⏱";
+        if (r.category !== "Time") {
+          match = r.human === r.ai ? "✅" : "❌";
+        } else {
+          match = parseFloat(result.human.timeSeconds) < parseFloat(result.ai.aiTimeSeconds) ? "⚡" : "⏱";
         }
+
         tr.innerHTML = `
-          <td>${row.category}</td>
-          <td>${row.human}</td>
-          <td>${row.ai}</td>
+          <td>${r.category}</td>
+          <td>${r.human}</td>
+          <td>${r.ai}</td>
           <td>${match}</td>
         `;
         resultsTableBody.appendChild(tr);
       });
 
       scoreDisplayEl.textContent = `${result.points} / 12 points`;
-      submitStatusEl.textContent = `Result recorded for ${result.playerName}.`;
     });
 
-    // ===== BUTTON HANDLERS =====
-    submitDecisionBtn.addEventListener("click", () => {
-      const triage = triageSelect.value;
-      const treatment = treatmentSelect.value;
-      const tests = Array.from(testCheckboxes)
-        .filter((c) => c.checked)
-        .map((c) => c.value);
+    // ===============================
+    // RESET BUTTONS
+    // ===============================
+    document.getElementById("resetBtn").onclick = () => {
+      socket.emit("resetGame");
+      resetTimerDisplay();
+      vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
+      resultsTableBody.innerHTML = "";
+      scoreDisplayEl.textContent = "–";
+    };
+
+    document.getElementById("resetLeaderboardBtn").onclick = () => {
+      socket.emit("resetLeaderboard");
+    };
+
+    // ===============================
+    // SUBMIT DECISION
+    // ===============================
+    document.getElementById("submitDecisionBtn").onclick = () => {
+      const triage = document.getElementById("triageSelect").value;
+      const treatment = document.getElementById("treatmentSelect").value;
+
+      const tests = Array.from(document.querySelectorAll(".testCheckbox"))
+        .filter(c => c.checked)
+        .map(c => c.value);
 
       if (!triage || !treatment) {
-        submitStatusEl.textContent = "Please select a triage category and treatment.";
+        submitStatusEl.textContent = "Please select triage and treatment.";
         return;
       }
 
       socket.emit("submitHumanDecision", { triage, tests, treatment });
-      submitStatusEl.textContent = "Decision submitted. Comparing with AI...";
-    });
-
-    resetBtn.addEventListener("click", () => {
-      socket.emit("resetGame");
-      resetTimerDisplay();
-      infoMessageEl.textContent = "Simulation reset. Waiting for new team.";
-      resultsTableBody.innerHTML = "";
-      scoreDisplayEl.textContent = "–";
-      triageSelect.value = "";
-      treatmentSelect.value = "";
-      testCheckboxes.forEach((c) => (c.checked = false));
-      vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
-    });
-
-    resetLeaderboardBtn.addEventListener("click", () => {
-      socket.emit("resetLeaderboard");
-    });
+      submitStatusEl.textContent = "Sending decision...";
+    };
   </script>
 </body>
 </html>
