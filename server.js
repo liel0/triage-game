@@ -7,9 +7,21 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, "public")));
+// ⭐ IMPORTANT: Your GitHub folder is "Public", not "public"
+const publicPath = path.join(__dirname, "Public");
 
-// --- SAMPLE PATIENT DATA ---
+// Serve static files
+app.use(express.static(publicPath));
+
+// Route for "/"
+app.get("/", (req, res) => {
+  res.sendFile(path.join(publicPath, "index.html"));
+});
+
+// ---------------------------------------------
+//   YOUR GAME LOGIC (unchanged)
+// ---------------------------------------------
+
 const patients = [
   {
     id: 1,
@@ -84,7 +96,7 @@ const patients = [
 let currentGame = null;
 let leaderboard = [];
 
-// ----- Utility functions -----
+// Utility functions
 function findPatient(patientId) {
   return patients.find((p) => p.id === patientId);
 }
@@ -101,20 +113,11 @@ function arraysEqualAsSets(a, b) {
 
 function scoreGame(human, ai, humanTime) {
   let score = 0;
-
-  // +5 correct triage
   if (human.triage === ai.triage) score += 5;
-
-  // +3 correct treatment
   if (human.treatment === ai.treatment) score += 3;
-
-  // +2 tests match as a set
   if (arraysEqualAsSets(human.tests, ai.tests)) score += 2;
-
-  // +2 faster than AI AND +2 under 30s
   if (humanTime < ai.aiTimeSeconds) score += 2;
   if (humanTime <= 30) score += 2;
-
   return score;
 }
 
@@ -125,11 +128,10 @@ function broadcastState() {
   });
 }
 
-// ----- Socket.IO -----
+// Socket.IO
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
-  // send current state on connect
   if (currentGame || leaderboard.length > 0) {
     socket.emit("stateUpdate", {
       currentGame,
@@ -137,7 +139,6 @@ io.on("connection", (socket) => {
     });
   }
 
-  // player registers from mobile
   socket.on("registerPlayer", (data) => {
     const { playerName, mode, patientId } = data;
     const patient = findPatient(patientId);
@@ -160,14 +161,13 @@ io.on("connection", (socket) => {
       result: null
     };
 
-    console.log("New game registered:", currentGame);
     io.emit("gameRegistered", currentGame);
     broadcastState();
   });
 
-  // mobile "scan" vital
   socket.on("scanVital", (data) => {
     if (!currentGame) return;
+
     const { vitalKey } = data;
     const patient = findPatient(currentGame.patientId);
     if (!patient || !patient.vitals[vitalKey]) return;
@@ -200,7 +200,6 @@ io.on("connection", (socket) => {
     broadcastState();
   });
 
-  // big screen submits human decision
   socket.on("submitHumanDecision", (data) => {
     if (!currentGame || !currentGame.allVitalsCollected) return;
 
@@ -209,9 +208,7 @@ io.on("connection", (socket) => {
     if (!patient) return;
 
     const now = Date.now();
-    const humanTimeSeconds = currentGame.triagePhaseStartedAt
-      ? (now - currentGame.triagePhaseStartedAt) / 1000
-      : 60;
+    const humanTimeSeconds = (now - currentGame.triagePhaseStartedAt) / 1000;
 
     const humanDecision = {
       triage,
@@ -235,7 +232,6 @@ io.on("connection", (socket) => {
 
     currentGame.result = result;
 
-    // update leaderboard
     leaderboard.push({
       playerName: currentGame.playerName,
       mode: currentGame.mode,
@@ -252,13 +248,11 @@ io.on("connection", (socket) => {
     broadcastState();
   });
 
-  // reset only current game
   socket.on("resetGame", () => {
     currentGame = null;
     broadcastState();
   });
 
-  // ⭐ NEW: reset leaderboard completely
   socket.on("resetLeaderboard", () => {
     leaderboard = [];
     broadcastState();
@@ -269,7 +263,8 @@ io.on("connection", (socket) => {
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
