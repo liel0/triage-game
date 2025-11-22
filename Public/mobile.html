@@ -15,14 +15,8 @@
       margin: 0;
       padding: 16px;
     }
-    h1 {
-      font-size: 1.4rem;
-      margin-bottom: 0.4rem;
-    }
-    .small {
-      font-size: 0.8rem;
-      color: #9ca3af;
-    }
+    h1 { font-size: 1.4rem; margin-bottom: 0.4rem; }
+    .small { font-size: 0.8rem; color: #9ca3af; }
     input, select {
       width: 100%;
       padding: 8px;
@@ -38,36 +32,32 @@
       cursor: pointer;
       margin-top: 8px;
     }
-    button.primary {
-      background: #22c55e;
-      color: white;
-      font-weight: 600;
-    }
-    button.secondary {
-      background: #1f2937;
-      color: #e5e7eb;
-      font-weight: 500;
-    }
+    button.primary { background: #22c55e; color: white; font-weight: 600; }
+    button.secondary { background: #1f2937; color: #e5e7eb; font-weight: 500; }
     .card {
       background: #0f172a;
       border-radius: 12px;
       padding: 12px;
       margin-top: 12px;
     }
-    .vital-btn {
-      margin-top: 6px;
-    }
+    .vital-btn { margin-top: 6px; }
     #qr-reader {
       margin-top: 10px;
       border-radius: 12px;
       overflow: hidden;
+    }
+    #scanImage {
+      margin-top: 10px;
+      max-width: 100%;
+      border-radius: 12px;
+      display: none;
     }
   </style>
 </head>
 <body>
   <h1>🚑 Triage Scanner</h1>
   <p class="small">
-    Step 1: Register your team → Step 2: Scan mannequin vitals via QR → Step 3: Watch the big screen.
+    Step 1: Register your team → Step 2: Scan mannequin QR codes → Step 3: Watch the big screen.
   </p>
 
   <div class="card">
@@ -95,10 +85,11 @@
   <div class="card">
     <div class="small">Step 2: Scan vitals on the mannequin</div>
     <p class="small">
-      Tap the body part → your camera opens → scan the QR code on the mannequin.
+      Tap the body part → your camera opens → scan the QR code on that body part.
+      The image (X-ray / injury photo) will appear below.
     </p>
 
-    <!-- Each button starts the scanner for a specific vital -->
+    <!-- Each button decides WHICH vital we send to server -->
     <button class="secondary vital-btn"
             onclick="startScanner('consciousness')">
       Scan Forehead – Consciousness
@@ -106,7 +97,7 @@
 
     <button class="secondary vital-btn"
             onclick="startScanner('respiratoryRate')">
-      Scan Chest – Respiratory Rate
+      Scan Chest – Respiratory Rate / X-ray
     </button>
 
     <button class="secondary vital-btn"
@@ -128,6 +119,9 @@
 
     <!-- QR scanner box (hidden until used) -->
     <div id="qr-reader" style="width: 100%; display:none;"></div>
+
+    <!-- Image preview of what was scanned (e.g. X-ray) -->
+    <img id="scanImage" alt="Scanned clinical image" />
   </div>
 
   <script>
@@ -140,6 +134,7 @@
     const registerStatus = document.getElementById("registerStatus");
     const scanStatus = document.getElementById("scanStatus");
     const qrReaderEl = document.getElementById("qr-reader");
+    const scanImageEl = document.getElementById("scanImage");
 
     let registered = false;
     let qrScanner = null;
@@ -173,8 +168,8 @@
       scanStatus.textContent = "✅ All vitals collected! Go to the big screen to triage.";
     });
 
-    // Start QR scanner for a specific vital
-    window.startScanner = function (vitalKey) {
+    // Start QR scanner for a specific vital (forehead/chest/wrist/etc.)
+    window.startScanner = async function (vitalKey) {
       if (!registered) {
         scanStatus.textContent = "You must register your team before scanning.";
         return;
@@ -182,63 +177,69 @@
 
       scanningFor = vitalKey;
       scanStatus.textContent = `Point your camera at the QR on the ${bodyPartName(vitalKey)}...`;
+      scanImageEl.style.display = "none";
+      scanImageEl.src = "";
 
-      // Show scanner box
       qrReaderEl.style.display = "block";
 
-      // If scanner already exists, stop it before restarting
+      // If scanner already exists, stop it first
       if (qrScanner) {
-        qrScanner.stop().catch(() => {}).finally(() => {
+        try {
+          await qrScanner.stop();
           qrScanner.clear();
-          qrScanner = null;
-          beginScan();
-        });
-      } else {
-        beginScan();
+        } catch (e) {}
+        qrScanner = null;
       }
 
-      function beginScan() {
-        qrScanner = new Html5Qrcode("qr-reader");
+      qrScanner = new Html5Qrcode("qr-reader");
 
-        qrScanner.start(
+      qrScanner
+        .start(
           { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: 250
-          },
+          { fps: 10, qrbox: 250 },
           (decodedText) => {
-            // We expect QR content to be exactly the vital key
-            if (decodedText === scanningFor) {
-              socket.emit("scanVital", { vitalKey: decodedText });
-              scanStatus.textContent = `✅ Scanned ${decodedText}. Sent to big screen.`;
+            const text = decodedText.trim();
+            // 1) Send the vitalKey based on the button pressed (not QR content)
+            socket.emit("scanVital", { vitalKey: scanningFor });
 
-              // Stop scanner and hide
-              qrScanner.stop().then(() => {
+            // 2) If QR content looks like a URL, show it as an image
+            if (text.startsWith("http://") || text.startsWith("https://")) {
+              scanImageEl.src = text;
+              scanImageEl.style.display = "block";
+              scanStatus.textContent = "✅ QR scanned. Image loaded and vital sent.";
+            } else {
+              scanStatus.textContent = "✅ QR scanned. Vital sent to big screen.";
+            }
+
+            // Stop scanner after first successful scan
+            qrScanner
+              .stop()
+              .then(() => {
                 qrScanner.clear();
                 qrReaderEl.style.display = "none";
                 qrScanner = null;
-              }).catch(() => {
+              })
+              .catch(() => {
                 qrReaderEl.style.display = "none";
                 qrScanner = null;
               });
-            } else {
-              scanStatus.textContent = "❌ Wrong QR scanned. Scan the QR on the correct body part.";
-            }
           },
           (errorMessage) => {
-            // Optional: you can log scanning errors, but we ignore minor ones
+            // ignore continuous scan errors
           }
-        ).catch(err => {
-          scanStatus.textContent = "Camera error. Check permissions and try again.";
+        )
+        .catch((err) => {
+          console.error("start() error:", err);
+          scanStatus.textContent =
+            "Camera error. Check browser permissions or try another browser.";
           qrReaderEl.style.display = "none";
         });
-      }
     };
 
     function bodyPartName(vitalKey) {
       switch (vitalKey) {
         case "consciousness": return "forehead (consciousness)";
-        case "respiratoryRate": return "chest (respiratory rate)";
+        case "respiratoryRate": return "chest (respiratory rate / X-ray)";
         case "pulse": return "wrist (pulse)";
         case "bloodPressure": return "arm tag (blood pressure)";
         case "oxygenSaturation": return "leg tag (O₂ saturation)";
