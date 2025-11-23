@@ -93,6 +93,42 @@
     #achievementsList li {
       margin-bottom: 4px;
     }
+
+    /* ---- improved readability + glow ---- */
+    .big-text {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: #e2e8f0;
+    }
+
+    .glow-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
+      margin-top: 12px;
+      margin-bottom: 6px;
+    }
+
+    .glow-box {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.22);
+    }
+
+    .glow-box li {
+      margin-bottom: 6px;
+      font-size: 1.02rem;
+    }
+
+    .important-text {
+      color: #fff;
+      font-weight: 600;
+      text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+    }
   </style>
 </head>
 
@@ -110,7 +146,7 @@
 
       <div class="label">Patient</div>
       <div class="value" id="patientInfo">–</div>
-      <div class="small" id="patientNarrative"></div>
+      <div id="patientNarrative" class="glow-box big-text"></div>
 
       <div class="label" style="margin-top: 10px;">Vitals (collected)</div>
       <div id="vitalsList">
@@ -207,17 +243,17 @@
 
       <div class="small" id="scoreBreakdown"></div>
 
-      <h3 style="margin-top: 10px;">🧠 Why the AI chose this plan</h3>
-      <div class="small" id="explanationBox">
-        <p><strong>Triage:</strong> <span id="explainTriage">–</span></p>
-        <p><strong>Tests:</strong> <span id="explainTests">–</span></p>
-        <p><strong>Treatment:</strong> <span id="explainTreatment">–</span></p>
+      <h3 class="glow-title">🧠 Why the AI chose this plan</h3>
+      <div id="explanationBox" class="glow-box big-text">
+        <p><span class="important-text">Triage:</span> <span id="explainTriage">–</span></p>
+        <p><span class="important-text">Tests:</span> <span id="explainTests">–</span></p>
+        <p><span class="important-text">Treatment:</span> <span id="explainTreatment">–</span></p>
       </div>
 
-      <h3 style="margin-top: 10px;">🏅 Achievements</h3>
-      <ul id="achievementsList" class="small"></ul>
+      <h3 class="glow-title">🏅 Achievements</h3>
+      <ul id="achievementsList" class="glow-box big-text"></ul>
 
-      <h3 style="margin-top: 10px;">📸 Team Certificate QR</h3>
+      <h3 class="glow-title">📸 Team Certificate QR</h3>
       <p class="small">Scan this on a phone to open your digital certificate and take a team photo.</p>
       <div id="certificateQr"></div>
     </div>
@@ -271,9 +307,7 @@
 
     let timerInterval = null;
     let timerStart = null;
-    let certificateQrInstance = null;
 
-    // TIMER
     function startTimer(durationSeconds) {
       timerStart = performance.now();
       const endTime = timerStart + durationSeconds * 1000;
@@ -324,11 +358,9 @@
       timerDisplayEl.textContent = "Timer: --";
     }
 
-    // STATE UPDATE
     socket.on("stateUpdate", (data) => {
       currentGame = data.currentGame || null;
 
-      // Render leaderboard
       leaderboardBody.innerHTML = "";
       (data.leaderboard || []).forEach((entry, i) => {
         const tr = document.createElement("tr");
@@ -356,7 +388,6 @@
       patientNarrativeEl.textContent = currentGame.patientNarrative || "";
     });
 
-    // VITALS – no duplicates
     socket.on("vitalScanned", (payload) => {
       if (
         vitalsListEl.firstChild &&
@@ -384,7 +415,6 @@
       startTimer(payload.triageTimerSeconds || 60);
     });
 
-    // RESULTS
     socket.on("resultsReady", (result) => {
       stopTimerAndFreeze();
 
@@ -420,8 +450,7 @@
         if (r.category === "Triage" || r.category === "Treatment Tag" || r.category === "Tests") {
           match = r.human === r.ai ? "✅" : "❌";
         } else if (r.category.startsWith("Treatment Plan")) {
-          match =
-            r.human === r.ai ? "✅" : "❌";
+          match = r.human === r.ai ? "✅" : "❌";
         } else if (r.category === "Time") {
           match =
             parseFloat(result.human.timeSeconds) < parseFloat(result.ai.aiTimeSeconds)
@@ -448,12 +477,10 @@
         +${bd.under30} Under 30 s
       `;
 
-      // Explanations
       explainTriageEl.textContent = result.explanations.triage;
       explainTestsEl.textContent = result.explanations.tests;
       explainTreatmentEl.textContent = result.explanations.treatment;
 
-      // Achievements
       achievementsListEl.innerHTML = "";
       (result.achievements || []).forEach(a => {
         const li = document.createElement("li");
@@ -461,7 +488,6 @@
         achievementsListEl.appendChild(li);
       });
 
-      // Certificate QR
       const certificateUrl =
         `${window.location.origin}/certificate.html` +
         `?team=${encodeURIComponent(result.playerName)}` +
@@ -470,14 +496,13 @@
         `&patient=${encodeURIComponent(result.patientName)}`;
 
       certificateQrEl.innerHTML = "";
-      certificateQrInstance = new QRCode(certificateQrEl, {
+      new QRCode(certificateQrEl, {
         text: certificateUrl,
         width: 120,
         height: 120
       });
     });
 
-    // BUTTONS
     document.getElementById("resetBtn").onclick = () => {
       socket.emit("resetGame");
       resetTimerDisplay();
