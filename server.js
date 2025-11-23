@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
 });
 
 //
-// -------------- MASS CASUALTY SCENARIOS (WITH HOSPITALS & NEW TESTS) --------------
+// -------------- MASS CASUALTY SCENARIOS --------------
 //
 
 const patients = [
@@ -23,7 +23,7 @@ const patients = [
     id: 1,
     name: "Scenario 1 – Hajj Stampede (Red Triage)",
     narrative:
-      "Patient: Male, 58. Location: Mina, during peak Hajj movement. Crushed in a stampede. Unconscious, pale, shallow breathing with severe bleeding from the lower abdomen and suspected pelvic fracture. High risk of shock due to major trauma and comorbidities (type 2 diabetes, hypertension, previous knee surgery).",
+      "Patient: Male, 58. Location: Mina, during peak Hajj movement. Crushed in a stampede. Unconscious, pale, shallow breathing with severe bleeding from the lower abdomen and suspected pelvic fracture. High risk of haemorrhagic shock due to major trauma and comorbidities (type 2 diabetes, hypertension, previous knee surgery).",
     vitals: {
       consciousness: "Unconscious",
       respiratoryRate: "34 / min",
@@ -33,7 +33,6 @@ const patients = [
     },
     aiDecision: {
       triage: "Red",
-      // ER tests the AI expects for this patient
       tests: [
         "FAST ultrasound",
         "CT scan",
@@ -47,15 +46,14 @@ const patients = [
         secondary: "Blood transfusion, pelvic stabilisation, analgesia",
         disposition: "Emergency operating theatre"
       },
-      // AI hospital choice for comparison
-      hospital: "Mina Emergency Hospital — Hajj Priority Centre",
+      hospital: "Mina Emergency Hospital — Hajj Priority Center",
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "Profound hypotension (78/45 mmHg), tachycardia (142 bpm), tachypnoea and unconsciousness after crush injury indicate severe haemorrhagic shock. Comorbid diabetes and hypertension further increase risk of poor perfusion → Red (Immediate) triage.",
+        "Profound hypotension (78/45 mmHg), tachycardia (142 bpm), tachypnoea and unconsciousness after crush injury indicate severe haemorrhagic shock. Comorbid diabetes and hypertension further increase the risk of poor perfusion → Red (Immediate) triage.",
       tests:
-        "A focused assessment with sonography for trauma (FAST ultrasound) and CT scan are used to detect intra-abdominal and pelvic bleeding. Intravenous fluids, blood typing and crossmatch and serum lactate guide resuscitation, transfusion and operative planning.",
+        "A focused assessment with sonography for trauma (FAST ultrasound) and CT scan are used to detect intra-abdominal and pelvic bleeding. Intravenous fluids, blood typing and crossmatch, and serum lactate guide resuscitation, transfusion and operative planning.",
       treatment:
         "Immediate damage-control resuscitation with oxygen, rapid IV fluids and blood products, pelvic stabilisation and emergency surgery for suspected pelvic and intra-abdominal haemorrhage."
     }
@@ -86,7 +84,7 @@ const patients = [
         secondary: "Carboxyhaemoglobin level, ECG, chest X-ray",
         disposition: "Observation ward / burns unit"
       },
-      hospital: "King Fahad Medical City — Level 1 Trauma Centre",
+      hospital: "King Fahad Medical City — Level 1 Trauma Center",
       aiTimeSeconds: 1.2
     },
     explanations: {
@@ -102,7 +100,7 @@ const patients = [
     id: 3,
     name: "Scenario 3 – Desert Rally Dehydration (Green Triage)",
     narrative:
-      "Patient: Female, 27. Location: AlUla Desert Rally checkpoint. Alert and walking, complaining of dry mouth, fatigue and headache after prolonged heat exposure. Mild clinical signs of dehydration only. Past history: healthy, occasional migraines.",
+      "Patient: Female, 27. Location: AlUla Desert Rally checkpoint. Alert and walking, complaining of dry mouth, fatigue and headache after prolonged heat exposure. Only mild clinical signs of dehydration. Past history: healthy, occasional migraines.",
     vitals: {
       consciousness: "Alert, walking",
       respiratoryRate: "18 / min",
@@ -135,7 +133,7 @@ const patients = [
     id: 4,
     name: "Scenario 4 – Highway Collision (Black Triage)",
     narrative:
-      "Patient: Male, 35. Location: Eastern Province highway, multi-vehicle crash. No pulse or respiratory effort, fixed dilated pupils, massive head and chest trauma. No signs of life at the scene. Medical history unknown.",
+      "Patient: Male, 35. Location: Eastern Province highway, multi-vehicle collision. No pulse or respiratory effort, fixed dilated pupils, massive head and chest trauma. No signs of life at the scene. Medical history unknown.",
     vitals: {
       consciousness: "Unresponsive, no response to pain",
       respiratoryRate: "No respiratory effort",
@@ -157,17 +155,17 @@ const patients = [
     },
     explanations: {
       triage:
-        "No pulse, no breathing, fixed pupils and catastrophic trauma indicate death at the scene. In a mass-casualty incident this patient is triaged as Black (Expectant/Deceased) so that resources can be directed to salvageable patients.",
+        "No pulse, no breathing, fixed pupils and catastrophic trauma indicate death at the scene. In a mass-casualty incident this patient is triaged as Black (Expectant / Deceased) so that resources can be directed to salvageable patients.",
       tests:
         "Drone thermal imaging and vital-sign sensors confirm the absence of cardiac activity and no heat signature. No further emergency investigations are required once death is confirmed.",
       treatment:
-        "Local policy may allow a brief attempt at CPR/ACLS if there is any doubt, but priority quickly shifts to living casualties. The drone records the scene, helps confirm identity when possible and logs the time of death for documentation."
+        "Local policy may allow a brief attempt at CPR / ACLS if there is any doubt, but priority quickly shifts to living casualties. The drone records the scene, helps confirm identity when possible and logs the time of death for documentation."
     }
   }
 ];
 
 //
-// -------------- GAME LOGIC (unchanged scoring + new hospital field) --------------
+// -------------- GAME LOGIC (NEW SCORING) --------------
 //
 
 let currentGame = null;
@@ -188,55 +186,31 @@ function arraysEqualAsSets(a, b) {
 function scoreGame(human, ai, humanTime) {
   const breakdown = {
     triage: 0,
-    treatment: 0,
+    hospital: 0,
     tests: 0,
-    fasterThanAI: 0,
     under30: 0,
     total: 0
   };
 
+  // Correct triage (+5)
   if (human.triage === ai.triage) breakdown.triage = 5;
-  if (human.treatment === ai.treatment) breakdown.treatment = 3;
+
+  // Correct receiving hospital (+3)
+  if (human.hospital === ai.hospital) breakdown.hospital = 3;
+
+  // Correct ER tests as a set (+2)
   if (arraysEqualAsSets(human.tests, ai.tests)) breakdown.tests = 2;
-  if (humanTime < ai.aiTimeSeconds) breakdown.fasterThanAI = 2;
+
+  // Finished under 30 seconds (+2)
   if (humanTime <= 30) breakdown.under30 = 2;
 
   breakdown.total =
     breakdown.triage +
-    breakdown.treatment +
+    breakdown.hospital +
     breakdown.tests +
-    breakdown.fasterThanAI +
     breakdown.under30;
 
   return breakdown;
-}
-
-function computeAchievements(human, ai, breakdown) {
-  const achievements = [];
-
-  if (breakdown.total === 12) {
-    achievements.push("🏅 Perfect Triage – Maximum score achieved on this scenario.");
-  }
-  if (human.timeSeconds <= 10) {
-    achievements.push("⚡ Lightning Hands – Completed triage in under 10 seconds.");
-  }
-  if (human.timeSeconds < ai.aiTimeSeconds) {
-    achievements.push("🤖 AI Slayer – Human team was faster than the AI.");
-  }
-  if (
-    human.triage === ai.triage &&
-    human.treatment === ai.treatment &&
-    arraysEqualAsSets(human.tests, ai.tests)
-  ) {
-    achievements.push("🎯 Clinical Sharpshooter – Matched AI triage, tests and treatment.");
-  }
-  if (achievements.length === 0) {
-    achievements.push(
-      "🩺 Trainee Responder – Good effort! Try another scenario to improve your score."
-    );
-  }
-
-  return achievements;
 }
 
 function broadcastState() {
@@ -341,11 +315,6 @@ io.on("connection", (socket) => {
       patient.aiDecision,
       humanTimeSeconds
     );
-    const achievements = computeAchievements(
-      humanDecision,
-      patient.aiDecision,
-      breakdown
-    );
 
     const result = {
       playerName: currentGame.playerName,
@@ -356,8 +325,7 @@ io.on("connection", (socket) => {
       ai: patient.aiDecision,
       scoreBreakdown: breakdown,
       points: breakdown.total,
-      explanations: patient.explanations,
-      achievements
+      explanations: patient.explanations
     };
 
     currentGame.humanDecision = humanDecision;
