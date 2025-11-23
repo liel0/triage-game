@@ -15,47 +15,56 @@ app.get("/", (req, res) => {
 });
 
 //
-// -------------- MASS CASUALTY SCENARIOS --------------
+// -------------- MASS CASUALTY SCENARIOS (WITH HOSPITALS & NEW TESTS) --------------
 //
 
 const patients = [
   {
     id: 1,
-    name: "Scenario 1 – Hajj Stampede (Red)",
+    name: "Scenario 1 – Hajj Stampede (Red Triage)",
     narrative:
-      "Male, 58-year-old pilgrim in Mina during peak Hajj movement. Crushed in a stampede. Found unconscious, pale, with shallow breathing. There is severe bleeding from the lower abdomen and an unstable pelvis, raising strong suspicion of pelvic fracture and internal haemorrhage. Past history of type 2 diabetes and hypertension.",
+      "Patient: Male, 58. Location: Mina, during peak Hajj movement. Crushed in a stampede. Unconscious, pale, shallow breathing with severe bleeding from the lower abdomen and suspected pelvic fracture. High risk of shock due to major trauma and comorbidities (type 2 diabetes, hypertension, previous knee surgery).",
     vitals: {
-      consciousness: "Unconscious, no verbal response",
-      respiratoryRate: "34 / min (shallow, laboured)",
-      pulse: "142 bpm (weak, thready)",
+      consciousness: "Unconscious",
+      respiratoryRate: "34 / min",
+      pulse: "142 bpm",
       bloodPressure: "78/45 mmHg",
-      oxygenSaturation: "86%"
+      oxygenSaturation: "≈85% (low)"
     },
     aiDecision: {
       triage: "Red",
-      tests: ["IV Fluids", "X-ray", "Oxygen"],
+      // ER tests the AI expects for this patient
+      tests: [
+        "FAST ultrasound",
+        "CT scan",
+        "Intravenous fluids",
+        "Blood typing and crossmatch",
+        "Serum lactate"
+      ],
       treatment: "Emergency Surgery",
       treatmentSteps: {
-        primary: "Rapid IV Fluids + Oxygen",
+        primary: "Rapid IV fluids and oxygen",
         secondary: "Blood transfusion, pelvic stabilisation, analgesia",
-        disposition: "Emergency OR"
+        disposition: "Emergency operating theatre"
       },
+      // AI hospital choice for comparison
+      hospital: "Mina Emergency Hospital — Hajj Priority Centre",
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "Profound hypotension (78/45 mmHg), tachycardia (142 bpm), tachypnoea and unresponsiveness after a crush mechanism indicate severe haemorrhagic shock. Combined with comorbidities, this places him at very high risk of death → IMMEDIATE (Red) triage.",
+        "Profound hypotension (78/45 mmHg), tachycardia (142 bpm), tachypnoea and unconsciousness after crush injury indicate severe haemorrhagic shock. Comorbid diabetes and hypertension further increase risk of poor perfusion → Red (Immediate) triage.",
       tests:
-        "Drone thermal imaging and FAST-style ultrasound help localise internal bleeding and pelvic injury. The AI recommends rapid IV access with fluid resuscitation and oxygen. In the ED, FAST ultrasound, CBC, lactate and blood typing guide massive transfusion and operative planning.",
+        "A focused assessment with sonography for trauma (FAST ultrasound) and CT scan are used to detect intra-abdominal and pelvic bleeding. Intravenous fluids, blood typing and crossmatch and serum lactate guide resuscitation, transfusion and operative planning.",
       treatment:
-        "This patient requires damage-control resuscitation and emergency surgery for suspected pelvic and intra-abdominal bleeding. Pelvic stabilisation, massive transfusion protocol and airway management should be prepared before arrival."
+        "Immediate damage-control resuscitation with oxygen, rapid IV fluids and blood products, pelvic stabilisation and emergency surgery for suspected pelvic and intra-abdominal haemorrhage."
     }
   },
   {
     id: 2,
-    name: "Scenario 2 – Riyadh Industrial Explosion (Yellow)",
+    name: "Scenario 2 – Riyadh Industrial Explosion (Yellow Triage)",
     narrative:
-      "Male, 42-year-old worker in an industrial zone near Riyadh. Exposed to an explosion with burns to the arms and face. He is alert but disoriented, complaining of chest tightness and dizziness. There is concern for inhalational injury and carbon monoxide exposure. History of smoking, mild asthma and penicillin allergy.",
+      "Patient: Male, 42. Location: Industrial zone near Riyadh after an explosion. Alert but disoriented with burns on the arms and face. Complains of chest tightness and dizziness. Suspected smoke or carbon monoxide exposure. Past history: smoker, mild asthma, allergic to penicillin.",
     vitals: {
       consciousness: "Alert but disoriented (GCS ≈ 13)",
       respiratoryRate: "26 / min",
@@ -65,31 +74,37 @@ const patients = [
     },
     aiDecision: {
       triage: "Yellow",
-      tests: ["Oxygen", "X-ray", "CT Scan"],
+      tests: [
+        "Carboxyhaemoglobin level",
+        "Plain X-ray",
+        "Burn depth assessment",
+        "Intravenous fluids"
+      ],
       treatment: "Observation",
       treatmentSteps: {
         primary: "High-flow oxygen, burn dressing, analgesia",
         secondary: "Carboxyhaemoglobin level, ECG, chest X-ray",
         disposition: "Observation ward / burns unit"
       },
+      hospital: "King Fahad Medical City — Level 1 Trauma Centre",
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "He has significant burns and respiratory symptoms but maintains blood pressure, oxygen saturation and airway. He is unwell but not in immediate extremis → Urgent but Delayed (Yellow).",
+        "Burns and respiratory symptoms are concerning, but airway, blood pressure and oxygen saturation remain stable. He requires urgent care but not immediate life-saving intervention → Yellow (Urgent but delayed).",
       tests:
-        "The drone uses thermal and skin-texture imaging to estimate burn depth and facial analysis to estimate pain and GCS. AI recommends high-flow oxygen for possible CO poisoning, followed by carboxyhaemoglobin level, chest X-ray and ECG in the ED to assess inhalational injury and cardiac stress.",
+        "Carboxyhaemoglobin level assesses carbon monoxide poisoning. A plain chest X-ray evaluates inhalational injury and blast effects. Burn depth assessment defines the severity and surface area. Intravenous fluids support circulation and help manage burn-related fluid loss.",
       treatment:
-        "Initial management focuses on oxygen therapy, cooling and dressing the burns, analgesia and close monitoring. Depending on burn extent and gas exposure, he should be admitted for observation or to a burns unit for serial assessment."
+        "Initial management focuses on high-flow oxygen for CO exposure, appropriate burn cooling and dressing, analgesia and continuous monitoring. Admission to an observation area or burns unit is recommended for serial respiratory and cardiovascular assessment."
     }
   },
   {
     id: 3,
-    name: "Scenario 3 – AlUla Desert Rally Dehydration (Green)",
+    name: "Scenario 3 – Desert Rally Dehydration (Green Triage)",
     narrative:
-      "Female, 27-year-old rally participant at an AlUla desert checkpoint. Complains of dry mouth, fatigue and headache after prolonged heat exposure. She is walking independently with mild clinical signs of dehydration but no red-flag features. Past history: otherwise healthy, occasional migraines.",
+      "Patient: Female, 27. Location: AlUla Desert Rally checkpoint. Alert and walking, complaining of dry mouth, fatigue and headache after prolonged heat exposure. Mild clinical signs of dehydration only. Past history: healthy, occasional migraines.",
     vitals: {
-      consciousness: "Alert, walking without assistance",
+      consciousness: "Alert, walking",
       respiratoryRate: "18 / min",
       pulse: "92 bpm",
       bloodPressure: "118/78 mmHg",
@@ -101,25 +116,26 @@ const patients = [
       treatment: "Hydration and rest",
       treatmentSteps: {
         primary: "Oral rehydration solution, shade and cooling",
-        secondary: "Monitor symptoms; consider electrolytes if no improvement",
+        secondary: "Monitor symptoms; consider blood tests if no improvement",
         disposition: "Discharge from checkpoint with advice"
       },
+      hospital: "AlUla Field Medical Base — Desert Response",
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "She is haemodynamically stable with normal vital signs and is able to walk. Symptoms are consistent with mild dehydration and heat stress without systemic compromise → Minimal (Green).",
+        "Mild dehydration and fatigue with normal vital signs and the ability to walk independently → Green (Minimal) triage.",
       tests:
-        "The drone uses thermal imaging and facial/skin analysis to suggest mild heat stress and dehydration. In this scenario, laboratory tests are usually unnecessary; simple clinical reassessment after fluids is sufficient.",
+        "Drone thermal imaging, skin-texture analysis and facial flush detection suggest mild heat stress and dehydration. No immediate laboratory testing is required; response to oral fluids is usually sufficient.",
       treatment:
-        "Oral hydration, rest in a shaded cool area and monitoring are appropriate. She can be discharged from the checkpoint with clear advice to return if symptoms worsen or fail to improve."
+        "Oral fluids, shade, cooling and short-term observation. She can be discharged from the checkpoint with instructions to seek help if symptoms worsen or fail to improve."
     }
   },
   {
     id: 4,
-    name: "Scenario 4 – Highway Collision (Black)",
+    name: "Scenario 4 – Highway Collision (Black Triage)",
     narrative:
-      "Male, 35-year-old driver involved in a high-speed multi-vehicle collision on an Eastern Province highway. On drone and paramedic arrival he has severe head and chest trauma, no signs of life and no spontaneous movement.",
+      "Patient: Male, 35. Location: Eastern Province highway, multi-vehicle crash. No pulse or respiratory effort, fixed dilated pupils, massive head and chest trauma. No signs of life at the scene. Medical history unknown.",
     vitals: {
       consciousness: "Unresponsive, no response to pain",
       respiratoryRate: "No respiratory effort",
@@ -136,21 +152,22 @@ const patients = [
         secondary: "If local policy allows, brief CPR / ACLS attempt",
         disposition: "Expectant / deceased; document and prioritise other casualties"
       },
+      hospital: "Dhahran Trauma Center — Highway Critical Care",
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "No pulse, no breathing, fixed pupils and catastrophic trauma are compatible with death at the scene. In mass-casualty conditions this patient is triaged as Black (expectant/deceased) so that resources can be directed to salvageable patients.",
+        "No pulse, no breathing, fixed pupils and catastrophic trauma indicate death at the scene. In a mass-casualty incident this patient is triaged as Black (Expectant/Deceased) so that resources can be directed to salvageable patients.",
       tests:
-        "Drone thermal imaging and vital-sign sensors confirm absence of cardiac activity and heat signature. No further diagnostic testing is indicated once death is confirmed.",
+        "Drone thermal imaging and vital-sign sensors confirm the absence of cardiac activity and no heat signature. No further emergency investigations are required once death is confirmed.",
       treatment:
-        "Local policy may allow a brief attempt at CPR/ACLS if there is any doubt, but priority should rapidly shift to living casualties. The drone records the scene, confirms identity when possible and logs time of death for documentation."
+        "Local policy may allow a brief attempt at CPR/ACLS if there is any doubt, but priority quickly shifts to living casualties. The drone records the scene, helps confirm identity when possible and logs the time of death for documentation."
     }
   }
 ];
 
 //
-// -------------- GAME LOGIC (unchanged) --------------
+// -------------- GAME LOGIC (unchanged scoring + new hospital field) --------------
 //
 
 let currentGame = null;
@@ -211,30 +228,26 @@ function computeAchievements(human, ai, breakdown) {
     human.treatment === ai.treatment &&
     arraysEqualAsSets(human.tests, ai.tests)
   ) {
-    achievements.push("🎯 Clinical Sharpshooter – Matched AI triage, tests and treatment plan.");
+    achievements.push("🎯 Clinical Sharpshooter – Matched AI triage, tests and treatment.");
   }
   if (achievements.length === 0) {
-    achievements.push("🩺 Trainee Responder – Good effort! Try another scenario to improve your score.");
+    achievements.push(
+      "🩺 Trainee Responder – Good effort! Try another scenario to improve your score."
+    );
   }
 
   return achievements;
 }
 
 function broadcastState() {
-  io.emit("stateUpdate", {
-    currentGame,
-    leaderboard
-  });
+  io.emit("stateUpdate", { currentGame, leaderboard });
 }
 
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
   if (currentGame || leaderboard.length > 0) {
-    socket.emit("stateUpdate", {
-      currentGame,
-      leaderboard
-    });
+    socket.emit("stateUpdate", { currentGame, leaderboard });
   }
 
   socket.on("registerPlayer", (data) => {
@@ -302,7 +315,7 @@ io.on("connection", (socket) => {
   socket.on("submitHumanDecision", (data) => {
     if (!currentGame || !currentGame.allVitalsCollected) return;
 
-    const { triage, tests, treatment, treatmentSteps } = data;
+    const { triage, tests, treatment, treatmentSteps, hospital } = data;
     const patient = findPatient(currentGame.patientId);
     if (!patient) return;
 
@@ -319,6 +332,7 @@ io.on("connection", (socket) => {
         secondary: "",
         disposition: ""
       },
+      hospital: hospital || "",
       timeSeconds: humanTimeSeconds
     };
 
