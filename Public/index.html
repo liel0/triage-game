@@ -29,7 +29,7 @@
       min-width: 320px;
       background: #0f172a;
       border-radius: 12px;
-      padding: 16px;
+      padding: 16px 18px;
       box-shadow: 0 0 20px rgba(15, 23, 42, 0.7);
     }
 
@@ -38,6 +38,8 @@
       text-transform: uppercase;
       color: #9ca3af;
       letter-spacing: 0.08em;
+      margin-top: 10px;
+      margin-bottom: 4px;
     }
 
     .value {
@@ -71,8 +73,9 @@
       border-radius: 999px;
       border: none;
       cursor: pointer;
-      margin-top: 8px;
-      margin-right: 6px;
+      margin-top: 12px;
+      margin-right: 8px;
+      font-size: 0.95rem;
     }
 
     button.primary { background: #2563eb; color: #fff; }
@@ -93,19 +96,14 @@
 
     .small { font-size: 0.8rem; color: #9ca3af; }
 
-    #certificateQr { margin-top: 10px; }
-
-    #achievementsList li { margin-bottom: 4px; }
-
-    /* ---- bigger glowing text ---- */
     .big-text {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       line-height: 1.8;
       color: #e2e8f0;
     }
 
     .glow-title {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: #fff;
       text-shadow: 0 0 10px rgba(255,255,255,0.55);
@@ -122,11 +120,6 @@
       box-shadow: 0 0 18px rgba(56,189,248,0.4);
     }
 
-    .glow-box li {
-      margin-bottom: 6px;
-      font-size: 1.1rem;
-    }
-
     .important-text {
       color: #fff;
       font-weight: 600;
@@ -138,102 +131,55 @@
 <body>
   <h1>🚨 Emergency Drone Simulation – Human vs AI Triage</h1>
   <p class="small">
-    Players scan QR codes on mannequins → vitals appear here → humans race the AI triage system.
+    Players scan QR codes on mannequins. Vitals appear on this screen. The team then performs triage, chooses tests and selects the most appropriate receiving hospital.
   </p>
 
   <div class="row">
-    <!-- CURRENT GAME -->
+    <!-- CURRENT CASE / MONITOR -->
     <div class="card">
       <div class="label">Current Team</div>
       <div class="value" id="teamInfo">Waiting for player...</div>
 
-      <div class="label">Patient</div>
+      <div class="label">Patient Scenario</div>
       <div class="value" id="patientInfo">–</div>
       <div id="patientNarrative" class="glow-box big-text"></div>
 
-      <div class="label" style="margin-top: 10px;">Vitals (collected)</div>
+      <div class="label">Recorded Vitals</div>
       <div id="vitalsList">
         <span class="small">No vitals scanned yet.</span>
       </div>
 
-      <div id="timerDisplay" style="margin-top: 10px;">Timer: --</div>
-      <div class="small" id="infoMessage"></div>
+      <div class="label">Triage Timer</div>
+      <div id="timerDisplay">Timer: --</div>
+      <div class="small" id="infoMessage" style="margin-top:4px;"></div>
 
       <button class="danger" id="resetBtn">Reset Simulation</button>
       <button class="danger" id="resetLeaderboardBtn">Reset Leaderboard</button>
     </div>
 
-    <!-- TRIAGE CONTROL -->
+    <!-- HUMAN TRIAGE PANEL -->
     <div class="card">
-      <h2>🧩 Human Triage</h2>
+      <h2>🧩 Human Triage Panel</h2>
 
-      <div class="label">Triage Category</div>
+      <!-- 1. TRIAGE CATEGORY -->
+      <div class="label">1. Triage Category</div>
       <select id="triageSelect">
-        <option value="">Select...</option>
-        <option value="Red">🔴 Red</option>
-        <option value="Yellow">🟡 Yellow</option>
-        <option value="Green">🟢 Green</option>
-        <option value="Black">⚫ Black</option>
+        <option value="">Select triage category...</option>
+        <option value="Red">🔴 Red – Immediate</option>
+        <option value="Yellow">🟡 Yellow – Urgent but delayed</option>
+        <option value="Green">🟢 Green – Minimal</option>
+        <option value="Black">⚫ Black – Expectant / deceased</option>
       </select>
 
-      <div class="label" style="margin-top: 10px;">Emergency Department Tests</div>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="FAST ultrasound"> FAST ultrasound</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Carboxyhaemoglobin level"> Carboxyhaemoglobin level (CO)</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Plain X-ray"> Plain X-ray</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="MRI scan"> MRI scan</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="CT scan"> CT scan</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Intravenous fluids"> Intravenous (IV) fluids</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Blood typing and crossmatch"> Blood typing and crossmatch</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Serum lactate"> Serum lactate</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Burn depth assessment"> Burn depth assessment</label><br>
-
-      <div class="label" style="margin-top: 10px;">Primary Treatment</div>
-      <select id="primarySelect">
-        <option value="">Select...</option>
-        <option value="Rapid IV fluids and oxygen">Rapid IV fluids and oxygen</option>
-        <option value="High-flow oxygen, burn dressing, analgesia">High-flow oxygen, burn dressing, analgesia</option>
-        <option value="Oral rehydration solution, shade and cooling">Oral rehydration solution, shade and cooling</option>
-        <option value="Immediate high-quality CPR">Immediate high-quality CPR</option>
-      </select>
-
-      <div class="label" style="margin-top: 10px;">Secondary Treatment</div>
-      <select id="secondarySelect">
-        <option value="">Select...</option>
-        <option value="Blood transfusion, pelvic stabilisation, analgesia">Blood transfusion, pelvic stabilisation, analgesia</option>
-        <option value="Carboxyhaemoglobin level, ECG, chest X-ray">Carboxyhaemoglobin level, ECG, chest X-ray</option>
-        <option value="Monitor symptoms; consider blood tests if no improvement">Monitor symptoms; consider blood tests if no improvement</option>
-        <option value="If local policy allows, brief CPR / ACLS attempt">If local policy allows, brief CPR / ACLS attempt</option>
-      </select>
-
-      <div class="label" style="margin-top: 10px;">Disposition</div>
-      <select id="dispositionSelect">
-        <option value="">Select...</option>
-        <option value="Emergency operating theatre">Emergency operating theatre</option>
-        <option value="Observation ward / burns unit">Observation ward / burns unit</option>
-        <option value="Discharge from checkpoint with advice">Discharge from checkpoint with advice</option>
-        <option value="Expectant / deceased; document and prioritise other casualties">
-          Expectant / deceased; document and prioritise other casualties
-        </option>
-      </select>
-
-      <div class="label" style="margin-top: 10px;">Overall Treatment Tag</div>
-      <select id="treatmentSelect">
-        <option value="">Select...</option>
-        <option value="Emergency Surgery">Emergency Surgery</option>
-        <option value="Observation">Observation</option>
-        <option value="Hydration and rest">Hydration and rest</option>
-        <option value="Discharge with analgesia">Discharge with analgesia</option>
-        <option value="CPR / ACLS as appropriate">CPR / ACLS as appropriate</option>
-      </select>
-
-      <div class="label" style="margin-top: 10px;">Receiving Hospital</div>
+      <!-- 2. RECEIVING HOSPITAL -->
+      <div class="label">2. Receiving Hospital</div>
       <label class="small">
-        <input type="radio" name="hospitalChoice" value="King Fahad Medical City — Level 1 Trauma Centre">
-        🚑 King Fahad Medical City — Level 1 Trauma Centre
+        <input type="radio" name="hospitalChoice" value="King Fahad Medical City — Level 1 Trauma Center">
+        🚑 King Fahad Medical City — Level 1 Trauma Center
       </label><br>
       <label class="small">
-        <input type="radio" name="hospitalChoice" value="Mina Emergency Hospital — Hajj Priority Centre">
-        🏥 Mina Emergency Hospital — Hajj Priority Centre
+        <input type="radio" name="hospitalChoice" value="Mina Emergency Hospital — Hajj Priority Center">
+        🏥 Mina Emergency Hospital — Hajj Priority Center
       </label><br>
       <label class="small">
         <input type="radio" name="hospitalChoice" value="AlUla Field Medical Base — Desert Response">
@@ -244,15 +190,67 @@
         🏥 Dhahran Trauma Center — Highway Critical Care
       </label><br>
 
+      <!-- 3. EMERGENCY DEPARTMENT TESTS -->
+      <div class="label">3. Emergency Department Tests</div>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="FAST ultrasound"> FAST ultrasound (trauma scan)</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Carboxyhaemoglobin level"> Carboxyhaemoglobin level (CO)</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Plain X-ray"> Plain X-ray</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="MRI scan"> MRI scan</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="CT scan"> CT scan</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Intravenous fluids"> Intravenous (IV) fluids</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Blood typing and crossmatch"> Blood typing and crossmatch</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Serum lactate"> Serum lactate</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Burn depth assessment"> Burn depth assessment</label><br>
+
+      <!-- 4. INITIAL EMERGENCY MANAGEMENT -->
+      <div class="label">4. Primary Emergency Treatment</div>
+      <select id="primarySelect">
+        <option value="">Select primary treatment...</option>
+        <option value="Rapid IV fluids and oxygen">Rapid IV fluids and oxygen</option>
+        <option value="High-flow oxygen, burn dressing, analgesia">High-flow oxygen, burn dressing, analgesia</option>
+        <option value="Oral rehydration solution, shade and cooling">Oral rehydration solution, shade and cooling</option>
+        <option value="Immediate high-quality CPR">Immediate high-quality CPR</option>
+      </select>
+
+      <div class="label">5. Adjunct Treatment / Monitoring</div>
+      <select id="secondarySelect">
+        <option value="">Select adjunct treatment...</option>
+        <option value="Blood transfusion, pelvic stabilisation, analgesia">Blood transfusion, pelvic stabilisation, analgesia</option>
+        <option value="Carboxyhaemoglobin level, ECG, chest X-ray">Carboxyhaemoglobin level, ECG, chest X-ray</option>
+        <option value="Monitor symptoms; consider blood tests if no improvement">Monitor symptoms; consider blood tests if no improvement</option>
+        <option value="If local policy allows, brief CPR / ACLS attempt">If local policy allows, brief CPR / ACLS attempt</option>
+      </select>
+
+      <div class="label">6. Disposition</div>
+      <select id="dispositionSelect">
+        <option value="">Select disposition...</option>
+        <option value="Emergency operating theatre">Emergency operating theatre</option>
+        <option value="Observation ward / burns unit">Observation ward / burns unit</option>
+        <option value="Discharge from checkpoint with advice">Discharge from checkpoint with advice</option>
+        <option value="Expectant / deceased; document and prioritise other casualties">
+          Expectant / deceased; document and prioritise other casualties
+        </option>
+      </select>
+
+      <div class="label">7. Overall Treatment Tag</div>
+      <select id="treatmentSelect">
+        <option value="">Select treatment tag...</option>
+        <option value="Emergency Surgery">Emergency Surgery</option>
+        <option value="Observation">Observation</option>
+        <option value="Hydration and rest">Hydration and rest</option>
+        <option value="Discharge with analgesia">Discharge with analgesia</option>
+        <option value="CPR / ACLS as appropriate">CPR / ACLS as appropriate</option>
+      </select>
+
       <button class="primary" id="submitDecisionBtn">Submit Decision</button>
-      <div class="small" id="submitStatus"></div>
+      <div class="small" id="submitStatus" style="margin-top:4px;"></div>
     </div>
   </div>
 
   <div class="row">
     <!-- RESULTS -->
     <div class="card">
-      <h2>🤖 Human vs AI Results</h2>
+      <h2>📊 Human vs AI – Comparison</h2>
       <table>
         <thead>
           <tr>
@@ -272,17 +270,10 @@
 
       <h3 class="glow-title">🧠 Why the AI chose this plan</h3>
       <div id="explanationBox" class="glow-box big-text">
-        <p><span class="important-text">Triage:</span> <span id="explainTriage">–</span></p>
-        <p><span class="important-text">Tests:</span> <span id="explainTests">–</span></p>
-        <p><span class="important-text">Treatment:</span> <span id="explainTreatment">–</span></p>
+        <p><span class="important-text">Triage decision:</span> <span id="explainTriage">–</span></p>
+        <p><span class="important-text">Choice of tests:</span> <span id="explainTests">–</span></p>
+        <p><span class="important-text">Treatment and disposition:</span> <span id="explainTreatment">–</span></p>
       </div>
-
-      <h3 class="glow-title">🏅 Achievements</h3>
-      <ul id="achievementsList" class="glow-box big-text"></ul>
-
-      <h3 class="glow-title">📸 Team Certificate QR</h3>
-      <p class="small">Scan this on a phone to open your digital certificate and take a team photo.</p>
-      <div id="certificateQr"></div>
     </div>
 
     <!-- LEADERBOARD -->
@@ -322,8 +313,6 @@
     const explainTriageEl = document.getElementById("explainTriage");
     const explainTestsEl = document.getElementById("explainTests");
     const explainTreatmentEl = document.getElementById("explainTreatment");
-    const achievementsListEl = document.getElementById("achievementsList");
-    const certificateQrEl = document.getElementById("certificateQr");
 
     const triageSelect = document.getElementById("triageSelect");
     const treatmentSelect = document.getElementById("treatmentSelect");
@@ -386,6 +375,14 @@
       timerDisplayEl.textContent = "Timer: --";
     }
 
+    function arraysEqualAsSets(a, b) {
+      const setA = new Set(a);
+      const setB = new Set(b);
+      if (setA.size !== setB.size) return false;
+      for (const item of setA) if (!setB.has(item)) return false;
+      return true;
+    }
+
     socket.on("stateUpdate", (data) => {
       currentGame = data.currentGame || null;
 
@@ -417,9 +414,17 @@
       patientNarrativeEl.textContent = currentGame.patientNarrative || "";
     });
 
-    // VITAL SCAN HANDLER – with "Vital X of Y" message
+    // Map internal vital keys to clinical labels
+    const vitalLabels = {
+      consciousness: "Consciousness",
+      respiratoryRate: "Respiratory rate",
+      pulse: "Heart rate (pulse)",
+      bloodPressure: "Blood pressure",
+      oxygenSaturation: "Oxygen saturation"
+    };
+
+    // VITAL SCAN HANDLER
     socket.on("vitalScanned", (payload) => {
-      // Clear placeholder text
       if (
         vitalsListEl.firstChild &&
         vitalsListEl.firstChild.classList &&
@@ -437,15 +442,16 @@
         vitalsListEl.appendChild(line);
       }
 
-      line.textContent = `${payload.vitalKey}: ${payload.vitalValue}`;
+      const label = vitalLabels[payload.vitalKey] || payload.vitalKey;
+      line.textContent = `${label}: ${payload.vitalValue}`;
 
       infoMessageEl.textContent =
-        `✅ Vital ${payload.count} of ${payload.total} received — scan the next tag!`;
+        `✅ Vital ${payload.count} of ${payload.total} received — scan the next tag.`;
     });
 
     socket.on("allVitalsCollected", (payload) => {
       infoMessageEl.textContent =
-        "🚨 Vitals complete! Move to the Triage Zone and make your decision!";
+        "🚨 All vitals collected. Move to the triage zone and make your decision.";
       startTimer(payload.triageTimerSeconds || 60);
     });
 
@@ -454,29 +460,29 @@
 
       resultsTableBody.innerHTML = "";
       const rows = [
-        { category: "Triage", human: result.human.triage, ai: result.ai.triage },
+        { category: "Triage category", human: result.human.triage, ai: result.ai.triage },
         {
-          category: "ER Tests",
-          human: result.human.tests.join(", ") || "None",
-          ai: result.ai.tests.join(", ") || "None"
-        },
-        {
-          category: "Treatment Tag",
-          human: result.human.treatment,
-          ai: result.ai.treatment
-        },
-        {
-          category: "Treatment Plan (Primary / Secondary / Disposition)",
-          human: `${result.human.treatmentSteps.primary || "–"} / ${result.human.treatmentSteps.secondary || "–"} / ${result.human.treatmentSteps.disposition || "–"}`,
-          ai: `${result.ai.treatmentSteps.primary} / ${result.ai.treatmentSteps.secondary} / ${result.ai.treatmentSteps.disposition}`
-        },
-        {
-          category: "Receiving Hospital",
+          category: "Receiving hospital",
           human: result.human.hospital || "Not selected",
           ai: result.ai.hospital || "–"
         },
         {
-          category: "Time",
+          category: "Emergency department tests",
+          human: result.human.tests.join(", ") || "None selected",
+          ai: result.ai.tests.join(", ") || "None"
+        },
+        {
+          category: "Treatment tag",
+          human: result.human.treatment,
+          ai: result.ai.treatment
+        },
+        {
+          category: "Treatment plan (primary / adjunct / disposition)",
+          human: `${result.human.treatmentSteps.primary || "–"} / ${result.human.treatmentSteps.secondary || "–"} / ${result.human.treatmentSteps.disposition || "–"}`,
+          ai: `${result.ai.treatmentSteps.primary} / ${result.ai.treatmentSteps.secondary} / ${result.ai.treatmentSteps.disposition}`
+        },
+        {
+          category: "Time to decision",
           human: `${result.human.timeSeconds.toFixed(2)} s`,
           ai: `${result.ai.aiTimeSeconds.toFixed(2)} s`
         }
@@ -486,15 +492,12 @@
         const tr = document.createElement("tr");
         let match = "–";
 
-        if (r.category === "Triage" || r.category === "Treatment Tag" || r.category === "ER Tests") {
-          match = r.human === r.ai ? "✅" : "❌";
-        } else if (r.category === "Receiving Hospital") {
-          match = r.human === r.ai ? "✅" : "❌";
-        } else if (r.category === "Time") {
-          match =
-            parseFloat(result.human.timeSeconds) < parseFloat(result.ai.aiTimeSeconds)
-              ? "⚡"
-              : "⏱";
+        if (r.category === "Triage category") {
+          match = result.human.triage === result.ai.triage ? "✅" : "❌";
+        } else if (r.category === "Receiving hospital") {
+          match = result.human.hospital === result.ai.hospital ? "✅" : "❌";
+        } else if (r.category === "Emergency department tests") {
+          match = arraysEqualAsSets(result.human.tests, result.ai.tests) ? "✅" : "❌";
         }
 
         tr.innerHTML = `
@@ -508,38 +511,18 @@
 
       const bd = result.scoreBreakdown;
       scoreDisplayEl.textContent = `${bd.total} / 12 points`;
+
       scoreBreakdownEl.innerHTML = `
-        +${bd.triage} Triage &nbsp; | 
-        +${bd.treatment} Treatment tag &nbsp; | 
-        +${bd.tests} Tests &nbsp; | 
-        +${bd.fasterThanAI} Faster than AI &nbsp; | 
-        +${bd.under30} Under 30 s
+        <strong>Scoring:</strong>
+        Correct triage <strong>+5</strong> &nbsp;•&nbsp;
+        Correct hospital <strong>+3</strong> &nbsp;•&nbsp;
+        Correct ER tests <strong>+2</strong> &nbsp;•&nbsp;
+        Finished under 30 seconds <strong>+2</strong>
       `;
 
       explainTriageEl.textContent = result.explanations.triage;
       explainTestsEl.textContent = result.explanations.tests;
       explainTreatmentEl.textContent = result.explanations.treatment;
-
-      achievementsListEl.innerHTML = "";
-      (result.achievements || []).forEach(a => {
-        const li = document.createElement("li");
-        li.textContent = a;
-        achievementsListEl.appendChild(li);
-      });
-
-      const certificateUrl =
-        `${window.location.origin}/certificate.html` +
-        `?team=${encodeURIComponent(result.playerName)}` +
-        `&score=${encodeURIComponent(bd.total)}` +
-        `&time=${encodeURIComponent(result.human.timeSeconds.toFixed(2))}` +
-        `&patient=${encodeURIComponent(result.patientName)}`;
-
-      certificateQrEl.innerHTML = "";
-      new QRCode(certificateQrEl, {
-        text: certificateUrl,
-        width: 120,
-        height: 120
-      });
     });
 
     document.getElementById("resetBtn").onclick = () => {
@@ -553,8 +536,6 @@
       explainTriageEl.textContent = "–";
       explainTestsEl.textContent = "–";
       explainTreatmentEl.textContent = "–";
-      achievementsListEl.innerHTML = "";
-      certificateQrEl.innerHTML = "";
     };
 
     document.getElementById("resetLeaderboardBtn").onclick = () => {
@@ -578,13 +559,16 @@
         disposition: dispositionSelect.value || ""
       };
 
-      if (!triage || !treatment) {
-        submitStatusEl.textContent = "Please select triage and overall treatment tag.";
+      if (!triage) {
+        submitStatusEl.textContent = "Please select a triage category.";
         return;
       }
-
       if (!hospital) {
-        submitStatusEl.textContent = "Please choose a receiving hospital.";
+        submitStatusEl.textContent = "Please select a receiving hospital.";
+        return;
+      }
+      if (!treatment) {
+        submitStatusEl.textContent = "Please select an overall treatment tag.";
         return;
       }
 
