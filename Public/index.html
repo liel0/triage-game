@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Emergency Drone Simulation – Big Screen</title>
   <script src="/socket.io/socket.io.js"></script>
-  <!-- QR code generator for team certificate -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
@@ -68,13 +67,13 @@
       margin-right: 6px;
     }
 
-    button.primary { background: #2563eb; color: white; }
-    button.danger { background: #b91c1c; color: white; }
+    button.primary { background: #2563eb; color: #fff; }
+    button.danger  { background: #b91c1c; color: #fff; }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       margin-top: 8px;
     }
 
@@ -86,18 +85,14 @@
 
     .small { font-size: 0.8rem; color: #9ca3af; }
 
-    #certificateQr {
-      margin-top: 10px;
-    }
+    #certificateQr { margin-top: 10px; }
 
-    #achievementsList li {
-      margin-bottom: 4px;
-    }
+    #achievementsList li { margin-bottom: 4px; }
 
-    /* ---- improved readability + glow ---- */
+    /* ---- bigger glowing text ---- */
     .big-text {
-      font-size: 1.1rem;
-      line-height: 1.7;
+      font-size: 1.2rem;
+      line-height: 1.8;
       color: #e2e8f0;
     }
 
@@ -105,29 +100,29 @@
       font-size: 1.4rem;
       font-weight: 700;
       color: #fff;
-      text-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
+      text-shadow: 0 0 10px rgba(255,255,255,0.55);
       margin-top: 12px;
       margin-bottom: 6px;
     }
 
     .glow-box {
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 10px;
+      background: rgba(15,23,42,0.9);
+      border-radius: 12px;
       padding: 12px 14px;
       margin-top: 6px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.22);
+      border: 1px solid rgba(148,163,184,0.6);
+      box-shadow: 0 0 18px rgba(56,189,248,0.4);
     }
 
     .glow-box li {
       margin-bottom: 6px;
-      font-size: 1.02rem;
+      font-size: 1.1rem;
     }
 
     .important-text {
       color: #fff;
       font-weight: 600;
-      text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+      text-shadow: 0 0 8px rgba(255,255,255,0.7);
     }
   </style>
 </head>
@@ -135,7 +130,7 @@
 <body>
   <h1>🚨 Emergency Drone Simulation – Human vs AI Triage</h1>
   <p class="small">
-    Players scan QR codes on the mannequins → vitals appear here → humans race the AI.
+    Players scan QR codes on mannequins → vitals appear here → humans race the AI triage system.
   </p>
 
   <div class="row">
@@ -183,28 +178,28 @@
       <select id="primarySelect">
         <option value="">Select...</option>
         <option value="Rapid IV Fluids + Oxygen">Rapid IV Fluids + Oxygen</option>
-        <option value="Analgesia, basic monitoring">Analgesia, basic monitoring</option>
-        <option value="RICE (rest, ice, compression, elevation)">RICE (rest, ice, compression, elevation)</option>
+        <option value="High-flow oxygen, burn dressing, analgesia">High-flow oxygen, burn dressing, analgesia</option>
+        <option value="Oral rehydration solution, shade and cooling">Oral rehydration solution, shade and cooling</option>
         <option value="Immediate high-quality CPR">Immediate high-quality CPR</option>
       </select>
 
       <div class="label" style="margin-top: 10px;">Secondary Treatment</div>
       <select id="secondarySelect">
         <option value="">Select...</option>
-        <option value="Blood transfusion, analgesia">Blood transfusion, analgesia</option>
-        <option value="Chest X-ray, repeat vitals">Chest X-ray, repeat vitals</option>
-        <option value="Simple analgesia">Simple analgesia</option>
-        <option value="Defibrillation / ACLS algorithm">Defibrillation / ACLS algorithm</option>
+        <option value="Blood transfusion, pelvic stabilisation, analgesia">Blood transfusion, pelvic stabilisation, analgesia</option>
+        <option value="Carboxyhaemoglobin level, ECG, chest X-ray">Carboxyhaemoglobin level, ECG, chest X-ray</option>
+        <option value="Monitor symptoms; consider electrolytes if no improvement">Monitor symptoms; consider electrolytes if no improvement</option>
+        <option value="If local policy allows, brief CPR / ACLS attempt">If local policy allows, brief CPR / ACLS attempt</option>
       </select>
 
       <div class="label" style="margin-top: 10px;">Disposition</div>
       <select id="dispositionSelect">
         <option value="">Select...</option>
         <option value="Emergency OR">Emergency OR</option>
-        <option value="Observation ward">Observation ward</option>
-        <option value="Discharge">Discharge</option>
-        <option value="Resuscitation bay / consider termination per protocol">
-          Resuscitation bay / consider termination per protocol
+        <option value="Observation ward / burns unit">Observation ward / burns unit</option>
+        <option value="Discharge from checkpoint with advice">Discharge from checkpoint with advice</option>
+        <option value="Expectant / deceased; document and prioritise other casualties">
+          Expectant / deceased; document and prioritise other casualties
         </option>
       </select>
 
@@ -213,6 +208,7 @@
         <option value="">Select...</option>
         <option value="Emergency Surgery">Emergency Surgery</option>
         <option value="Observation">Observation</option>
+        <option value="Hydration and rest">Hydration and rest</option>
         <option value="Discharge with analgesia">Discharge with analgesia</option>
         <option value="CPR / ACLS as appropriate">CPR / ACLS as appropriate</option>
       </select>
