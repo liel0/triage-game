@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Triage Team Certificate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 24px;
+      text-align: center;
+    }
+    .card {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #0f172a;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 0 30px rgba(15,23,42,0.8);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.6rem;
+    }
+    .big-score {
+      font-size: 2.4rem;
+      font-weight: 700;
+      margin: 10px 0;
+    }
+    .small {
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🏅 Emergency Triage Challenge</h1>
+    <p class="small">Digital certificate for:</p>
+    <h2 id="teamName">Team</h2>
+
+    <div class="small" id="patientName"></div>
+
+    <div class="big-score" id="scoreText"></div>
+    <p class="small" id="timeText"></p>
+
+    <p class="small" style="margin-top: 16px;">
+      Take a photo with your team in front of this certificate and share it!
+    </p>
+  </div>
+
+  <script>
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name) || "";
+    }
+
+    const team = getParam("team") || "Unknown Team";
+    const score = getParam("score") || "--";
+    const time = getParam("time") || "--";
+    const patient = getParam("patient") || "";
+
+    document.getElementById("teamName").textContent = team;
+    document.getElementById("scoreText").textContent = `${score} / 12 points`;
+    document.getElementById("timeText").textContent = `Decision time: ${time} s`;
+    if (patient) {
+      document.getElementById("patientName").textContent = patient;
+    }
+  </script>
+</body>
+</html>
