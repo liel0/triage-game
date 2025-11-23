@@ -34,18 +34,26 @@
     }
 
     .label {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       text-transform: uppercase;
       color: #9ca3af;
       letter-spacing: 0.08em;
     }
 
     .value {
-      font-size: 1rem;
+      font-size: 1.05rem;
       margin-bottom: 0.4rem;
     }
 
-    .vital { margin-bottom: 0.4rem; }
+    /* BIGGER VITALS */
+    #vitalsList {
+      font-size: 1.2rem;
+      line-height: 1.8;
+    }
+
+    .vital {
+      margin-bottom: 0.15rem;
+    }
 
     .timer-seconds {
       font-size: 2rem;
@@ -168,16 +176,21 @@
         <option value="Black">⚫ Black</option>
       </select>
 
-      <div class="label" style="margin-top: 10px;">ER Tests</div>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="IV Fluids"> IV Fluids</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="X-ray"> X-ray</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Oxygen"> Oxygen</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="CT Scan"> CT Scan</label><br>
+      <div class="label" style="margin-top: 10px;">Emergency Department Tests</div>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="FAST ultrasound"> FAST ultrasound</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Carboxyhaemoglobin level"> Carboxyhaemoglobin level (CO)</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Plain X-ray"> Plain X-ray</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="MRI scan"> MRI scan</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="CT scan"> CT scan</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Intravenous fluids"> Intravenous (IV) fluids</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Blood typing and crossmatch"> Blood typing and crossmatch</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Serum lactate"> Serum lactate</label><br>
+      <label class="small"><input type="checkbox" class="testCheckbox" value="Burn depth assessment"> Burn depth assessment</label><br>
 
       <div class="label" style="margin-top: 10px;">Primary Treatment</div>
       <select id="primarySelect">
         <option value="">Select...</option>
-        <option value="Rapid IV Fluids + Oxygen">Rapid IV Fluids + Oxygen</option>
+        <option value="Rapid IV fluids and oxygen">Rapid IV fluids and oxygen</option>
         <option value="High-flow oxygen, burn dressing, analgesia">High-flow oxygen, burn dressing, analgesia</option>
         <option value="Oral rehydration solution, shade and cooling">Oral rehydration solution, shade and cooling</option>
         <option value="Immediate high-quality CPR">Immediate high-quality CPR</option>
@@ -188,14 +201,14 @@
         <option value="">Select...</option>
         <option value="Blood transfusion, pelvic stabilisation, analgesia">Blood transfusion, pelvic stabilisation, analgesia</option>
         <option value="Carboxyhaemoglobin level, ECG, chest X-ray">Carboxyhaemoglobin level, ECG, chest X-ray</option>
-        <option value="Monitor symptoms; consider electrolytes if no improvement">Monitor symptoms; consider electrolytes if no improvement</option>
+        <option value="Monitor symptoms; consider blood tests if no improvement">Monitor symptoms; consider blood tests if no improvement</option>
         <option value="If local policy allows, brief CPR / ACLS attempt">If local policy allows, brief CPR / ACLS attempt</option>
       </select>
 
       <div class="label" style="margin-top: 10px;">Disposition</div>
       <select id="dispositionSelect">
         <option value="">Select...</option>
-        <option value="Emergency OR">Emergency OR</option>
+        <option value="Emergency operating theatre">Emergency operating theatre</option>
         <option value="Observation ward / burns unit">Observation ward / burns unit</option>
         <option value="Discharge from checkpoint with advice">Discharge from checkpoint with advice</option>
         <option value="Expectant / deceased; document and prioritise other casualties">
@@ -212,6 +225,24 @@
         <option value="Discharge with analgesia">Discharge with analgesia</option>
         <option value="CPR / ACLS as appropriate">CPR / ACLS as appropriate</option>
       </select>
+
+      <div class="label" style="margin-top: 10px;">Receiving Hospital</div>
+      <label class="small">
+        <input type="radio" name="hospitalChoice" value="King Fahad Medical City — Level 1 Trauma Centre">
+        🚑 King Fahad Medical City — Level 1 Trauma Centre
+      </label><br>
+      <label class="small">
+        <input type="radio" name="hospitalChoice" value="Mina Emergency Hospital — Hajj Priority Centre">
+        🏥 Mina Emergency Hospital — Hajj Priority Centre
+      </label><br>
+      <label class="small">
+        <input type="radio" name="hospitalChoice" value="AlUla Field Medical Base — Desert Response">
+        🏥 AlUla Field Medical Base — Desert Response
+      </label><br>
+      <label class="small">
+        <input type="radio" name="hospitalChoice" value="Dhahran Trauma Center — Highway Critical Care">
+        🏥 Dhahran Trauma Center — Highway Critical Care
+      </label><br>
 
       <button class="primary" id="submitDecisionBtn">Submit Decision</button>
       <div class="small" id="submitStatus"></div>
@@ -300,6 +331,7 @@
     const secondarySelect = document.getElementById("secondarySelect");
     const dispositionSelect = document.getElementById("dispositionSelect");
     const testCheckboxes = document.querySelectorAll(".testCheckbox");
+    const hospitalRadios = document.querySelectorAll('input[name="hospitalChoice"]');
 
     let timerInterval = null;
     let timerStart = null;
@@ -375,6 +407,7 @@
         patientInfoEl.textContent = "–";
         patientNarrativeEl.textContent = "";
         vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
+        infoMessageEl.textContent = "";
         resetTimerDisplay();
         return;
       }
@@ -384,7 +417,9 @@
       patientNarrativeEl.textContent = currentGame.patientNarrative || "";
     });
 
+    // VITAL SCAN HANDLER – with "Vital X of Y" message
     socket.on("vitalScanned", (payload) => {
+      // Clear placeholder text
       if (
         vitalsListEl.firstChild &&
         vitalsListEl.firstChild.classList &&
@@ -403,11 +438,14 @@
       }
 
       line.textContent = `${payload.vitalKey}: ${payload.vitalValue}`;
+
+      infoMessageEl.textContent =
+        `✅ Vital ${payload.count} of ${payload.total} received — scan the next tag!`;
     });
 
     socket.on("allVitalsCollected", (payload) => {
       infoMessageEl.textContent =
-        "🚨 Vitals complete! Make your triage decision!";
+        "🚨 Vitals complete! Move to the Triage Zone and make your decision!";
       startTimer(payload.triageTimerSeconds || 60);
     });
 
@@ -418,7 +456,7 @@
       const rows = [
         { category: "Triage", human: result.human.triage, ai: result.ai.triage },
         {
-          category: "Tests",
+          category: "ER Tests",
           human: result.human.tests.join(", ") || "None",
           ai: result.ai.tests.join(", ") || "None"
         },
@@ -433,6 +471,11 @@
           ai: `${result.ai.treatmentSteps.primary} / ${result.ai.treatmentSteps.secondary} / ${result.ai.treatmentSteps.disposition}`
         },
         {
+          category: "Receiving Hospital",
+          human: result.human.hospital || "Not selected",
+          ai: result.ai.hospital || "–"
+        },
+        {
           category: "Time",
           human: `${result.human.timeSeconds.toFixed(2)} s`,
           ai: `${result.ai.aiTimeSeconds.toFixed(2)} s`
@@ -443,9 +486,9 @@
         const tr = document.createElement("tr");
         let match = "–";
 
-        if (r.category === "Triage" || r.category === "Treatment Tag" || r.category === "Tests") {
+        if (r.category === "Triage" || r.category === "Treatment Tag" || r.category === "ER Tests") {
           match = r.human === r.ai ? "✅" : "❌";
-        } else if (r.category.startsWith("Treatment Plan")) {
+        } else if (r.category === "Receiving Hospital") {
           match = r.human === r.ai ? "✅" : "❌";
         } else if (r.category === "Time") {
           match =
@@ -503,6 +546,7 @@
       socket.emit("resetGame");
       resetTimerDisplay();
       vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
+      infoMessageEl.textContent = "";
       resultsTableBody.innerHTML = "";
       scoreDisplayEl.textContent = "–";
       scoreBreakdownEl.textContent = "";
@@ -525,6 +569,9 @@
         .filter(c => c.checked)
         .map(c => c.value);
 
+      const hospital =
+        Array.from(hospitalRadios).find(r => r.checked)?.value || "";
+
       const treatmentSteps = {
         primary: primarySelect.value || "",
         secondary: secondarySelect.value || "",
@@ -536,11 +583,17 @@
         return;
       }
 
+      if (!hospital) {
+        submitStatusEl.textContent = "Please choose a receiving hospital.";
+        return;
+      }
+
       socket.emit("submitHumanDecision", {
         triage,
         tests,
         treatment,
-        treatmentSteps
+        treatmentSteps,
+        hospital
       });
 
       submitStatusEl.textContent = "Decision sent. Comparing with AI...";
