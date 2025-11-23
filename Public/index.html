@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>Emergency Drone Simulation – Big Screen</title>
   <script src="/socket.io/socket.io.js"></script>
+  <!-- QR code generator for team certificate -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
     body {
@@ -83,13 +85,21 @@
     }
 
     .small { font-size: 0.8rem; color: #9ca3af; }
+
+    #certificateQr {
+      margin-top: 10px;
+    }
+
+    #achievementsList li {
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 
 <body>
   <h1>🚨 Emergency Drone Simulation – Human vs AI Triage</h1>
   <p class="small">
-    Players scan QR codes on the mannequins → vitals appear here → players race the AI.
+    Players scan QR codes on the mannequins → vitals appear here → humans race the AI.
   </p>
 
   <div class="row">
@@ -100,8 +110,9 @@
 
       <div class="label">Patient</div>
       <div class="value" id="patientInfo">–</div>
+      <div class="small" id="patientNarrative"></div>
 
-      <div class="label">Vitals (collected)</div>
+      <div class="label" style="margin-top: 10px;">Vitals (collected)</div>
       <div id="vitalsList">
         <span class="small">No vitals scanned yet.</span>
       </div>
@@ -132,7 +143,36 @@
       <label class="small"><input type="checkbox" class="testCheckbox" value="Oxygen"> Oxygen</label><br>
       <label class="small"><input type="checkbox" class="testCheckbox" value="CT Scan"> CT Scan</label><br>
 
-      <div class="label" style="margin-top: 10px;">Treatment</div>
+      <div class="label" style="margin-top: 10px;">Primary Treatment</div>
+      <select id="primarySelect">
+        <option value="">Select...</option>
+        <option value="Rapid IV Fluids + Oxygen">Rapid IV Fluids + Oxygen</option>
+        <option value="Analgesia, basic monitoring">Analgesia, basic monitoring</option>
+        <option value="RICE (rest, ice, compression, elevation)">RICE (rest, ice, compression, elevation)</option>
+        <option value="Immediate high-quality CPR">Immediate high-quality CPR</option>
+      </select>
+
+      <div class="label" style="margin-top: 10px;">Secondary Treatment</div>
+      <select id="secondarySelect">
+        <option value="">Select...</option>
+        <option value="Blood transfusion, analgesia">Blood transfusion, analgesia</option>
+        <option value="Chest X-ray, repeat vitals">Chest X-ray, repeat vitals</option>
+        <option value="Simple analgesia">Simple analgesia</option>
+        <option value="Defibrillation / ACLS algorithm">Defibrillation / ACLS algorithm</option>
+      </select>
+
+      <div class="label" style="margin-top: 10px;">Disposition</div>
+      <select id="dispositionSelect">
+        <option value="">Select...</option>
+        <option value="Emergency OR">Emergency OR</option>
+        <option value="Observation ward">Observation ward</option>
+        <option value="Discharge">Discharge</option>
+        <option value="Resuscitation bay / consider termination per protocol">
+          Resuscitation bay / consider termination per protocol
+        </option>
+      </select>
+
+      <div class="label" style="margin-top: 10px;">Overall Treatment Tag</div>
       <select id="treatmentSelect">
         <option value="">Select...</option>
         <option value="Emergency Surgery">Emergency Surgery</option>
@@ -164,6 +204,22 @@
 
       <div class="label" style="margin-top: 10px;">Score</div>
       <div class="value" id="scoreDisplay">–</div>
+
+      <div class="small" id="scoreBreakdown"></div>
+
+      <h3 style="margin-top: 10px;">🧠 Why the AI chose this plan</h3>
+      <div class="small" id="explanationBox">
+        <p><strong>Triage:</strong> <span id="explainTriage">–</span></p>
+        <p><strong>Tests:</strong> <span id="explainTests">–</span></p>
+        <p><strong>Treatment:</strong> <span id="explainTreatment">–</span></p>
+      </div>
+
+      <h3 style="margin-top: 10px;">🏅 Achievements</h3>
+      <ul id="achievementsList" class="small"></ul>
+
+      <h3 style="margin-top: 10px;">📸 Team Certificate QR</h3>
+      <p class="small">Scan this on a phone to open your digital certificate and take a team photo.</p>
+      <div id="certificateQr"></div>
     </div>
 
     <!-- LEADERBOARD -->
@@ -191,18 +247,33 @@
 
     const teamInfoEl = document.getElementById("teamInfo");
     const patientInfoEl = document.getElementById("patientInfo");
+    const patientNarrativeEl = document.getElementById("patientNarrative");
     const vitalsListEl = document.getElementById("vitalsList");
     const timerDisplayEl = document.getElementById("timerDisplay");
     const infoMessageEl = document.getElementById("infoMessage");
     const submitStatusEl = document.getElementById("submitStatus");
     const resultsTableBody = document.getElementById("resultsTableBody");
     const scoreDisplayEl = document.getElementById("scoreDisplay");
+    const scoreBreakdownEl = document.getElementById("scoreBreakdown");
     const leaderboardBody = document.getElementById("leaderboardBody");
+    const explainTriageEl = document.getElementById("explainTriage");
+    const explainTestsEl = document.getElementById("explainTests");
+    const explainTreatmentEl = document.getElementById("explainTreatment");
+    const achievementsListEl = document.getElementById("achievementsList");
+    const certificateQrEl = document.getElementById("certificateQr");
 
-    // ===== TIMER (2 decimals, ms smaller) =====
+    const triageSelect = document.getElementById("triageSelect");
+    const treatmentSelect = document.getElementById("treatmentSelect");
+    const primarySelect = document.getElementById("primarySelect");
+    const secondarySelect = document.getElementById("secondarySelect");
+    const dispositionSelect = document.getElementById("dispositionSelect");
+    const testCheckboxes = document.querySelectorAll(".testCheckbox");
+
     let timerInterval = null;
     let timerStart = null;
+    let certificateQrInstance = null;
 
+    // TIMER
     function startTimer(durationSeconds) {
       timerStart = performance.now();
       const endTime = timerStart + durationSeconds * 1000;
@@ -253,10 +324,11 @@
       timerDisplayEl.textContent = "Timer: --";
     }
 
-    // ===== STATE UPDATE =====
+    // STATE UPDATE
     socket.on("stateUpdate", (data) => {
       currentGame = data.currentGame || null;
 
+      // Render leaderboard
       leaderboardBody.innerHTML = "";
       (data.leaderboard || []).forEach((entry, i) => {
         const tr = document.createElement("tr");
@@ -273,6 +345,7 @@
       if (!currentGame) {
         teamInfoEl.textContent = "Waiting for player...";
         patientInfoEl.textContent = "–";
+        patientNarrativeEl.textContent = "";
         vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
         resetTimerDisplay();
         return;
@@ -280,9 +353,10 @@
 
       teamInfoEl.textContent = currentGame.playerName;
       patientInfoEl.textContent = currentGame.patientName;
+      patientNarrativeEl.textContent = currentGame.patientNarrative || "";
     });
 
-    // ===== VITALS – NO DUPLICATES =====
+    // VITALS – no duplicates
     socket.on("vitalScanned", (payload) => {
       if (
         vitalsListEl.firstChild &&
@@ -305,30 +379,56 @@
     });
 
     socket.on("allVitalsCollected", (payload) => {
-      infoMessageEl.textContent = "🚨 Vitals complete! Move to the Triage Zone and make your decisions.";
+      infoMessageEl.textContent =
+        "🚨 Vitals complete! Make your triage decision!";
       startTimer(payload.triageTimerSeconds || 60);
     });
 
-    // ===== RESULTS =====
+    // RESULTS
     socket.on("resultsReady", (result) => {
       stopTimerAndFreeze();
 
       resultsTableBody.innerHTML = "";
       const rows = [
         { category: "Triage", human: result.human.triage, ai: result.ai.triage },
-        { category: "Tests", human: result.human.tests.join(", ") || "None", ai: result.ai.tests.join(", ") || "None" },
-        { category: "Treatment", human: result.human.treatment, ai: result.ai.treatment },
-        { category: "Time", human: `${result.human.timeSeconds.toFixed(2)} s`, ai: `${result.ai.aiTimeSeconds.toFixed(2)} s` }
+        {
+          category: "Tests",
+          human: result.human.tests.join(", ") || "None",
+          ai: result.ai.tests.join(", ") || "None"
+        },
+        {
+          category: "Treatment Tag",
+          human: result.human.treatment,
+          ai: result.ai.treatment
+        },
+        {
+          category: "Treatment Plan (Primary / Secondary / Disposition)",
+          human: `${result.human.treatmentSteps.primary || "–"} / ${result.human.treatmentSteps.secondary || "–"} / ${result.human.treatmentSteps.disposition || "–"}`,
+          ai: `${result.ai.treatmentSteps.primary} / ${result.ai.treatmentSteps.secondary} / ${result.ai.treatmentSteps.disposition}`
+        },
+        {
+          category: "Time",
+          human: `${result.human.timeSeconds.toFixed(2)} s`,
+          ai: `${result.ai.aiTimeSeconds.toFixed(2)} s`
+        }
       ];
 
       rows.forEach(r => {
         const tr = document.createElement("tr");
         let match = "–";
-        if (r.category !== "Time") {
+
+        if (r.category === "Triage" || r.category === "Treatment Tag" || r.category === "Tests") {
           match = r.human === r.ai ? "✅" : "❌";
-        } else {
-          match = parseFloat(result.human.timeSeconds) < parseFloat(result.ai.aiTimeSeconds) ? "⚡" : "⏱";
+        } else if (r.category.startsWith("Treatment Plan")) {
+          match =
+            r.human === r.ai ? "✅" : "❌";
+        } else if (r.category === "Time") {
+          match =
+            parseFloat(result.human.timeSeconds) < parseFloat(result.ai.aiTimeSeconds)
+              ? "⚡"
+              : "⏱";
         }
+
         tr.innerHTML = `
           <td>${r.category}</td>
           <td>${r.human}</td>
@@ -338,16 +438,58 @@
         resultsTableBody.appendChild(tr);
       });
 
-      scoreDisplayEl.textContent = `${result.points} / 12 points`;
+      const bd = result.scoreBreakdown;
+      scoreDisplayEl.textContent = `${bd.total} / 12 points`;
+      scoreBreakdownEl.innerHTML = `
+        +${bd.triage} Triage &nbsp; | 
+        +${bd.treatment} Treatment tag &nbsp; | 
+        +${bd.tests} Tests &nbsp; | 
+        +${bd.fasterThanAI} Faster than AI &nbsp; | 
+        +${bd.under30} Under 30 s
+      `;
+
+      // Explanations
+      explainTriageEl.textContent = result.explanations.triage;
+      explainTestsEl.textContent = result.explanations.tests;
+      explainTreatmentEl.textContent = result.explanations.treatment;
+
+      // Achievements
+      achievementsListEl.innerHTML = "";
+      (result.achievements || []).forEach(a => {
+        const li = document.createElement("li");
+        li.textContent = a;
+        achievementsListEl.appendChild(li);
+      });
+
+      // Certificate QR
+      const certificateUrl =
+        `${window.location.origin}/certificate.html` +
+        `?team=${encodeURIComponent(result.playerName)}` +
+        `&score=${encodeURIComponent(bd.total)}` +
+        `&time=${encodeURIComponent(result.human.timeSeconds.toFixed(2))}` +
+        `&patient=${encodeURIComponent(result.patientName)}`;
+
+      certificateQrEl.innerHTML = "";
+      certificateQrInstance = new QRCode(certificateQrEl, {
+        text: certificateUrl,
+        width: 120,
+        height: 120
+      });
     });
 
-    // ===== BUTTONS =====
+    // BUTTONS
     document.getElementById("resetBtn").onclick = () => {
       socket.emit("resetGame");
       resetTimerDisplay();
       vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
       resultsTableBody.innerHTML = "";
       scoreDisplayEl.textContent = "–";
+      scoreBreakdownEl.textContent = "";
+      explainTriageEl.textContent = "–";
+      explainTestsEl.textContent = "–";
+      explainTreatmentEl.textContent = "–";
+      achievementsListEl.innerHTML = "";
+      certificateQrEl.innerHTML = "";
     };
 
     document.getElementById("resetLeaderboardBtn").onclick = () => {
@@ -355,20 +497,32 @@
     };
 
     document.getElementById("submitDecisionBtn").onclick = () => {
-      const triage = document.getElementById("triageSelect").value;
-      const treatment = document.getElementById("treatmentSelect").value;
+      const triage = triageSelect.value;
+      const treatment = treatmentSelect.value;
 
-      const tests = Array.from(document.querySelectorAll(".testCheckbox"))
+      const tests = Array.from(testCheckboxes)
         .filter(c => c.checked)
         .map(c => c.value);
 
+      const treatmentSteps = {
+        primary: primarySelect.value || "",
+        secondary: secondarySelect.value || "",
+        disposition: dispositionSelect.value || ""
+      };
+
       if (!triage || !treatment) {
-        submitStatusEl.textContent = "Please select triage and treatment.";
+        submitStatusEl.textContent = "Please select triage and overall treatment tag.";
         return;
       }
 
-      socket.emit("submitHumanDecision", { triage, tests, treatment });
-      submitStatusEl.textContent = "Decision sent. Waiting for AI comparison...";
+      socket.emit("submitHumanDecision", {
+        triage,
+        tests,
+        treatment,
+        treatmentSteps
+      });
+
+      submitStatusEl.textContent = "Decision sent. Comparing with AI...";
     };
   </script>
 </body>
