@@ -14,20 +14,22 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
-// ------------------- PATIENT DATA (CLINICALLY REFINED) -------------------
+//
+// -------------- MASS CASUALTY SCENARIOS --------------
+//
 
 const patients = [
   {
     id: 1,
-    name: "Patient 1 – Crush Injury",
+    name: "Scenario 1 – Hajj Stampede (Red)",
     narrative:
-      "Male, 35-year-old pilgrim crushed beneath a metal barrier during crowd movement. Trapped for several minutes before rescue. Arrives pale, cool, and sweaty with suspected internal bleeding.",
+      "Male, 58-year-old pilgrim in Mina during peak Hajj movement. Crushed in a stampede. Found unconscious, pale, with shallow breathing. There is severe bleeding from the lower abdomen and an unstable pelvis, raising strong suspicion of pelvic fracture and internal haemorrhage. Past history of type 2 diabetes and hypertension.",
     vitals: {
-      consciousness: "Responds to pain",
-      respiratoryRate: "28 / min",
-      pulse: "135 bpm (weak, thready)",
-      bloodPressure: "80/50 mmHg",
-      oxygenSaturation: "88%"
+      consciousness: "Unconscious, no verbal response",
+      respiratoryRate: "34 / min (shallow, laboured)",
+      pulse: "142 bpm (weak, thready)",
+      bloodPressure: "78/45 mmHg",
+      oxygenSaturation: "86%"
     },
     aiDecision: {
       triage: "Red",
@@ -35,119 +37,124 @@ const patients = [
       treatment: "Emergency Surgery",
       treatmentSteps: {
         primary: "Rapid IV Fluids + Oxygen",
-        secondary: "Blood transfusion, analgesia",
+        secondary: "Blood transfusion, pelvic stabilisation, analgesia",
         disposition: "Emergency OR"
       },
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "Severe hypotension (80/50 mmHg), tachycardia, tachypnoea, and reduced consciousness after a crush mechanism are classic for haemorrhagic shock (ATLS ≥ class III). In mass-casualty triage this is an IMMEDIATE priority → Red.",
+        "Profound hypotension (78/45 mmHg), tachycardia (142 bpm), tachypnoea and unresponsiveness after a crush mechanism indicate severe haemorrhagic shock. Combined with comorbidities, this places him at very high risk of death → IMMEDIATE (Red) triage.",
       tests:
-        "IV access and fluid resuscitation are the first step. Oxygen treats hypoxia. Chest and limb X-rays help identify major fractures or thoracic injury contributing to blood loss.",
+        "Drone thermal imaging and FAST-style ultrasound help localise internal bleeding and pelvic injury. The AI recommends rapid IV access with fluid resuscitation and oxygen. In the ED, FAST ultrasound, CBC, lactate and blood typing guide massive transfusion and operative planning.",
       treatment:
-        "Unstable trauma with suspected ongoing bleeding requires rapid damage-control resuscitation and urgent surgical control of bleeding in the operating theatre."
+        "This patient requires damage-control resuscitation and emergency surgery for suspected pelvic and intra-abdominal bleeding. Pelvic stabilisation, massive transfusion protocol and airway management should be prepared before arrival."
     }
   },
   {
     id: 2,
-    name: "Patient 2 – Blunt Chest Trauma (Stable)",
+    name: "Scenario 2 – Riyadh Industrial Explosion (Yellow)",
     narrative:
-      "Female, 24-year-old involved in a low-speed vehicle collision. Walked to the triage area complaining of localised chest pain but no shortness of breath. No obvious external bleeding.",
+      "Male, 42-year-old worker in an industrial zone near Riyadh. Exposed to an explosion with burns to the arms and face. He is alert but disoriented, complaining of chest tightness and dizziness. There is concern for inhalational injury and carbon monoxide exposure. History of smoking, mild asthma and penicillin allergy.",
     vitals: {
-      consciousness: "Alert, oriented",
-      respiratoryRate: "20 / min",
-      pulse: "96 bpm",
-      bloodPressure: "120/75 mmHg",
-      oxygenSaturation: "98%"
+      consciousness: "Alert but disoriented (GCS ≈ 13)",
+      respiratoryRate: "26 / min",
+      pulse: "110 bpm",
+      bloodPressure: "100/70 mmHg",
+      oxygenSaturation: "95%"
     },
     aiDecision: {
       triage: "Yellow",
-      tests: ["X-ray"],
+      tests: ["Oxygen", "X-ray", "CT Scan"],
       treatment: "Observation",
       treatmentSteps: {
-        primary: "Analgesia, basic monitoring",
-        secondary: "Chest X-ray, repeat vitals",
-        disposition: "Observation ward"
+        primary: "High-flow oxygen, burn dressing, analgesia",
+        secondary: "Carboxyhaemoglobin level, ECG, chest X-ray",
+        disposition: "Observation ward / burns unit"
       },
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "Normal blood pressure, oxygen saturation and mental status with isolated chest pain suggests stable blunt trauma. She cannot be safely discharged immediately but does not need immediate life-saving intervention → Delayed (Yellow).",
+        "He has significant burns and respiratory symptoms but maintains blood pressure, oxygen saturation and airway. He is unwell but not in immediate extremis → Urgent but Delayed (Yellow).",
       tests:
-        "A chest X-ray is appropriate to exclude rib fractures, pneumothorax, or haemothorax. Routine labs and further imaging can be guided by clinical findings.",
+        "The drone uses thermal and skin-texture imaging to estimate burn depth and facial analysis to estimate pain and GCS. AI recommends high-flow oxygen for possible CO poisoning, followed by carboxyhaemoglobin level, chest X-ray and ECG in the ED to assess inhalational injury and cardiac stress.",
       treatment:
-        "Adequate analgesia, monitoring of pain and respiratory status, and short-term observation are usually sufficient for stable chest wall injury without red flags."
+        "Initial management focuses on oxygen therapy, cooling and dressing the burns, analgesia and close monitoring. Depending on burn extent and gas exposure, he should be admitted for observation or to a burns unit for serial assessment."
     }
   },
   {
     id: 3,
-    name: "Patient 3 – Minor Ankle Injury",
+    name: "Scenario 3 – AlUla Desert Rally Dehydration (Green)",
     narrative:
-      "Teenage pilgrim who twisted his ankle while descending stairs. Able to walk with a limp to the triage area. Localised ankle swelling and tenderness, no other injuries.",
+      "Female, 27-year-old rally participant at an AlUla desert checkpoint. Complains of dry mouth, fatigue and headache after prolonged heat exposure. She is walking independently with mild clinical signs of dehydration but no red-flag features. Past history: otherwise healthy, occasional migraines.",
     vitals: {
-      consciousness: "Alert, walking",
+      consciousness: "Alert, walking without assistance",
       respiratoryRate: "18 / min",
-      pulse: "88 bpm",
-      bloodPressure: "125/80 mmHg",
+      pulse: "92 bpm",
+      bloodPressure: "118/78 mmHg",
       oxygenSaturation: "99%"
     },
     aiDecision: {
       triage: "Green",
       tests: [],
-      treatment: "Discharge with analgesia",
+      treatment: "Hydration and rest",
       treatmentSteps: {
-        primary: "RICE (rest, ice, compression, elevation)",
-        secondary: "Simple analgesia",
-        disposition: "Discharge"
+        primary: "Oral rehydration solution, shade and cooling",
+        secondary: "Monitor symptoms; consider electrolytes if no improvement",
+        disposition: "Discharge from checkpoint with advice"
       },
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "He is ambulating independently with normal vital signs and an isolated limb injury. This fits the 'walking wounded' group → Minor (Green) in mass-casualty triage.",
+        "She is haemodynamically stable with normal vital signs and is able to walk. Symptoms are consistent with mild dehydration and heat stress without systemic compromise → Minimal (Green).",
       tests:
-        "In many systems, simple sprains without bony tenderness or concerning features can be managed without immediate imaging, or with outpatient X-ray if needed.",
+        "The drone uses thermal imaging and facial/skin analysis to suggest mild heat stress and dehydration. In this scenario, laboratory tests are usually unnecessary; simple clinical reassessment after fluids is sufficient.",
       treatment:
-        "Standard management for uncomplicated ankle sprain is RICE plus oral analgesia, with discharge and clear instructions for follow-up or return if symptoms worsen."
+        "Oral hydration, rest in a shaded cool area and monitoring are appropriate. She can be discharged from the checkpoint with clear advice to return if symptoms worsen or fail to improve."
     }
   },
   {
     id: 4,
-    name: "Patient 4 – Cardiac Arrest / Collapse",
+    name: "Scenario 4 – Highway Collision (Black)",
     narrative:
-      "Male, 60-year-old collapsed suddenly near the tents. Found unresponsive, pulseless and not breathing normally (agonal gasps). Bystander CPR just started.",
+      "Male, 35-year-old driver involved in a high-speed multi-vehicle collision on an Eastern Province highway. On drone and paramedic arrival he has severe head and chest trauma, no signs of life and no spontaneous movement.",
     vitals: {
-      consciousness: "Unresponsive",
-      respiratoryRate: "Agonal / none",
+      consciousness: "Unresponsive, no response to pain",
+      respiratoryRate: "No respiratory effort",
       pulse: "No palpable pulse",
       bloodPressure: "Undetectable",
-      oxygenSaturation: "70%"
+      oxygenSaturation: "0% (no measurable signal)"
     },
     aiDecision: {
       triage: "Black",
       tests: [],
       treatment: "CPR / ACLS as appropriate",
       treatmentSteps: {
-        primary: "Immediate high-quality CPR",
-        secondary: "Defibrillation / ACLS algorithm",
-        disposition: "Resuscitation bay / consider termination per protocol"
+        primary: "Confirm absence of signs of life",
+        secondary: "If local policy allows, brief CPR / ACLS attempt",
+        disposition: "Expectant / deceased; document and prioritise other casualties"
       },
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "In many mass-casualty settings, patients in cardiac arrest with no signs of life are triaged as expectant (Black) so that resources can be focused on salvageable casualties. Local protocols may allow CPR if resources permit.",
+        "No pulse, no breathing, fixed pupils and catastrophic trauma are compatible with death at the scene. In mass-casualty conditions this patient is triaged as Black (expectant/deceased) so that resources can be directed to salvageable patients.",
       tests:
-        "During active arrest the priority is high-quality CPR and defibrillation when indicated; diagnostic tests do not improve outcomes at this stage.",
+        "Drone thermal imaging and vital-sign sensors confirm absence of cardiac activity and heat signature. No further diagnostic testing is indicated once death is confirmed.",
       treatment:
-        "Follow basic life support and ACLS guidelines: continuous chest compressions, early defibrillation for shockable rhythms, airway support, and decide on termination based on response and local policy."
+        "Local policy may allow a brief attempt at CPR/ACLS if there is any doubt, but priority should rapidly shift to living casualties. The drone records the scene, confirms identity when possible and logs time of death for documentation."
     }
   }
 ];
 
-// ------------------- GAME STATE / SCORING / SOCKET LOGIC (unchanged from last version) -------------------
+//
+// -------------- GAME LOGIC (unchanged) --------------
+//
+
+let currentGame = null;
+let leaderboard = [];
 
 function findPatient(patientId) {
   return patients.find((p) => p.id === patientId);
@@ -160,9 +167,6 @@ function arraysEqualAsSets(a, b) {
   for (const item of setA) if (!setB.has(item)) return false;
   return true;
 }
-
-let currentGame = null;
-let leaderboard = [];
 
 function scoreGame(human, ai, humanTime) {
   const breakdown = {
@@ -194,7 +198,7 @@ function computeAchievements(human, ai, breakdown) {
   const achievements = [];
 
   if (breakdown.total === 12) {
-    achievements.push("🏅 Perfect Triage – Maximum score achieved on this case.");
+    achievements.push("🏅 Perfect Triage – Maximum score achieved on this scenario.");
   }
   if (human.timeSeconds <= 10) {
     achievements.push("⚡ Lightning Hands – Completed triage in under 10 seconds.");
@@ -207,10 +211,10 @@ function computeAchievements(human, ai, breakdown) {
     human.treatment === ai.treatment &&
     arraysEqualAsSets(human.tests, ai.tests)
   ) {
-    achievements.push("🎯 Clinical Sharpshooter – Fully matched the AI triage, tests, and treatment.");
+    achievements.push("🎯 Clinical Sharpshooter – Matched AI triage, tests and treatment plan.");
   }
   if (achievements.length === 0) {
-    achievements.push("🩺 Trainee Responder – Good effort! Try another case and see if you can improve.");
+    achievements.push("🩺 Trainee Responder – Good effort! Try another scenario to improve your score.");
   }
 
   return achievements;
@@ -238,7 +242,7 @@ io.on("connection", (socket) => {
     const patient = findPatient(patientId);
 
     if (!patient) {
-      socket.emit("errorMessage", "Selected patient not found.");
+      socket.emit("errorMessage", "Selected scenario not found.");
       return;
     }
 
@@ -323,7 +327,6 @@ io.on("connection", (socket) => {
       patient.aiDecision,
       humanTimeSeconds
     );
-
     const achievements = computeAchievements(
       humanDecision,
       patient.aiDecision,
