@@ -14,14 +14,14 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
-// ------------------- PATIENT DATA -------------------
+// ------------------- PATIENT DATA (CLINICALLY REFINED) -------------------
 
 const patients = [
   {
     id: 1,
     name: "Patient 1 – Crush Injury",
     narrative:
-      "Male, 35, Hajj pilgrim crushed under a metal barrier during crowd movement. Trapped for several minutes before rescue.",
+      "Male, 35-year-old pilgrim crushed beneath a metal barrier during crowd movement. Trapped for several minutes before rescue. Arrives pale, cool, and sweaty with suspected internal bleeding.",
     vitals: {
       consciousness: "Responds to pain",
       respiratoryRate: "28 / min",
@@ -42,18 +42,18 @@ const patients = [
     },
     explanations: {
       triage:
-        "Low blood pressure, tachycardia, and reduced consciousness after crush injury indicate hemorrhagic shock → Immediate (Red).",
+        "Severe hypotension (80/50 mmHg), tachycardia, tachypnoea, and reduced consciousness after a crush mechanism are classic for haemorrhagic shock (ATLS ≥ class III). In mass-casualty triage this is an IMMEDIATE priority → Red.",
       tests:
-        "X-ray to look for fractures / chest injury, IV access for resuscitation, and oxygen for hypoxia are first-line in unstable trauma.",
+        "IV access and fluid resuscitation are the first step. Oxygen treats hypoxia. Chest and limb X-rays help identify major fractures or thoracic injury contributing to blood loss.",
       treatment:
-        "Suspected internal bleeding from crush injury → definitive source control requires emergency surgery after initial resuscitation."
+        "Unstable trauma with suspected ongoing bleeding requires rapid damage-control resuscitation and urgent surgical control of bleeding in the operating theatre."
     }
   },
   {
     id: 2,
-    name: "Patient 2 – Stable Trauma",
+    name: "Patient 2 – Blunt Chest Trauma (Stable)",
     narrative:
-      "Female, 24, minor vehicle collision. Walked to triage area with chest discomfort but stable vitals.",
+      "Female, 24-year-old involved in a low-speed vehicle collision. Walked to the triage area complaining of localised chest pain but no shortness of breath. No obvious external bleeding.",
     vitals: {
       consciousness: "Alert, oriented",
       respiratoryRate: "20 / min",
@@ -74,18 +74,18 @@ const patients = [
     },
     explanations: {
       triage:
-        "Normal blood pressure, normal oxygen saturation, and full consciousness → not immediately life-threatening but needs assessment → Yellow.",
+        "Normal blood pressure, oxygen saturation and mental status with isolated chest pain suggests stable blunt trauma. She cannot be safely discharged immediately but does not need immediate life-saving intervention → Delayed (Yellow).",
       tests:
-        "Chest X-ray is appropriate to exclude fractures or occult lung injury given chest pain, but no need for aggressive tests.",
+        "A chest X-ray is appropriate to exclude rib fractures, pneumothorax, or haemothorax. Routine labs and further imaging can be guided by clinical findings.",
       treatment:
-        "Patient is stable; observation with analgesia and serial exams is safer than unnecessary aggressive intervention."
+        "Adequate analgesia, monitoring of pain and respiratory status, and short-term observation are usually sufficient for stable chest wall injury without red flags."
     }
   },
   {
     id: 3,
-    name: "Patient 3 – Minor Injury",
+    name: "Patient 3 – Minor Ankle Injury",
     narrative:
-      "Teenage pilgrim with ankle sprain after tripping on stairs. Walking independently to triage.",
+      "Teenage pilgrim who twisted his ankle while descending stairs. Able to walk with a limp to the triage area. Localised ankle swelling and tenderness, no other injuries.",
     vitals: {
       consciousness: "Alert, walking",
       respiratoryRate: "18 / min",
@@ -106,18 +106,18 @@ const patients = [
     },
     explanations: {
       triage:
-        "Walking wounded with normal vitals and isolated limb pain → safe to classify as Minor (Green).",
+        "He is ambulating independently with normal vital signs and an isolated limb injury. This fits the 'walking wounded' group → Minor (Green) in mass-casualty triage.",
       tests:
-        "No red-flag features; imaging can be deferred or done outpatient depending on local protocol.",
+        "In many systems, simple sprains without bony tenderness or concerning features can be managed without immediate imaging, or with outpatient X-ray if needed.",
       treatment:
-        "Supportive management with simple analgesia and discharge is appropriate for a stable minor sprain."
+        "Standard management for uncomplicated ankle sprain is RICE plus oral analgesia, with discharge and clear instructions for follow-up or return if symptoms worsen."
     }
   },
   {
     id: 4,
-    name: "Patient 4 – Cardiac Arrest",
+    name: "Patient 4 – Cardiac Arrest / Collapse",
     narrative:
-      "Male, 60, collapsed suddenly near the tents. No response, no breathing, and no palpable pulse.",
+      "Male, 60-year-old collapsed suddenly near the tents. Found unresponsive, pulseless and not breathing normally (agonal gasps). Bystander CPR just started.",
     vitals: {
       consciousness: "Unresponsive",
       respiratoryRate: "Agonal / none",
@@ -138,19 +138,16 @@ const patients = [
     },
     explanations: {
       triage:
-        "No pulse and absent effective breathing in a mass-casualty setting → expectant (Black) unless resources allow full resuscitation.",
+        "In many mass-casualty settings, patients in cardiac arrest with no signs of life are triaged as expectant (Black) so that resources can be focused on salvageable casualties. Local protocols may allow CPR if resources permit.",
       tests:
-        "During arrest, focus is on CPR and defibrillation rather than diagnostics.",
+        "During active arrest the priority is high-quality CPR and defibrillation when indicated; diagnostic tests do not improve outcomes at this stage.",
       treatment:
-        "CPR and adherence to ACLS guidelines are the only meaningful interventions; prognosis is poor but basic life support may be attempted."
+        "Follow basic life support and ACLS guidelines: continuous chest compressions, early defibrillation for shockable rhythms, airway support, and decide on termination based on response and local policy."
     }
   }
 ];
 
-// ------------------- GAME STATE -------------------
-
-let currentGame = null;
-let leaderboard = [];
+// ------------------- GAME STATE / SCORING / SOCKET LOGIC (unchanged from last version) -------------------
 
 function findPatient(patientId) {
   return patients.find((p) => p.id === patientId);
@@ -164,7 +161,9 @@ function arraysEqualAsSets(a, b) {
   return true;
 }
 
-// Returns a breakdown object with per-component scores + total
+let currentGame = null;
+let leaderboard = [];
+
 function scoreGame(human, ai, humanTime) {
   const breakdown = {
     triage: 0,
@@ -195,27 +194,23 @@ function computeAchievements(human, ai, breakdown) {
   const achievements = [];
 
   if (breakdown.total === 12) {
-    achievements.push("🏅 Perfect Triage – Max score achieved");
+    achievements.push("🏅 Perfect Triage – Maximum score achieved on this case.");
   }
   if (human.timeSeconds <= 10) {
-    achievements.push("⚡ Lightning Hands – Decision under 10 seconds");
+    achievements.push("⚡ Lightning Hands – Completed triage in under 10 seconds.");
   }
   if (human.timeSeconds < ai.aiTimeSeconds) {
-    achievements.push("🤖 AI Slayer – Faster than the AI");
+    achievements.push("🤖 AI Slayer – Human team was faster than the AI.");
   }
   if (
     human.triage === ai.triage &&
     human.treatment === ai.treatment &&
     arraysEqualAsSets(human.tests, ai.tests)
   ) {
-    achievements.push("🎯 Clinical Sharpshooter – Fully matched AI plan");
+    achievements.push("🎯 Clinical Sharpshooter – Fully matched the AI triage, tests, and treatment.");
   }
-  if (breakdown.triage === 5 && breakdown.treatment === 3 && breakdown.tests === 0) {
-    achievements.push("🧪 Minimalist – Got triage & treatment right with extra tests");
-  }
-
   if (achievements.length === 0) {
-    achievements.push("🩺 Trainee Responder – Good effort! Try another case.");
+    achievements.push("🩺 Trainee Responder – Good effort! Try another case and see if you can improve.");
   }
 
   return achievements;
@@ -228,12 +223,9 @@ function broadcastState() {
   });
 }
 
-// ------------------- SOCKET LOGIC -------------------
-
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
-  // Send current state to new client
   if (currentGame || leaderboard.length > 0) {
     socket.emit("stateUpdate", {
       currentGame,
@@ -384,8 +376,6 @@ io.on("connection", (socket) => {
     console.log("Client disconnected:", socket.id);
   });
 });
-
-// ------------------- START SERVER -------------------
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
