@@ -36,6 +36,14 @@ const TESTS = {
   ct: "CT scan"
 };
 
+// Which tests are offered at which hospital (for UI filtering)
+const HOSPITAL_TESTS = {
+  mina: ["fast", "lactate", "crossmatch"],
+  kfmc: ["xray", "ct", "co", "burn"],
+  alula: ["xray", "iv", "fast"],
+  dhahran: ["ct", "fast", "crossmatch"]
+};
+
 //
 // ---------- SCENARIOS (exact vitals / answers) ----------
 //
@@ -44,20 +52,20 @@ const scenarios = [
   {
     id: 1,
     name: "Scenario 1 — Hajj Stampede (Red)",
-    patientPhoto: "/images/scenario1.jpg", // put your image here
+    patientPhoto: "/images/scenario1.jpg", // optional hero image
     shortLabel: "Hajj Stampede",
     vitals: {
       hr: "142 bpm",
       bp: "78/45 mmHg",
       rr: "34 / min",
       consciousness: "Unconscious",
-      injury: "Severe abdominal bleeding, suspected pelvic fracture"
+      injury: "Severe abdominal bleed, suspected pelvic fracture"
     },
     droneTestsText: [
-      "Thermal imaging – detects major heat loss",
-      "FAST scan module – shows internal bleeding",
+      "Thermal imaging – major heat loss",
+      "FAST scan – intra-abdominal bleeding",
       "Pallor detection – low perfusion",
-      "Vital sensors – HR / RR / BP prediction",
+      "Vital sensor suite – unstable HR/BP",
       "Facial recognition – confirms unconsciousness"
     ],
     correct: {
@@ -72,7 +80,7 @@ const scenarios = [
       tests:
         "FAST ultrasound rapidly detects intra-abdominal bleeding. Serum lactate reflects tissue hypoperfusion. Blood typing and crossmatch prepare for urgent transfusion.",
       treatment:
-        "Rapid haemorrhage control with FAST-guided decision making, blood resuscitation and pelvic / abdominal surgery at a facility with Hajj-capable emergency capacity."
+        "Rapid haemorrhage control with FAST-guided decision making, blood resuscitation and pelvic / abdominal surgery at a Hajj-capable emergency facility."
     }
   },
   {
@@ -84,13 +92,13 @@ const scenarios = [
       hr: "110 bpm",
       bp: "100/70 mmHg",
       rr: "26 / min",
-      consciousness: "Alert but confused",
+      consciousness: "Confused but alert",
       injury: "Burns, dizziness and chest tightness"
     },
     droneTestsText: [
-      "Thermal burn mapping – burn surface and depth",
-      "CO poisoning speech analysis – detects dysarthria",
-      "Blister / burn depth detection",
+      "Thermal burn mapping – surface and depth",
+      "CO poisoning voice analysis",
+      "Burn depth detection",
       "Pain analysis – facial expression scoring",
       "GCS eye tracking – estimated GCS ≈ 13"
     ],
@@ -102,7 +110,7 @@ const scenarios = [
     },
     explanations: {
       triage:
-        "Burns and respiratory symptoms are concerning, but the airway, blood pressure and oxygen saturation remain stable. He requires urgent, not immediate, intervention → Yellow.",
+        "Burns and respiratory symptoms are concerning, but the airway, blood pressure and mental status remain stable. He requires urgent, not immediate, intervention → Yellow (delayed).",
       tests:
         "Chest X-ray evaluates blast and inhalation effects. Carboxyhaemoglobin confirms carbon monoxide exposure. Burn assessment defines depth and total burn surface area.",
       treatment:
@@ -118,16 +126,15 @@ const scenarios = [
       hr: "92 bpm",
       bp: "118/78 mmHg",
       rr: "18 / min",
-      consciousness: "Walking",
+      consciousness: "Walking and talking",
       injury: "Mild dehydration and heat stress"
     },
     droneTestsText: [
       "Thermal elevation – raised core temperature",
-      "Skin dryness scan – reduced skin turgor",
-      "Facial flush detection – mild heat stress",
+      "Skin dryness scan – reduced turgor",
+      "Facial flush detector – mild heat stress",
       "Hydration assessment – mouth and eye moisture"
     ],
-    // Using the exact combo you requested
     correct: {
       triage: "Green",
       hospitalId: "alula",
@@ -152,14 +159,14 @@ const scenarios = [
       hr: "No pulse",
       bp: "Undetectable",
       rr: "No breathing",
-      consciousness: "Fixed pupils, unresponsive",
+      consciousness: "Fixed, dilated pupils",
       injury: "Massive head and chest trauma"
     },
     droneTestsText: [
-      "No thermal output – absent perfusion",
+      "Zero thermal output – absent perfusion",
       "No HR / RR / BP detected",
       "GCS = 3 – deep coma",
-      "No reflexes – no blink or pain response"
+      "No blink or pain response"
     ],
     correct: {
       triage: "Black",
@@ -179,10 +186,28 @@ const scenarios = [
 ];
 
 //
-// ---------- VITAL ORDER (for sequential filling) ----------
+// ---------- HEAD-TO-TOE ORDER & VITAL MAPPING ----------
 //
 
-const VITAL_ORDER = ["hr", "bp", "rr", "consciousness", "injury"];
+// Body regions, in scan order:
+const BODY_REGIONS = ["Head", "Chest", "Abdomen", "Arms", "Legs"];
+
+// All vital keys we want to fill:
+const VITAL_KEYS = ["consciousness", "rr", "hr", "bp", "injury"];
+
+// For each QR scan index (0–4), which vitals should be revealed
+// 0 → head: consciousness
+// 1 → chest: respiratory rate
+// 2 → abdomen: HR + BP together
+// 3 → arms: no new vital (visual / bleeding focus)
+// 4 → legs: injury summary
+const VITALS_BY_SCAN_INDEX = [
+  ["consciousness"],
+  ["rr"],
+  ["hr", "bp"],
+  [],
+  ["injury"]
+];
 
 //
 // ---------- GAME STATE & HELPERS ----------
@@ -237,7 +262,8 @@ function broadcastState() {
       name: s.name,
       shortLabel: s.shortLabel
     })),
-    hospitals: HOSPITALS
+    hospitals: HOSPITALS,
+    hospitalTests: HOSPITAL_TESTS
   });
 }
 
@@ -247,10 +273,9 @@ function broadcastState() {
 
 io.on("connection", socket => {
   console.log("Client connected:", socket.id);
-
   broadcastState();
 
-  // Start a new scenario / team from the big screen
+  // Start a new scenario / visitor
   socket.on("registerPlayer", data => {
     const { playerName, mode, scenarioId } = data;
     const scenario = getScenario(scenarioId);
@@ -261,14 +286,16 @@ io.on("connection", socket => {
 
     currentGame = {
       id: Date.now(),
-      playerName: playerName || "Guest Team",
+      playerName: playerName || "Guest Operator",
       mode: mode || "Group",
       scenarioId: scenario.id,
       scenarioName: scenario.name,
       patientPhoto: scenario.patientPhoto,
       droneTestsText: scenario.droneTestsText,
-      vitalsScanned: [],      // which vital keys we’ve filled
-      scannedQrValues: [],    // raw QR contents to block duplicates
+      // vitals & photos
+      vitalsScanned: [],
+      scannedQrValues: [],
+      photoUrls: Array(BODY_REGIONS.length).fill(null),
       allVitalsCollected: false,
       triagePhaseStartedAt: null,
       humanDecision: null,
@@ -279,7 +306,7 @@ io.on("connection", socket => {
     broadcastState();
   });
 
-  // QR scan from mobile (accept ANY QR text)
+  // Mobile QR scan — ANY QR text is accepted
   socket.on("scanVital", data => {
     if (!currentGame) {
       socket.emit(
@@ -293,11 +320,11 @@ io.on("connection", socket => {
     if (!scenario) return;
 
     const qrData = (data.qrData || "").trim();
-
-    currentGame.vitalsScanned = currentGame.vitalsScanned || [];
     currentGame.scannedQrValues = currentGame.scannedQrValues || [];
+    currentGame.vitalsScanned = currentGame.vitalsScanned || [];
+    currentGame.photoUrls = currentGame.photoUrls || Array(BODY_REGIONS.length).fill(null);
 
-    // prevent scanning the exact same QR twice
+    // prevent exact duplicate tags
     if (qrData && currentGame.scannedQrValues.includes(qrData)) {
       socket.emit(
         "errorMessage",
@@ -305,44 +332,62 @@ io.on("connection", socket => {
       );
       return;
     }
-    if (qrData) currentGame.scannedQrValues.push(qrData);
 
-    const alreadyCount = currentGame.vitalsScanned.length;
-    const total = VITAL_ORDER.length;
+    const scanIndex = currentGame.scannedQrValues.length;
+    const totalRegions = BODY_REGIONS.length;
 
-    if (alreadyCount >= total) {
-      socket.emit("errorMessage", "All vitals are already uploaded for this patient.");
-      return;
-    }
-
-    // assign next vital in order
-    const vitalKey = VITAL_ORDER[alreadyCount];
-
-    if (!scenario.vitals[vitalKey]) {
+    if (scanIndex >= totalRegions) {
       socket.emit(
         "errorMessage",
-        "Scenario vitals are not configured correctly for this patient."
+        "All body regions are already scanned for this patient."
       );
       return;
     }
 
-    currentGame.vitalsScanned.push(vitalKey);
-    const count = currentGame.vitalsScanned.length;
+    if (qrData) currentGame.scannedQrValues.push(qrData);
 
-    io.emit("vitalScanned", {
-      vitalKey,
-      vitalValue: scenario.vitals[vitalKey],
-      count,
-      total
+    const bodyLabel = BODY_REGIONS[scanIndex];
+    const imageUrl = qrData; // assume QR points to an image or resource
+    currentGame.photoUrls[scanIndex] = imageUrl;
+
+    // Broadcast photo for that region
+    io.emit("photoScanned", {
+      index: scanIndex,
+      bodyLabel,
+      imageUrl
     });
 
+    // Reveal vitals mapped to this scan index
+    const keysToReveal = VITALS_BY_SCAN_INDEX[scanIndex] || [];
+    let newCount = currentGame.vitalsScanned.length;
+    for (const key of keysToReveal) {
+      if (!scenario.vitals[key]) continue;
+      if (!currentGame.vitalsScanned.includes(key)) {
+        currentGame.vitalsScanned.push(key);
+        newCount = currentGame.vitalsScanned.length;
+
+        io.emit("vitalScanned", {
+          vitalKey: key,
+          vitalValue: scenario.vitals[key],
+          count: newCount,
+          total: VITAL_KEYS.length
+        });
+      }
+    }
+
     // First vital triggers drone loading
-    if (count === 1 && !currentGame.triagePhaseStartedAt) {
+    if (
+      currentGame.vitalsScanned.length > 0 &&
+      !currentGame.triagePhaseStartedAt
+    ) {
       io.emit("droneLoading", { scenarioId: scenario.id });
     }
 
-    // All vitals collected -> unlock triage
-    if (count === total && !currentGame.allVitalsCollected) {
+    // All vitals collected after last scan
+    if (
+      currentGame.vitalsScanned.length === VITAL_KEYS.length &&
+      !currentGame.allVitalsCollected
+    ) {
       currentGame.allVitalsCollected = true;
       currentGame.triagePhaseStartedAt = Date.now();
       io.emit("allVitalsCollected", {
