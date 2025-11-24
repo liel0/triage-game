@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Emergency Drone Simulation – Main Screen</title>
+  <title>AI Triage Drone 2040 – Main Screen</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body {
@@ -71,30 +71,83 @@
       margin-top: 4px;
     }
 
-    .patient-layout {
+    .operator-banner {
+      margin-top: 6px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: radial-gradient(circle at left, #22c55e33, #020617);
+      border: 1px solid rgba(34, 197, 94, 0.7);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .main-layout {
       display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 18px;
+      grid-template-columns: minmax(320px, 420px) minmax(420px, 1fr);
+      gap: 20px;
       align-items: flex-start;
     }
 
-    .patient-photo {
+    /* LEFT: body map & vitals */
+
+    .body-map {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .body-row {
+      display: grid;
+      grid-template-columns: 30% 40% 30%;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .body-label {
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+
+    .body-photo {
       width: 100%;
-      aspect-ratio: 3 / 4;
-      border-radius: 16px;
+      aspect-ratio: 4 / 3;
+      border-radius: 12px;
       background: #020617;
-      border: 1px solid #4b5563;
+      border: 1px solid #1f2937;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.9rem;
+      font-size: 0.75rem;
       color: #6b7280;
-      overflow: hidden;
     }
-    .patient-photo img {
+    .body-photo img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    .drone-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      font-size: 0.78rem;
+      opacity: 0.35;
+      transition: opacity 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+      white-space: nowrap;
+    }
+    .drone-chip.active {
+      opacity: 1;
+      border-color: #22c55e;
+      transform: translateY(-1px);
     }
 
     .vital-slot {
@@ -107,12 +160,8 @@
       border: 1px solid #111827;
       font-size: 1.05rem;
     }
-
     .vital-label { color: #9ca3af; }
-    .vital-value {
-      font-weight: 600;
-      color: #f9fafb;
-    }
+    .vital-value { font-weight: 600; color: #f9fafb; }
     .vital-value.empty { color: #4b5563; }
 
     .vital-highlight {
@@ -137,68 +186,73 @@
       margin-top: 6px;
     }
 
-    .drone-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .drone-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #020617;
-      border: 1px solid #1f2937;
-      font-size: 0.8rem;
-      opacity: 0.35;
-      transition: opacity 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
-    }
-    .drone-chip.active {
-      opacity: 1;
-      border-color: #22c55e;
-      transform: translateY(-1px);
-    }
-
     .timer-big { font-size: 1.8rem; font-weight: 700; }
     .timer-ms  { font-size: 1rem; opacity: 0.9; }
 
-    .triage-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 10px;
+    /* TRIAGE CIRCLES */
+
+    .triage-row {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 12px;
+      flex-wrap: wrap;
     }
 
-    .triage-btn {
-      border-radius: 12px;
+    .triage-circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 999px;
       border: none;
-      padding: 10px 12px;
-      font-size: 1rem;
-      font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
+      flex-direction: column;
+      font-size: 1rem;
+      font-weight: 700;
       color: #020617;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     }
-    .triage-btn span.sub {
-      font-size: 0.8rem;
-      font-weight: 400;
+    .triage-circle span.sub {
+      font-size: 0.65rem;
+      font-weight: 500;
       opacity: 0.9;
     }
-    .triage-btn.red    { background: #ef4444; }
-    .triage-btn.yellow { background: #eab308; }
-    .triage-btn.green  { background: #22c55e; }
-    .triage-btn.black  { background: #111827; color: #f9fafb; }
+    .triage-circle.red    { background: #ef4444; }
+    .triage-circle.yellow { background: #eab308; }
+    .triage-circle.green  { background: #22c55e; }
+    .triage-circle.black  { background: #111827; color: #f9fafb; }
+
+    .triage-circle.selected {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 0 20px rgba(250, 250, 250, 0.6);
+    }
+
+    .triage-underlights {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 4px;
+    }
+    .light-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #1f2937;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+    .light-dot.active.red    { background: #fecaca; box-shadow: 0 0 10px #fecaca; }
+    .light-dot.active.yellow { background: #fef08a; box-shadow: 0 0 10px #fef08a; }
+    .light-dot.active.green  { background: #bbf7d0; box-shadow: 0 0 10px #bbf7d0; }
+    .light-dot.active.black  { background: #9ca3af; box-shadow: 0 0 10px #9ca3af; }
 
     .choice-grid {
       display: grid;
       grid-template-columns: 1.1fr 1fr;
       gap: 20px;
-      margin-top: 10px;
+      margin-top: 14px;
     }
 
     .hospital-card {
@@ -217,6 +271,7 @@
       box-shadow: 0 0 16px rgba(34, 197, 94, 0.5);
     }
     .hospital-name { font-weight: 600; }
+    .hospital-meta { font-size: 0.8rem; color: #9ca3af; }
 
     .tests-list label {
       display: block;
@@ -240,13 +295,27 @@
       font-size: 1.4rem;
       font-weight: 700;
     }
+
+    .future-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px dashed #4b5563;
+      background: rgba(15, 23, 42, 0.85);
+      font-size: 0.85rem;
+      color: #e5e7eb;
+    }
   </style>
 </head>
 <body>
-  <h1>🚨 Emergency Drone Simulation – Human vs AI Triage</h1>
+  <h1>🚁 AI Triage Drone 2040 – Human vs AI Triage</h1>
+  <div id="operatorBanner" class="operator-banner">
+    <span>🧑‍✈️ DRONE OPERATOR:&nbsp;</span>
+    <span id="operatorName">Waiting for visitor…</span>
+  </div>
   <p class="small">
-    Step 1: Staff selects the team and scenario below. Step 2: Players scan QR tags using their phones.
-    The main screen handles everything else automatically.
+    The visitor plays the role of a triage drone: scan the QR tags on the mannequin,
+    watch the body map build in real time, then choose triage, hospital and ER tests.
   </p>
 
   <!-- SETUP -->
@@ -254,7 +323,7 @@
     <h2>🧭 Scenario Setup</h2>
     <div class="row" style="margin-top:6px;">
       <div style="flex: 1; min-width: 240px;">
-        <div class="label">Team name</div>
+        <div class="label">Visitor / team name</div>
         <input id="teamNameInput" class="input" placeholder="Example: Hajj Medics A" />
 
         <div class="label">Mode</div>
@@ -277,20 +346,17 @@
   </div>
 
   <div class="row">
-    <!-- LEFT -->
+    <!-- LEFT: body map & vitals -->
     <div class="card">
-      <h2>🧑‍⚕️ Patient & Drone Feed</h2>
+      <h2>🧑‍⚕️ Patient Body Map & Drone Feed</h2>
 
-      <div class="patient-layout">
+      <div class="main-layout">
         <div>
-          <div class="patient-photo" id="patientPhotoBox">
-            <span class="small">Patient image will appear here.</span>
-          </div>
           <div class="label">Scenario</div>
           <div class="value" id="scenarioNameDisplay">No active scenario.</div>
 
-          <div class="label">Team</div>
-          <div class="value" id="teamNameDisplay">–</div>
+          <div class="label">Body map (head → toes)</div>
+          <div id="bodyMap" class="body-map"></div>
 
           <div id="droneStatus" class="status-pill" style="display:none;">
             <span>🛰️ Drone ready.</span>
@@ -298,10 +364,7 @@
         </div>
 
         <div>
-          <div class="label">Drone diagnostic tools</div>
-          <div id="droneBar" class="drone-bar"></div>
-
-          <div class="label">Vitals (live feed)</div>
+          <div class="label">Live vitals (from drone)</div>
           <div id="vitalsPanel"></div>
 
           <div class="label">Triage timer</div>
@@ -311,12 +374,13 @@
       </div>
     </div>
 
-    <!-- RIGHT -->
+    <!-- RIGHT: triage, hospital, results -->
     <div class="card" id="rightPanel">
       <h2 id="rightPanelTitle">🧩 Human Triage</h2>
       <div id="rightPanelContent">
         <p class="small">
-          Scan a vital QR tag to begin. The triage interface will unlock after all vitals are received.
+          Start a scenario above, then ask the visitor to scan QR tags on the mannequin
+          with the mobile scanner. Photos and vitals will appear here automatically.
         </p>
       </div>
     </div>
@@ -329,7 +393,7 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Team</th>
+          <th>Drone operator</th>
           <th>Mode</th>
           <th>Scenario</th>
           <th>Score</th>
@@ -338,6 +402,13 @@
       </thead>
       <tbody id="leaderboardBody"></tbody>
     </table>
+
+    <div class="future-box">
+      <strong>🔮 Coming soon: AI Paramedic Support Module</strong><br />
+      In the full 2040 system, the drone will also recommend the exact equipment
+      paramedics should bring from the ambulance or hospital based on the patient’s
+      vitals and injuries. (Concept feature – not active in this exhibition demo.)
+    </div>
   </div>
 
   <script>
@@ -345,6 +416,7 @@
 
     let scenarios = [];
     let hospitalsMap = {};
+    let hospitalTestsMap = {};
     let currentGame = null;
     let timerInterval = null;
     let timerStart = null;
@@ -361,17 +433,18 @@
     const resetLeaderboardBtn = document.getElementById("resetLeaderboardBtn");
     const setupStatus = document.getElementById("setupStatus");
 
+    const operatorNameDisplay = document.getElementById("operatorName");
     const scenarioNameDisplay = document.getElementById("scenarioNameDisplay");
-    const teamNameDisplay = document.getElementById("teamNameDisplay");
-    const patientPhotoBox = document.getElementById("patientPhotoBox");
+    const bodyMap = document.getElementById("bodyMap");
     const droneStatus = document.getElementById("droneStatus");
-    const droneBar = document.getElementById("droneBar");
     const vitalsPanel = document.getElementById("vitalsPanel");
     const timerDisplayEl = document.getElementById("timerDisplay");
     const infoMessageEl = document.getElementById("infoMessage");
     const rightPanelTitle = document.getElementById("rightPanelTitle");
     const rightPanelContent = document.getElementById("rightPanelContent");
     const leaderboardBody = document.getElementById("leaderboardBody");
+
+    const BODY_REGIONS = ["Head", "Chest", "Abdomen", "Arms", "Legs"];
 
     const VITAL_LABELS = {
       hr: "Heart rate (HR)",
@@ -392,17 +465,28 @@
       ct: "CT scan"
     };
 
-    const DRONE_DEFAULT_ICONS = [
-      "🔶 Thermal imaging",
-      "🟦 FAST ultrasound module",
-      "🟪 Pallor / skin perfusion analysis",
-      "🟩 Vital-sign sensor suite",
-      "🟫 Facial recognition + GCS estimator"
-    ];
+    function resetBodyMap() {
+      bodyMap.innerHTML = "";
+      BODY_REGIONS.forEach((region, idx) => {
+        const row = document.createElement("div");
+        row.className = "body-row";
+        row.dataset.index = idx;
+        row.innerHTML = `
+          <div class="body-label">${region}</div>
+          <div class="body-photo">
+            <span class="small">Scan tag for ${region.toLowerCase()}</span>
+          </div>
+          <div class="drone-chip" data-drone-index="${idx}">
+            🛰️ Drone tool idle
+          </div>
+        `;
+        bodyMap.appendChild(row);
+      });
+    }
 
     function resetVitalsPanel() {
       vitalsPanel.innerHTML = "";
-      ["hr", "bp", "rr", "consciousness", "injury"].forEach(key => {
+      ["consciousness", "rr", "hr", "bp", "injury"].forEach(key => {
         const slot = document.createElement("div");
         slot.className = "vital-slot";
         slot.dataset.key = key;
@@ -412,21 +496,6 @@
         `;
         vitalsPanel.appendChild(slot);
       });
-    }
-
-    function setPatientPhoto(photoUrl) {
-      patientPhotoBox.innerHTML = "";
-      if (photoUrl) {
-        const img = document.createElement("img");
-        img.src = photoUrl;
-        img.alt = "Patient";
-        patientPhotoBox.appendChild(img);
-      } else {
-        const span = document.createElement("span");
-        span.className = "small";
-        span.textContent = "Patient image will appear here.";
-        patientPhotoBox.appendChild(span);
-      }
     }
 
     function resetTimerDisplay() {
@@ -473,54 +542,64 @@
       }
     }
 
-    function buildDroneBar(textArray) {
-      droneBar.innerHTML = "";
-      (textArray || DRONE_DEFAULT_ICONS).forEach(t => {
-        const chip = document.createElement("div");
-        chip.className = "drone-chip";
-        chip.textContent = t;
-        droneBar.appendChild(chip);
-      });
+    function activateDroneChip(index, labelText) {
+      const row = bodyMap.querySelector(`.body-row[data-index="${index}"]`);
+      if (!row) return;
+      const chip = row.querySelector(".drone-chip");
+      if (!chip) return;
+      chip.classList.add("active");
+      if (labelText) chip.textContent = labelText;
     }
 
-    function activateDroneChip(index) {
-      const chips = Array.from(droneBar.children);
-      if (chips[index]) {
-        chips[index].classList.add("active");
-      }
-    }
-
-    function showTriageButtons() {
-      rightPanelTitle.textContent = "🚨 Step 4 — Choose the triage category";
+    function showTriageCircles() {
+      rightPanelTitle.textContent = "🚨 Step 4 — Choose triage category";
       rightPanelContent.innerHTML = `
         <p class="small">
-          Use the vitals and drone diagnostics on the left to decide how urgent this patient is.
+          Use the body map and vitals on the left to decide how urgent this patient is.
         </p>
-        <div class="triage-grid">
-          <button class="triage-btn red" data-triage="Red">
-            <span>🟥 Red</span>
-            <span class="sub">Immediate – life-threatening</span>
+        <div class="triage-row">
+          <button class="triage-circle red" data-triage="Red">
+            <span>🟥</span>
+            <span class="sub">Immediate</span>
           </button>
-          <button class="triage-btn yellow" data-triage="Yellow">
-            <span>🟨 Yellow</span>
-            <span class="sub">Urgent – can tolerate short delay</span>
+          <button class="triage-circle yellow" data-triage="Yellow">
+            <span>🟨</span>
+            <span class="sub">Delayed</span>
           </button>
-          <button class="triage-btn green" data-triage="Green">
-            <span>🟩 Green</span>
-            <span class="sub">Minimal – walking wounded</span>
+          <button class="triage-circle green" data-triage="Green">
+            <span>🟩</span>
+            <span class="sub">Minimal</span>
           </button>
-          <button class="triage-btn black" data-triage="Black">
-            <span>⬛ Black</span>
-            <span class="sub">Expectant / deceased</span>
+          <button class="triage-circle black" data-triage="Black">
+            <span>⬛</span>
+            <span class="sub">Expectant</span>
           </button>
+        </div>
+        <div class="triage-underlights">
+          <div class="light-dot" data-light="Red"></div>
+          <div class="light-dot" data-light="Yellow"></div>
+          <div class="light-dot" data-light="Green"></div>
+          <div class="light-dot" data-light="Black"></div>
         </div>
       `;
 
-      document.querySelectorAll(".triage-btn").forEach(btn => {
+      document.querySelectorAll(".triage-circle").forEach(btn => {
         btn.onclick = () => {
           if (triageLocked) return;
           chosenTriage = btn.dataset.triage;
           triageLocked = true;
+
+          document.querySelectorAll(".triage-circle")
+            .forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+
+          document.querySelectorAll(".light-dot")
+            .forEach(dot => dot.classList.remove("active"));
+          const active = document.querySelector(
+            `.light-dot[data-light="${chosenTriage}"]`
+          );
+          if (active) active.classList.add("active", chosenTriage.toLowerCase());
+
           showHospitalAndTests();
         };
       });
@@ -531,11 +610,11 @@
       rightPanelContent.innerHTML = `
         <div class="choice-grid">
           <div>
-            <div class="label">Receiving hospital</div>
+            <div class="label">Recommended hospitals</div>
             <div id="hospitalList"></div>
           </div>
           <div>
-            <div class="label">Emergency department tests</div>
+            <div class="label">Tests available at this hospital</div>
             <div class="tests-list" id="testsList"></div>
           </div>
         </div>
@@ -549,35 +628,34 @@
       const testsList = document.getElementById("testsList");
       const choiceStatus = document.getElementById("choiceStatus");
 
+      // Build hospital cards
       hospitalList.innerHTML = "";
       Object.entries(hospitalsMap).forEach(([id, label]) => {
         const card = document.createElement("div");
         card.className = "hospital-card";
         card.dataset.hospitalId = id;
-        card.innerHTML = `<div class="hospital-name">${label}</div>`;
+        const testsOffered = (hospitalTestsMap[id] || [])
+          .map(tid => TESTS[tid])
+          .join(", ");
+        card.innerHTML = `
+          <div class="hospital-name">${label}</div>
+          <div class="hospital-meta">
+            ER capabilities: ${testsOffered || "Standard emergency care"}
+          </div>
+        `;
         card.onclick = () => {
           hospitalSelection = id;
           document.querySelectorAll(".hospital-card")
             .forEach(c => c.classList.remove("selected"));
           card.classList.add("selected");
+          renderTestsForHospital(id, testsList);
         };
         hospitalList.appendChild(card);
       });
 
-      testsList.innerHTML = "";
-      Object.entries(TESTS).forEach(([id, label]) => {
-        const lab = document.createElement("label");
-        lab.innerHTML = `<input type="checkbox" data-test-id="${id}"> ${label}`;
-        testsList.appendChild(lab);
-      });
-
-      document.querySelectorAll('input[data-test-id]').forEach(box => {
-        box.onchange = () => {
-          const id = box.dataset.testId;
-          if (box.checked) testSelection.add(id);
-          else testSelection.delete(id);
-        };
-      });
+      // Initial tests blank
+      testsList.innerHTML =
+        "<p class='small'>Select a hospital to see which tests it can perform.</p>";
 
       document.getElementById("confirmChoicesBtn").onclick = () => {
         if (!hospitalSelection) {
@@ -585,7 +663,7 @@
           return;
         }
         if (!chosenTriage) {
-          choiceStatus.textContent = "Triage selection missing.";
+          choiceStatus.textContent = "Triage selection is missing.";
           return;
         }
         socket.emit("submitHumanDecision", {
@@ -595,6 +673,29 @@
         });
         choiceStatus.textContent = "Decisions sent. Comparing with AI…";
       };
+    }
+
+    function renderTestsForHospital(hospitalId, container) {
+      testSelection = new Set(); // reset when hospital changes
+      container.innerHTML = "";
+      const testIds = hospitalTestsMap[hospitalId] || [];
+      if (!testIds.length) {
+        container.innerHTML =
+          "<p class='small'>This hospital has basic emergency tests only.</p>";
+        return;
+      }
+      testIds.forEach(id => {
+        const lab = document.createElement("label");
+        lab.innerHTML = `<input type="checkbox" data-test-id="${id}"> ${TESTS[id]}`;
+        container.appendChild(lab);
+      });
+      container.querySelectorAll('input[data-test-id]').forEach(box => {
+        box.onchange = () => {
+          const id = box.dataset.testId;
+          if (box.checked) testSelection.add(id);
+          else testSelection.delete(id);
+        };
+      });
     }
 
     function showResults(result) {
@@ -639,8 +740,8 @@
           <thead>
             <tr>
               <th>Category</th>
-              <th>Human team</th>
-              <th>AI drone</th>
+              <th>Human drone operator</th>
+              <th>AI triage drone</th>
               <th>Match</th>
             </tr>
           </thead>
@@ -672,11 +773,12 @@
       `;
     }
 
-    // ----- SOCKET HANDLERS -----
+    // ---------- SOCKET HANDLERS ----------
 
     socket.on("stateUpdate", data => {
       scenarios = data.scenarios || [];
       hospitalsMap = data.hospitals || hospitalsMap;
+      hospitalTestsMap = data.hospitalTests || hospitalTestsMap;
       currentGame = data.currentGame;
 
       // scenario dropdown
@@ -704,26 +806,24 @@
       });
 
       if (!currentGame) {
+        operatorNameDisplay.textContent = "Waiting for visitor…";
         scenarioNameDisplay.textContent = "No active scenario.";
-        teamNameDisplay.textContent = "–";
-        setPatientPhoto(null);
+        resetBodyMap();
         resetVitalsPanel();
-        buildDroneBar([]);
         droneStatus.style.display = "none";
         resetTimerDisplay();
         rightPanelTitle.textContent = "🧩 Human Triage";
         rightPanelContent.innerHTML =
-          "<p class='small'>Start a scenario above, then ask players to scan QR tags with their phones.</p>";
+          "<p class='small'>Start a scenario above, then ask visitors to scan QR tags with their phones.</p>";
         return;
       }
 
+      operatorNameDisplay.textContent = currentGame.playerName;
       scenarioNameDisplay.textContent = currentGame.scenarioName;
-      teamNameDisplay.textContent = currentGame.playerName;
-      setPatientPhoto(currentGame.patientPhoto);
+      resetBodyMap();
       resetVitalsPanel();
-      buildDroneBar(currentGame.droneTestsText);
       droneStatus.style.display = "inline-flex";
-      droneStatus.textContent = "🛰️ Waiting for first vital scan…";
+      droneStatus.textContent = "🛰️ Waiting for first scan…";
       infoMessageEl.textContent = "Scan any patient tag to begin.";
     });
 
@@ -732,9 +832,36 @@
       droneStatus.style.display = "inline-flex";
       droneStatus.textContent = "🛰️ Drone identifying patient…";
 
-      setTimeout(() => { droneStatus.textContent = "📡 Receiving sensor data…"; }, 800);
-      setTimeout(() => { droneStatus.textContent = "🖥 Preparing visual feed…"; }, 1600);
-      setTimeout(() => { droneStatus.textContent = "✅ Patient link established."; }, 2400);
+      setTimeout(() => { droneStatus.textContent = "📡 Receiving visual feeds…"; }, 800);
+      setTimeout(() => { droneStatus.textContent = "🧩 Assembling body map…"; }, 1600);
+      setTimeout(() => {
+        droneStatus.textContent = `✅ Operator: ${currentGame.playerName}`;
+      }, 2400);
+    });
+
+    socket.on("photoScanned", payload => {
+      const row = bodyMap.querySelector(`.body-row[data-index="${payload.index}"]`);
+      if (!row) return;
+      const photoBox = row.querySelector(".body-photo");
+      photoBox.innerHTML = "";
+      if (payload.imageUrl) {
+        const img = document.createElement("img");
+        img.src = payload.imageUrl;
+        img.alt = payload.bodyLabel;
+        photoBox.appendChild(img);
+      } else {
+        photoBox.textContent = "Image received";
+      }
+
+      // Activate corresponding drone chip with friendly label
+      const chipLabelMap = [
+        "🔶 Head scan online",
+        "🟦 Chest & breathing scan",
+        "🟪 Abdomen & circulation scan",
+        "🟩 Limb injury scan",
+        "🟫 Leg injury scan"
+      ];
+      activateDroneChip(payload.index, chipLabelMap[payload.index] || "🛰️ Drone tool active");
     });
 
     socket.on("vitalScanned", payload => {
@@ -747,14 +874,12 @@
         setTimeout(() => slot.classList.remove("vital-highlight"), 900);
       }
 
-      activateDroneChip(payload.count - 1);
-
       const phrases = [
-        "Vital 1 scanned — continue.",
-        "Vital 2 scanned — keep going.",
-        "Vital 3 scanned — almost there.",
-        "Vital 4 scanned — one more left!",
-        "All vitals scanned — look at the big screen!"
+        "Consciousness received — continue scanning.",
+        "Breathing data received — keep going.",
+        "Circulation data received — almost done.",
+        "Body map updating — scan remaining tags.",
+        "All vitals scanned — make your triage decision!"
       ];
       infoMessageEl.textContent =
         phrases[Math.min(payload.count - 1, phrases.length - 1)];
@@ -762,13 +887,13 @@
 
     socket.on("allVitalsCollected", payload => {
       infoMessageEl.textContent =
-        "🚨 All vitals received. Make your triage decision on this screen.";
+        "🚨 All vitals received. Choose triage, hospital and ER tests.";
       startCountdown(payload.triageTimerSeconds || 60);
       triageLocked = false;
       chosenTriage = null;
       hospitalSelection = null;
       testSelection = new Set();
-      showTriageButtons();
+      showTriageCircles();
     });
 
     socket.on("resultsReady", result => {
@@ -779,7 +904,7 @@
     // ----- BUTTONS -----
 
     startScenarioBtn.onclick = () => {
-      const teamName = teamNameInput.value.trim() || "Guest Team";
+      const teamName = teamNameInput.value.trim() || "Guest Operator";
       const mode = modeSelect.value;
       const scenarioId = parseInt(scenarioSelect.value, 10);
 
@@ -790,7 +915,7 @@
 
       socket.emit("registerPlayer", { playerName: teamName, mode, scenarioId });
       setupStatus.textContent =
-        "Scenario started. Ask players to scan the patient tags on their phones.";
+        "Scenario started. Ask the visitor to scan the patient tags with their phone.";
     };
 
     resetGameBtn.onclick = () => {
