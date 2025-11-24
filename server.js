@@ -15,231 +15,260 @@ app.get("/", (req, res) => {
 });
 
 //
-// -------------- MASS CASUALTY SCENARIOS --------------
+// ---------- MASTER DATA: HOSPITALS & TESTS (IDs -> labels) ----------
 //
 
-const patients = [
+const HOSPITALS = {
+  mina: "Mina Emergency Hospital",
+  kfmc: "King Fahad Medical City (Level 1 Trauma)",
+  alula: "AlUla Field Medical Base",
+  dhahran: "Dhahran Trauma Center"
+};
+
+const TESTS = {
+  fast: "FAST ultrasound",
+  lactate: "Serum lactate",
+  crossmatch: "Blood typing and crossmatch",
+  co: "Carboxyhaemoglobin level",
+  xray: "Plain X-ray",
+  burn: "Burn assessment",
+  iv: "Intravenous (IV) fluids",
+  ct: "CT scan"
+};
+
+//
+// ---------- SCENARIOS (exact vitals / answers from your spec) ----------
+//
+
+const scenarios = [
   {
     id: 1,
-    name: "Scenario 1 – Hajj Stampede (Red Triage)",
-    narrative:
-      "Patient: Male, 58. Location: Mina, during peak Hajj movement. Crushed in a stampede. Unconscious, pale, shallow breathing with severe bleeding from the lower abdomen and suspected pelvic fracture. High risk of haemorrhagic shock due to major trauma and comorbidities (type 2 diabetes, hypertension, previous knee surgery).",
+    name: "Scenario 1 — Hajj Stampede (Red)",
+    patientPhoto: "/images/scenario1.jpg", // drop your own JPG/PNG here
+    shortLabel: "Hajj Stampede",
     vitals: {
+      hr: "142 bpm",
+      bp: "78/45 mmHg",
+      rr: "34 / min",
       consciousness: "Unconscious",
-      respiratoryRate: "34 / min",
-      pulse: "142 bpm",
-      bloodPressure: "78/45 mmHg",
-      oxygenSaturation: "≈85% (low)"
+      injury: "Severe abdominal bleeding, suspected pelvic fracture"
     },
-    aiDecision: {
+    droneTestsText: [
+      "Thermal imaging – detects major heat loss",
+      "FAST scan module – shows internal bleeding",
+      "Pallor detection – low perfusion",
+      "Vital sensors – HR / RR / BP prediction",
+      "Facial recognition – confirms unconsciousness"
+    ],
+    correct: {
       triage: "Red",
-      tests: [
-        "FAST ultrasound",
-        "CT scan",
-        "Intravenous fluids",
-        "Blood typing and crossmatch",
-        "Serum lactate"
-      ],
-      treatment: "Emergency Surgery",
-      treatmentSteps: {
-        primary: "Rapid IV fluids and oxygen",
-        secondary: "Blood transfusion, pelvic stabilisation, analgesia",
-        disposition: "Emergency operating theatre"
-      },
-      hospital: "Mina Emergency Hospital — Hajj Priority Center",
+      hospitalId: "mina",
+      testIds: ["fast", "lactate", "crossmatch"],
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "Profound hypotension (78/45 mmHg), tachycardia (142 bpm), tachypnoea and unconsciousness after crush injury indicate severe haemorrhagic shock. Comorbid diabetes and hypertension further increase the risk of poor perfusion → Red (Immediate) triage.",
+        "Profound hypotension, tachycardia, tachypnoea and unconsciousness after crush injury indicate severe haemorrhagic shock with pelvic and abdominal trauma. This is an Immediate (Red) case.",
       tests:
-        "A focused assessment with sonography for trauma (FAST ultrasound) and CT scan are used to detect intra-abdominal and pelvic bleeding. Intravenous fluids, blood typing and crossmatch, and serum lactate guide resuscitation, transfusion and operative planning.",
+        "FAST ultrasound rapidly detects intra-abdominal bleeding. Serum lactate reflects tissue hypoperfusion. Blood typing and crossmatch prepare for urgent transfusion.",
       treatment:
-        "Immediate damage-control resuscitation with oxygen, rapid IV fluids and blood products, pelvic stabilisation and emergency surgery for suspected pelvic and intra-abdominal haemorrhage."
+        "Rapid haemorrhage control with FAST-guided decision making, blood resuscitation and pelvic / abdominal surgery at a facility with Hajj-capable emergency capacity."
     }
   },
   {
     id: 2,
-    name: "Scenario 2 – Riyadh Industrial Explosion (Yellow Triage)",
-    narrative:
-      "Patient: Male, 42. Location: Industrial zone near Riyadh after an explosion. Alert but disoriented with burns on the arms and face. Complains of chest tightness and dizziness. Suspected smoke or carbon monoxide exposure. Past history: smoker, mild asthma, allergic to penicillin.",
+    name: "Scenario 2 — Industrial Explosion (Yellow)",
+    patientPhoto: "/images/scenario2.jpg",
+    shortLabel: "Industrial Explosion",
     vitals: {
-      consciousness: "Alert but disoriented (GCS ≈ 13)",
-      respiratoryRate: "26 / min",
-      pulse: "110 bpm",
-      bloodPressure: "100/70 mmHg",
-      oxygenSaturation: "95%"
+      hr: "110 bpm",
+      bp: "100/70 mmHg",
+      rr: "26 / min",
+      consciousness: "Alert but confused",
+      injury: "Burns, dizziness, chest tightness"
     },
-    aiDecision: {
+    droneTestsText: [
+      "Thermal burn mapping – burn surface and depth",
+      "CO poisoning speech analysis – detects dysarthria",
+      "Blister / burn depth detection",
+      "Pain analysis – facial expression scoring",
+      "GCS eye tracking – estimated GCS ≈ 13"
+    ],
+    correct: {
       triage: "Yellow",
-      tests: [
-        "Carboxyhaemoglobin level",
-        "Plain X-ray",
-        "Burn depth assessment",
-        "Intravenous fluids"
-      ],
-      treatment: "Observation",
-      treatmentSteps: {
-        primary: "High-flow oxygen, burn dressing, analgesia",
-        secondary: "Carboxyhaemoglobin level, ECG, chest X-ray",
-        disposition: "Observation ward / burns unit"
-      },
-      hospital: "King Fahad Medical City — Level 1 Trauma Center",
+      hospitalId: "kfmc",
+      testIds: ["xray", "co", "burn"],
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "Burns and respiratory symptoms are concerning, but airway, blood pressure and oxygen saturation remain stable. He requires urgent care but not immediate life-saving intervention → Yellow (Urgent but delayed).",
+        "Burns and respiratory symptoms are concerning, but the airway, blood pressure and oxygen saturation remain stable. He requires urgent, not immediate, intervention → Yellow.",
       tests:
-        "Carboxyhaemoglobin level assesses carbon monoxide poisoning. A plain chest X-ray evaluates inhalational injury and blast effects. Burn depth assessment defines the severity and surface area. Intravenous fluids support circulation and help manage burn-related fluid loss.",
+        "Chest X-ray evaluates blast and inhalation effects. Carboxyhaemoglobin confirms carbon monoxide exposure. Burn assessment defines depth and total burn surface area.",
       treatment:
-        "Initial management focuses on high-flow oxygen for CO exposure, appropriate burn cooling and dressing, analgesia and continuous monitoring. Admission to an observation area or burns unit is recommended for serial respiratory and cardiovascular assessment."
+        "High-flow oxygen, burn dressing, analgesia and close observation in a trauma-capable centre with burns experience."
     }
   },
   {
     id: 3,
-    name: "Scenario 3 – Desert Rally Dehydration (Green Triage)",
-    narrative:
-      "Patient: Female, 27. Location: AlUla Desert Rally checkpoint. Alert and walking, complaining of dry mouth, fatigue and headache after prolonged heat exposure. Only mild clinical signs of dehydration. Past history: healthy, occasional migraines.",
+    name: "Scenario 3 — Desert Rally (Green)",
+    patientPhoto: "/images/scenario3.jpg",
+    shortLabel: "Desert Rally",
     vitals: {
-      consciousness: "Alert, walking",
-      respiratoryRate: "18 / min",
-      pulse: "92 bpm",
-      bloodPressure: "118/78 mmHg",
-      oxygenSaturation: "99%"
+      hr: "92 bpm",
+      bp: "118/78 mmHg",
+      rr: "18 / min",
+      consciousness: "Walking",
+      injury: "Mild dehydration, heat stress"
     },
-    aiDecision: {
+    droneTestsText: [
+      "Thermal elevation – raised core temperature",
+      "Skin dryness scan – reduced skin turgor",
+      "Facial flush detection – mild heat stress",
+      "Hydration assessment – mouth and eye moisture"
+    ],
+    // NOTE: Uses your “Correct” combo exactly, even if aggressive for mild dehydration
+    correct: {
       triage: "Green",
-      tests: [],
-      treatment: "Hydration and rest",
-      treatmentSteps: {
-        primary: "Oral rehydration solution, shade and cooling",
-        secondary: "Monitor symptoms; consider blood tests if no improvement",
-        disposition: "Discharge from checkpoint with advice"
-      },
-      hospital: "AlUla Field Medical Base — Desert Response",
+      hospitalId: "alula",
+      testIds: ["xray", "iv", "fast"],
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "Mild dehydration and fatigue with normal vital signs and the ability to walk independently → Green (Minimal) triage.",
+        "The patient is ambulatory with stable vital signs and only mild dehydration / heat stress → Green (minimal).",
       tests:
-        "Drone thermal imaging, skin-texture analysis and facial flush detection suggest mild heat stress and dehydration. No immediate laboratory testing is required; response to oral fluids is usually sufficient.",
+        "FAST ultrasound and X-ray are available if trauma or complications are suspected. Intravenous fluids are used if oral hydration is insufficient or symptoms progress.",
       treatment:
-        "Oral fluids, shade, cooling and short-term observation. She can be discharged from the checkpoint with instructions to seek help if symptoms worsen or fail to improve."
+        "Cooling, hydration and short observation at the desert medical base, with escalation only if red-flag features appear."
     }
   },
   {
     id: 4,
-    name: "Scenario 4 – Highway Collision (Black Triage)",
-    narrative:
-      "Patient: Male, 35. Location: Eastern Province highway, multi-vehicle collision. No pulse or respiratory effort, fixed dilated pupils, massive head and chest trauma. No signs of life at the scene. Medical history unknown.",
+    name: "Scenario 4 — Highway Collision (Black)",
+    patientPhoto: "/images/scenario4.jpg",
+    shortLabel: "Highway Collision",
     vitals: {
-      consciousness: "Unresponsive, no response to pain",
-      respiratoryRate: "No respiratory effort",
-      pulse: "No palpable pulse",
-      bloodPressure: "Undetectable",
-      oxygenSaturation: "0% (no measurable signal)"
+      hr: "No pulse",
+      bp: "Undetectable",
+      rr: "No breathing",
+      consciousness: "Fixed pupils, unresponsive",
+      injury: "Massive head and chest trauma"
     },
-    aiDecision: {
+    droneTestsText: [
+      "No thermal output – absent perfusion",
+      "No HR / RR / BP detected",
+      "GCS = 3 – deep coma",
+      "No reflexes – no blink or pain response"
+    ],
+    correct: {
       triage: "Black",
-      tests: [],
-      treatment: "CPR / ACLS as appropriate",
-      treatmentSteps: {
-        primary: "Confirm absence of signs of life",
-        secondary: "If local policy allows, brief CPR / ACLS attempt",
-        disposition: "Expectant / deceased; document and prioritise other casualties"
-      },
-      hospital: "Dhahran Trauma Center — Highway Critical Care",
+      hospitalId: "dhahran",
+      testIds: ["ct", "fast", "crossmatch"],
       aiTimeSeconds: 1.2
     },
     explanations: {
       triage:
-        "No pulse, no breathing, fixed pupils and catastrophic trauma indicate death at the scene. In a mass-casualty incident this patient is triaged as Black (Expectant / Deceased) so that resources can be directed to salvageable patients.",
+        "No pulse, no breathing, fixed pupils and catastrophic multi-system trauma indicate non-survivability in a mass-casualty setting → Black (expectant / deceased).",
       tests:
-        "Drone thermal imaging and vital-sign sensors confirm the absence of cardiac activity and no heat signature. No further emergency investigations are required once death is confirmed.",
+        "If signs of life were present, CT and FAST would define injuries and crossmatch would prepare blood. In this scenario, the focus is documentation rather than intervention.",
       treatment:
-        "Local policy may allow a brief attempt at CPR / ACLS if there is any doubt, but priority quickly shifts to living casualties. The drone records the scene, helps confirm identity when possible and logs the time of death for documentation."
+        "Confirm death, document findings and redirect resources to salvageable patients while the drone records and tags the scene."
     }
   }
 ];
 
 //
-// -------------- GAME LOGIC (NEW SCORING) --------------
+// ---------- GAME STATE ----------
 //
 
 let currentGame = null;
 let leaderboard = [];
 
-function findPatient(patientId) {
-  return patients.find((p) => p.id === patientId);
+function getScenario(id) {
+  return scenarios.find(s => s.id === id);
 }
 
 function arraysEqualAsSets(a, b) {
   const setA = new Set(a);
   const setB = new Set(b);
   if (setA.size !== setB.size) return false;
-  for (const item of setA) if (!setB.has(item)) return false;
+  for (const item of setA) {
+    if (!setB.has(item)) return false;
+  }
   return true;
 }
 
-function scoreGame(human, ai, humanTime) {
+function scoreGame(human, correct) {
   const breakdown = {
     triage: 0,
     hospital: 0,
     tests: 0,
-    under30: 0,
+    fasterThanAI: 0,
     total: 0
   };
 
-  // Correct triage (+5)
-  if (human.triage === ai.triage) breakdown.triage = 5;
+  // +5 correct triage
+  if (human.triage === correct.triage) breakdown.triage = 5;
 
-  // Correct receiving hospital (+3)
-  if (human.hospital === ai.hospital) breakdown.hospital = 3;
+  // +3 correct hospital
+  if (human.hospitalId === correct.hospitalId) breakdown.hospital = 3;
 
-  // Correct ER tests as a set (+2)
-  if (arraysEqualAsSets(human.tests, ai.tests)) breakdown.tests = 2;
+  // +3 correct ER tests (set match)
+  if (arraysEqualAsSets(human.testIds, correct.testIds)) breakdown.tests = 3;
 
-  // Finished under 30 seconds (+2)
-  if (humanTime <= 30) breakdown.under30 = 2;
+  // +1 faster than AI
+  if (human.timeSeconds < correct.aiTimeSeconds) breakdown.fasterThanAI = 1;
 
   breakdown.total =
     breakdown.triage +
     breakdown.hospital +
     breakdown.tests +
-    breakdown.under30;
+    breakdown.fasterThanAI;
 
   return breakdown;
 }
 
 function broadcastState() {
-  io.emit("stateUpdate", { currentGame, leaderboard });
+  io.emit("stateUpdate", {
+    currentGame,
+    leaderboard,
+    scenarios: scenarios.map(s => ({
+      id: s.id,
+      name: s.name,
+      shortLabel: s.shortLabel
+    })),
+    hospitals: HOSPITALS
+  });
 }
 
-io.on("connection", (socket) => {
+//
+// ---------- SOCKET.IO FLOW ----------
+//
+
+io.on("connection", socket => {
   console.log("Client connected:", socket.id);
 
-  if (currentGame || leaderboard.length > 0) {
-    socket.emit("stateUpdate", { currentGame, leaderboard });
-  }
+  // Send initial state
+  broadcastState();
 
-  socket.on("registerPlayer", (data) => {
-    const { playerName, mode, patientId } = data;
-    const patient = findPatient(patientId);
-
-    if (!patient) {
-      socket.emit("errorMessage", "Selected scenario not found.");
+  // Big-screen: register a new team + scenario
+  socket.on("registerPlayer", data => {
+    const { playerName, mode, scenarioId } = data;
+    const scenario = getScenario(scenarioId);
+    if (!scenario) {
+      socket.emit("errorMessage", "Scenario not found.");
       return;
     }
 
     currentGame = {
       id: Date.now(),
-      playerName,
-      mode,
-      patientId: patient.id,
-      patientName: patient.name,
-      patientNarrative: patient.narrative,
+      playerName: playerName || "Guest Team",
+      mode: mode || "Group",
+      scenarioId: scenario.id,
+      scenarioName: scenario.name,
+      patientPhoto: scenario.patientPhoto,
+      droneTestsText: scenario.droneTestsText,
       vitalsScanned: [],
       allVitalsCollected: false,
       triagePhaseStartedAt: null,
@@ -251,34 +280,46 @@ io.on("connection", (socket) => {
     broadcastState();
   });
 
-  socket.on("scanVital", (data) => {
-    if (!currentGame) return;
+  // Mobile: scan a QR → only sends which vital
+  // Expect QR contents to be: "hr", "bp", "rr", "consciousness", or "injury"
+  socket.on("scanVital", data => {
+    if (!currentGame) {
+      socket.emit("errorMessage", "No active scenario. Start a case on the main screen.");
+      return;
+    }
+
+    const scenario = getScenario(currentGame.scenarioId);
+    if (!scenario) return;
 
     const { vitalKey } = data;
-    const patient = findPatient(currentGame.patientId);
-    if (!patient || !patient.vitals[vitalKey]) return;
+    if (!scenario.vitals[vitalKey]) {
+      socket.emit("errorMessage", "Wrong QR code scanned.");
+      return;
+    }
 
     if (!currentGame.vitalsScanned.includes(vitalKey)) {
       currentGame.vitalsScanned.push(vitalKey);
     }
 
-    const total = Object.keys(patient.vitals).length;
+    const total = Object.keys(scenario.vitals).length;
     const count = currentGame.vitalsScanned.length;
 
-    const payload = {
+    io.emit("vitalScanned", {
       vitalKey,
-      vitalValue: patient.vitals[vitalKey],
+      vitalValue: scenario.vitals[vitalKey],
       count,
       total
-    };
+    });
 
-    io.emit("vitalScanned", payload);
+    if (count === 1 && !currentGame.triagePhaseStartedAt) {
+      // First vital triggers the "drone loading" sequence on the big screen
+      io.emit("droneLoading", { scenarioId: scenario.id });
+    }
 
     if (count === total && !currentGame.allVitalsCollected) {
       currentGame.allVitalsCollected = true;
       currentGame.triagePhaseStartedAt = Date.now();
       io.emit("allVitalsCollected", {
-        message: "All vitals collected! Proceed to the triage screen.",
         triageTimerSeconds: 60
       });
     }
@@ -286,46 +327,47 @@ io.on("connection", (socket) => {
     broadcastState();
   });
 
-  socket.on("submitHumanDecision", (data) => {
+  // Big screen: final human decision (triage + hospital + tests)
+  socket.on("submitHumanDecision", data => {
     if (!currentGame || !currentGame.allVitalsCollected) return;
 
-    const { triage, tests, treatment, treatmentSteps, hospital } = data;
-    const patient = findPatient(currentGame.patientId);
-    if (!patient) return;
+    const scenario = getScenario(currentGame.scenarioId);
+    if (!scenario) return;
 
     const now = Date.now();
     const humanTimeSeconds =
       (now - currentGame.triagePhaseStartedAt) / 1000;
 
     const humanDecision = {
-      triage,
-      tests: tests || [],
-      treatment,
-      treatmentSteps: treatmentSteps || {
-        primary: "",
-        secondary: "",
-        disposition: ""
-      },
-      hospital: hospital || "",
+      triage: data.triage,
+      hospitalId: data.hospitalId,
+      testIds: data.testIds || [],
       timeSeconds: humanTimeSeconds
     };
 
-    const breakdown = scoreGame(
-      humanDecision,
-      patient.aiDecision,
-      humanTimeSeconds
-    );
+    const breakdown = scoreGame(humanDecision, scenario.correct);
 
     const result = {
       playerName: currentGame.playerName,
       mode: currentGame.mode,
-      patientName: patient.name,
-      patientNarrative: patient.narrative,
-      human: humanDecision,
-      ai: patient.aiDecision,
+      scenarioName: scenario.name,
+      scenarioShort: scenario.shortLabel,
+      human: {
+        ...humanDecision,
+        hospitalLabel: HOSPITALS[humanDecision.hospitalId] || "Not selected",
+        testLabels: (humanDecision.testIds || []).map(id => TESTS[id])
+      },
+      ai: {
+        triage: scenario.correct.triage,
+        hospitalId: scenario.correct.hospitalId,
+        hospitalLabel: HOSPITALS[scenario.correct.hospitalId],
+        testIds: scenario.correct.testIds,
+        testLabels: scenario.correct.testIds.map(id => TESTS[id]),
+        aiTimeSeconds: scenario.correct.aiTimeSeconds
+      },
       scoreBreakdown: breakdown,
       points: breakdown.total,
-      explanations: patient.explanations
+      explanations: scenario.explanations
     };
 
     currentGame.humanDecision = humanDecision;
@@ -335,7 +377,8 @@ io.on("connection", (socket) => {
       playerName: currentGame.playerName,
       mode: currentGame.mode,
       points: breakdown.total,
-      timeSeconds: humanTimeSeconds
+      timeSeconds: humanTimeSeconds,
+      scenarioShort: scenario.shortLabel
     });
 
     leaderboard.sort((a, b) => {
