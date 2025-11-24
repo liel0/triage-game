@@ -2,14 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Emergency Drone Simulation – Big Screen</title>
+  <title>Emergency Drone Simulation – Main Screen</title>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
   <style>
     body {
-      font-family: system-ui, sans-serif;
-      background: #020617;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 50%, #000 100%);
       color: #e5e7eb;
       margin: 0;
       padding: 20px;
@@ -26,18 +24,19 @@
 
     .card {
       flex: 1;
-      min-width: 320px;
-      background: #0f172a;
-      border-radius: 12px;
-      padding: 16px 18px;
-      box-shadow: 0 0 20px rgba(15, 23, 42, 0.7);
+      min-width: 340px;
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 0 30px rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
     }
 
     .label {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       text-transform: uppercase;
       color: #9ca3af;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       margin-top: 10px;
       margin-bottom: 4px;
     }
@@ -47,39 +46,205 @@
       margin-bottom: 0.4rem;
     }
 
-    /* BIGGER VITALS */
-    #vitalsList {
-      font-size: 1.2rem;
-      line-height: 1.8;
-    }
+    .small { font-size: 0.8rem; color: #9ca3af; }
 
-    .vital {
-      margin-bottom: 0.15rem;
-    }
-
-    .timer-seconds {
-      font-size: 2rem;
-      font-weight: 700;
-    }
-
-    .timer-ms {
-      font-size: 1.2rem;
-      font-weight: 500;
-      opacity: 0.9;
-    }
-
-    button {
+    .btn {
       padding: 8px 16px;
       border-radius: 999px;
       border: none;
       cursor: pointer;
-      margin-top: 12px;
+      margin-top: 10px;
       margin-right: 8px;
       font-size: 0.95rem;
+      font-weight: 500;
+    }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-danger  { background: #b91c1c; color: #fff; }
+    .btn-ghost   { background: transparent; color: #e5e7eb; border: 1px solid #4b5563; }
+
+    .input, select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      margin-top: 4px;
     }
 
-    button.primary { background: #2563eb; color: #fff; }
-    button.danger  { background: #b91c1c; color: #fff; }
+    .patient-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .patient-photo {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      border-radius: 16px;
+      background: #020617;
+      border: 1px solid #4b5563;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      color: #6b7280;
+      overflow: hidden;
+    }
+    .patient-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .vital-slot {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      border-radius: 8px;
+      background: #020617;
+      border: 1px solid #111827;
+      font-size: 1.05rem;
+    }
+
+    .vital-label {
+      color: #9ca3af;
+    }
+
+    .vital-value {
+      font-weight: 600;
+      color: #f9fafb;
+    }
+
+    .vital-value.empty {
+      color: #4b5563;
+    }
+
+    .vital-highlight {
+      animation: glow 900ms ease-out;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 0 rgba(248, 250, 252, 0.0); }
+      50% { box-shadow: 0 0 18px rgba(248, 250, 252, 0.7); }
+      to { box-shadow: 0 0 0 rgba(248, 250, 252, 0.0); }
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: rgba(37, 99, 235, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      color: #bfdbfe;
+      margin-top: 6px;
+    }
+
+    .drone-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .drone-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      font-size: 0.8rem;
+      opacity: 0.35;
+      transition: opacity 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .drone-chip.active {
+      opacity: 1;
+      border-color: #22c55e;
+      transform: translateY(-1px);
+    }
+
+    .timer-big {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .timer-ms {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .triage-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .triage-btn {
+      border-radius: 12px;
+      border: none;
+      padding: 10px 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #020617;
+    }
+
+    .triage-btn span.sub {
+      font-size: 0.8rem;
+      font-weight: 400;
+      opacity: 0.9;
+    }
+
+    .triage-btn.red    { background: #ef4444; }
+    .triage-btn.yellow { background: #eab308; }
+    .triage-btn.green  { background: #22c55e; }
+    .triage-btn.black  { background: #111827; color: #f9fafb; }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .hospital-card {
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      margin-bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hospital-card.selected {
+      border-color: #22c55e;
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.5);
+    }
+
+    .hospital-name {
+      font-weight: 600;
+    }
+
+    .tests-list label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
 
     table {
       width: 100%;
@@ -87,284 +252,203 @@
       font-size: 0.95rem;
       margin-top: 8px;
     }
-
     th, td {
-      border-bottom: 1px solid #1f2937;
+      border-bottom: 1px solid #111827;
       padding: 6px 4px;
       text-align: left;
     }
 
-    .small { font-size: 0.8rem; color: #9ca3af; }
-
-    .big-text {
-      font-size: 1.15rem;
-      line-height: 1.8;
-      color: #e2e8f0;
-    }
-
-    .glow-title {
-      font-size: 1.3rem;
+    .score-highlight {
+      font-size: 1.4rem;
       font-weight: 700;
-      color: #fff;
-      text-shadow: 0 0 10px rgba(255,255,255,0.55);
-      margin-top: 12px;
-      margin-bottom: 6px;
-    }
-
-    .glow-box {
-      background: rgba(15,23,42,0.9);
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-top: 6px;
-      border: 1px solid rgba(148,163,184,0.6);
-      box-shadow: 0 0 18px rgba(56,189,248,0.4);
-    }
-
-    .important-text {
-      color: #fff;
-      font-weight: 600;
-      text-shadow: 0 0 8px rgba(255,255,255,0.7);
     }
   </style>
 </head>
-
 <body>
   <h1>🚨 Emergency Drone Simulation – Human vs AI Triage</h1>
   <p class="small">
-    Players scan QR codes on mannequins. Vitals appear on this screen. The team then performs triage, chooses tests and selects the most appropriate receiving hospital.
+    Step 1: Staff selects the team and scenario below. Step 2: Players scan QR tags using their phones.
+    The main screen handles everything else automatically.
   </p>
 
-  <div class="row">
-    <!-- CURRENT CASE / MONITOR -->
-    <div class="card">
-      <div class="label">Current Team</div>
-      <div class="value" id="teamInfo">Waiting for player...</div>
+  <!-- GAME SETUP -->
+  <div class="card">
+    <h2>🧭 Scenario Setup</h2>
+    <div class="row" style="margin-top:6px;">
+      <div style="flex: 1; min-width: 240px;">
+        <div class="label">Team name</div>
+        <input id="teamNameInput" class="input" placeholder="Example: Hajj Medics A" />
 
-      <div class="label">Patient Scenario</div>
-      <div class="value" id="patientInfo">–</div>
-      <div id="patientNarrative" class="glow-box big-text"></div>
-
-      <div class="label">Recorded Vitals</div>
-      <div id="vitalsList">
-        <span class="small">No vitals scanned yet.</span>
+        <div class="label">Mode</div>
+        <select id="modeSelect">
+          <option value="Group">Group</option>
+          <option value="Solo">Solo</option>
+        </select>
       </div>
 
-      <div class="label">Triage Timer</div>
-      <div id="timerDisplay">Timer: --</div>
-      <div class="small" id="infoMessage" style="margin-top:4px;"></div>
+      <div style="flex: 1; min-width: 260px;">
+        <div class="label">Scenario</div>
+        <select id="scenarioSelect"></select>
 
-      <button class="danger" id="resetBtn">Reset Simulation</button>
-      <button class="danger" id="resetLeaderboardBtn">Reset Leaderboard</button>
-    </div>
-
-    <!-- HUMAN TRIAGE PANEL -->
-    <div class="card">
-      <h2>🧩 Human Triage Panel</h2>
-
-      <!-- 1. TRIAGE CATEGORY -->
-      <div class="label">1. Triage Category</div>
-      <select id="triageSelect">
-        <option value="">Select triage category...</option>
-        <option value="Red">🔴 Red – Immediate</option>
-        <option value="Yellow">🟡 Yellow – Urgent but delayed</option>
-        <option value="Green">🟢 Green – Minimal</option>
-        <option value="Black">⚫ Black – Expectant / deceased</option>
-      </select>
-
-      <!-- 2. RECEIVING HOSPITAL -->
-      <div class="label">2. Receiving Hospital</div>
-      <label class="small">
-        <input type="radio" name="hospitalChoice" value="King Fahad Medical City — Level 1 Trauma Center">
-        🚑 King Fahad Medical City — Level 1 Trauma Center
-      </label><br>
-      <label class="small">
-        <input type="radio" name="hospitalChoice" value="Mina Emergency Hospital — Hajj Priority Center">
-        🏥 Mina Emergency Hospital — Hajj Priority Center
-      </label><br>
-      <label class="small">
-        <input type="radio" name="hospitalChoice" value="AlUla Field Medical Base — Desert Response">
-        🏥 AlUla Field Medical Base — Desert Response
-      </label><br>
-      <label class="small">
-        <input type="radio" name="hospitalChoice" value="Dhahran Trauma Center — Highway Critical Care">
-        🏥 Dhahran Trauma Center — Highway Critical Care
-      </label><br>
-
-      <!-- 3. EMERGENCY DEPARTMENT TESTS -->
-      <div class="label">3. Emergency Department Tests</div>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="FAST ultrasound"> FAST ultrasound (trauma scan)</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Carboxyhaemoglobin level"> Carboxyhaemoglobin level (CO)</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Plain X-ray"> Plain X-ray</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="MRI scan"> MRI scan</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="CT scan"> CT scan</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Intravenous fluids"> Intravenous (IV) fluids</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Blood typing and crossmatch"> Blood typing and crossmatch</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Serum lactate"> Serum lactate</label><br>
-      <label class="small"><input type="checkbox" class="testCheckbox" value="Burn depth assessment"> Burn depth assessment</label><br>
-
-      <!-- 4. INITIAL EMERGENCY MANAGEMENT -->
-      <div class="label">4. Primary Emergency Treatment</div>
-      <select id="primarySelect">
-        <option value="">Select primary treatment...</option>
-        <option value="Rapid IV fluids and oxygen">Rapid IV fluids and oxygen</option>
-        <option value="High-flow oxygen, burn dressing, analgesia">High-flow oxygen, burn dressing, analgesia</option>
-        <option value="Oral rehydration solution, shade and cooling">Oral rehydration solution, shade and cooling</option>
-        <option value="Immediate high-quality CPR">Immediate high-quality CPR</option>
-      </select>
-
-      <div class="label">5. Adjunct Treatment / Monitoring</div>
-      <select id="secondarySelect">
-        <option value="">Select adjunct treatment...</option>
-        <option value="Blood transfusion, pelvic stabilisation, analgesia">Blood transfusion, pelvic stabilisation, analgesia</option>
-        <option value="Carboxyhaemoglobin level, ECG, chest X-ray">Carboxyhaemoglobin level, ECG, chest X-ray</option>
-        <option value="Monitor symptoms; consider blood tests if no improvement">Monitor symptoms; consider blood tests if no improvement</option>
-        <option value="If local policy allows, brief CPR / ACLS attempt">If local policy allows, brief CPR / ACLS attempt</option>
-      </select>
-
-      <div class="label">6. Disposition</div>
-      <select id="dispositionSelect">
-        <option value="">Select disposition...</option>
-        <option value="Emergency operating theatre">Emergency operating theatre</option>
-        <option value="Observation ward / burns unit">Observation ward / burns unit</option>
-        <option value="Discharge from checkpoint with advice">Discharge from checkpoint with advice</option>
-        <option value="Expectant / deceased; document and prioritise other casualties">
-          Expectant / deceased; document and prioritise other casualties
-        </option>
-      </select>
-
-      <div class="label">7. Overall Treatment Tag</div>
-      <select id="treatmentSelect">
-        <option value="">Select treatment tag...</option>
-        <option value="Emergency Surgery">Emergency Surgery</option>
-        <option value="Observation">Observation</option>
-        <option value="Hydration and rest">Hydration and rest</option>
-        <option value="Discharge with analgesia">Discharge with analgesia</option>
-        <option value="CPR / ACLS as appropriate">CPR / ACLS as appropriate</option>
-      </select>
-
-      <button class="primary" id="submitDecisionBtn">Submit Decision</button>
-      <div class="small" id="submitStatus" style="margin-top:4px;"></div>
+        <button class="btn btn-primary" id="startScenarioBtn">Start Scenario</button>
+        <button class="btn btn-ghost" id="resetGameBtn">Reset Scenario</button>
+        <button class="btn btn-danger" id="resetLeaderboardBtn">Reset Leaderboard</button>
+        <div class="small" id="setupStatus" style="margin-top:6px;"></div>
+      </div>
     </div>
   </div>
 
   <div class="row">
-    <!-- RESULTS -->
+    <!-- LEFT: PATIENT + DRONE + VITALS -->
     <div class="card">
-      <h2>📊 Human vs AI – Comparison</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th>Human</th>
-            <th>AI</th>
-            <th>Match</th>
-          </tr>
-        </thead>
-        <tbody id="resultsTableBody"></tbody>
-      </table>
+      <h2>🧑‍⚕️ Patient & Drone Feed</h2>
 
-      <div class="label" style="margin-top: 10px;">Score</div>
-      <div class="value" id="scoreDisplay">–</div>
+      <div class="patient-layout">
+        <div>
+          <div class="patient-photo" id="patientPhotoBox">
+            <span class="small">Patient image will appear here.</span>
+          </div>
+          <div class="label">Scenario</div>
+          <div class="value" id="scenarioNameDisplay">No active scenario.</div>
 
-      <div class="small" id="scoreBreakdown"></div>
+          <div class="label">Team</div>
+          <div class="value" id="teamNameDisplay">–</div>
 
-      <h3 class="glow-title">🧠 Why the AI chose this plan</h3>
-      <div id="explanationBox" class="glow-box big-text">
-        <p><span class="important-text">Triage decision:</span> <span id="explainTriage">–</span></p>
-        <p><span class="important-text">Choice of tests:</span> <span id="explainTests">–</span></p>
-        <p><span class="important-text">Treatment and disposition:</span> <span id="explainTreatment">–</span></p>
+          <div id="droneStatus" class="status-pill" style="display:none;">
+            <span>🛰️ Drone ready.</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="label">Drone diagnostic tools</div>
+          <div id="droneBar" class="drone-bar"></div>
+
+          <div class="label">Vitals (live feed)</div>
+          <div id="vitalsPanel">
+            <!-- slots injected by JS -->
+          </div>
+
+          <div class="label">Triage timer</div>
+          <div id="timerDisplay" class="timer-big">--</div>
+          <div class="small" id="infoMessage" style="margin-top:4px;"></div>
+        </div>
       </div>
     </div>
 
-    <!-- LEADERBOARD -->
-    <div class="card">
-      <h2>🏆 Leaderboard</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Team</th>
-            <th>Mode</th>
-            <th>Points</th>
-            <th>Time (s)</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboardBody"></tbody>
-      </table>
+    <!-- RIGHT: TRIAGE / HOSPITAL / TESTS / RESULTS -->
+    <div class="card" id="rightPanel">
+      <h2 id="rightPanelTitle">🧩 Human Triage</h2>
+      <div id="rightPanelContent">
+        <p class="small">Scan a vital QR tag to begin. The triage interface will unlock after all vitals are received.</p>
+      </div>
     </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="card" style="margin-top:20px;">
+    <h2>🏆 Live Leaderboard</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Team</th>
+          <th>Mode</th>
+          <th>Scenario</th>
+          <th>Score</th>
+          <th>Time (s)</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody"></tbody>
+    </table>
   </div>
 
   <script>
     const socket = io();
 
+    let scenarios = [];
+    let hospitalsMap = {};
     let currentGame = null;
-
-    const teamInfoEl = document.getElementById("teamInfo");
-    const patientInfoEl = document.getElementById("patientInfo");
-    const patientNarrativeEl = document.getElementById("patientNarrative");
-    const vitalsListEl = document.getElementById("vitalsList");
-    const timerDisplayEl = document.getElementById("timerDisplay");
-    const infoMessageEl = document.getElementById("infoMessage");
-    const submitStatusEl = document.getElementById("submitStatus");
-    const resultsTableBody = document.getElementById("resultsTableBody");
-    const scoreDisplayEl = document.getElementById("scoreDisplay");
-    const scoreBreakdownEl = document.getElementById("scoreBreakdown");
-    const leaderboardBody = document.getElementById("leaderboardBody");
-    const explainTriageEl = document.getElementById("explainTriage");
-    const explainTestsEl = document.getElementById("explainTests");
-    const explainTreatmentEl = document.getElementById("explainTreatment");
-
-    const triageSelect = document.getElementById("triageSelect");
-    const treatmentSelect = document.getElementById("treatmentSelect");
-    const primarySelect = document.getElementById("primarySelect");
-    const secondarySelect = document.getElementById("secondarySelect");
-    const dispositionSelect = document.getElementById("dispositionSelect");
-    const testCheckboxes = document.querySelectorAll(".testCheckbox");
-    const hospitalRadios = document.querySelectorAll('input[name="hospitalChoice"]');
-
     let timerInterval = null;
     let timerStart = null;
+    let triageLocked = false;
+    let hospitalSelection = null;
+    let testSelection = new Set();
+    let chosenTriage = null;
 
-    function startTimer(durationSeconds) {
-      timerStart = performance.now();
-      const endTime = timerStart + durationSeconds * 1000;
+    const teamNameInput = document.getElementById("teamNameInput");
+    const modeSelect = document.getElementById("modeSelect");
+    const scenarioSelect = document.getElementById("scenarioSelect");
+    const startScenarioBtn = document.getElementById("startScenarioBtn");
+    const resetGameBtn = document.getElementById("resetGameBtn");
+    const resetLeaderboardBtn = document.getElementById("resetLeaderboardBtn");
+    const setupStatus = document.getElementById("setupStatus");
 
-      if (timerInterval) clearInterval(timerInterval);
+    const scenarioNameDisplay = document.getElementById("scenarioNameDisplay");
+    const teamNameDisplay = document.getElementById("teamNameDisplay");
+    const patientPhotoBox = document.getElementById("patientPhotoBox");
+    const droneStatus = document.getElementById("droneStatus");
+    const droneBar = document.getElementById("droneBar");
+    const vitalsPanel = document.getElementById("vitalsPanel");
+    const timerDisplayEl = document.getElementById("timerDisplay");
+    const infoMessageEl = document.getElementById("infoMessage");
+    const rightPanel = document.getElementById("rightPanel");
+    const rightPanelTitle = document.getElementById("rightPanelTitle");
+    const rightPanelContent = document.getElementById("rightPanelContent");
+    const leaderboardBody = document.getElementById("leaderboardBody");
 
-      timerInterval = setInterval(() => {
-        const now = performance.now();
-        let remaining = endTime - now;
+    const VITAL_LABELS = {
+      hr: "Heart rate (HR)",
+      bp: "Blood pressure (BP)",
+      rr: "Respiratory rate (RR)",
+      consciousness: "Consciousness",
+      injury: "Key injury / problem"
+    };
 
-        if (remaining <= 0) {
-          remaining = 0;
-          clearInterval(timerInterval);
-          timerInterval = null;
-        }
+    const TESTS = {
+      fast: "FAST ultrasound",
+      lactate: "Serum lactate",
+      crossmatch: "Blood typing and crossmatch",
+      co: "Carboxyhaemoglobin level",
+      xray: "Plain X-ray",
+      burn: "Burn assessment",
+      iv: "Intravenous (IV) fluids",
+      ct: "CT scan"
+    };
 
-        const totalSeconds = remaining / 1000;
-        const formatted = totalSeconds.toFixed(2);
-        const [sec, ms] = formatted.split(".");
+    const DRONE_ICON_SET = [
+      "🔶 Thermal imaging",
+      "🟦 FAST ultrasound module",
+      "🟪 Pallor / skin perfusion analysis",
+      "🟩 Vital-sign sensor suite",
+      "🟫 Facial recognition + GCS estimator"
+    ];
 
-        timerDisplayEl.innerHTML =
-          `<span class="timer-seconds">${sec}</span>` +
-          `<span class="timer-ms">.${ms}</span> s`;
-      }, 16);
+    function resetVitalsPanel() {
+      vitalsPanel.innerHTML = "";
+      ["hr","bp","rr","consciousness","injury"].forEach(key => {
+        const slot = document.createElement("div");
+        slot.className = "vital-slot";
+        slot.dataset.key = key;
+        slot.innerHTML = `
+          <span class="vital-label">${VITAL_LABELS[key]}</span>
+          <span class="vital-value empty">— —</span>
+        `;
+        vitalsPanel.appendChild(slot);
+      });
     }
 
-    function stopTimerAndFreeze() {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-
-      if (timerStart !== null) {
-        const elapsedSec = (performance.now() - timerStart) / 1000;
-        const formatted = elapsedSec.toFixed(2);
-        const [sec, ms] = formatted.split(".");
-
-        timerDisplayEl.innerHTML =
-          `<span class="timer-seconds">${sec}</span>` +
-          `<span class="timer-ms">.${ms}</span> s (final)`;
+    function setPatientPhoto(photoUrl) {
+      patientPhotoBox.innerHTML = "";
+      if (photoUrl) {
+        const img = document.createElement("img");
+        img.src = photoUrl;
+        img.alt = "Patient";
+        patientPhotoBox.appendChild(img);
+      } else {
+        const span = document.createElement("span");
+        span.className = "small";
+        span.textContent = "Patient image will appear here.";
+        patientPhotoBox.appendChild(span);
       }
     }
 
@@ -372,27 +456,259 @@
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = null;
       timerStart = null;
-      timerDisplayEl.textContent = "Timer: --";
+      timerDisplayEl.textContent = "--";
     }
 
-    function arraysEqualAsSets(a, b) {
-      const setA = new Set(a);
-      const setB = new Set(b);
-      if (setA.size !== setB.size) return false;
-      for (const item of setA) if (!setB.has(item)) return false;
-      return true;
+    function startCountdown(seconds) {
+      timerStart = performance.now();
+      const endTime = timerStart + seconds * 1000;
+
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const now = performance.now();
+        let remaining = endTime - now;
+        if (remaining <= 0) {
+          remaining = 0;
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+        const secFloat = remaining / 1000;
+        const formatted = secFloat.toFixed(2);
+        const [sec, ms] = formatted.split(".");
+        timerDisplayEl.innerHTML =
+          `<span class="timer-big">${sec}</span>` +
+          `<span class="timer-ms">.${ms} s</span>`;
+      }, 40);
     }
 
-    socket.on("stateUpdate", (data) => {
-      currentGame = data.currentGame || null;
+    function stopTimerFreezeFinal() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      if (timerStart !== null) {
+        const elapsed = (performance.now() - timerStart) / 1000;
+        const formatted = elapsed.toFixed(2);
+        const [sec, ms] = formatted.split(".");
+        timerDisplayEl.innerHTML =
+          `<span class="timer-big">${sec}</span>` +
+          `<span class="timer-ms">.${ms} s (final)</span>`;
+      }
+    }
 
+    function buildDroneBar(textArray) {
+      droneBar.innerHTML = "";
+      (textArray || DRONE_ICON_SET).forEach(t => {
+        const chip = document.createElement("div");
+        chip.className = "drone-chip";
+        chip.textContent = t;
+        droneBar.appendChild(chip);
+      });
+    }
+
+    function activateDroneChip(index) {
+      const chips = Array.from(droneBar.children);
+      if (chips[index]) {
+        chips[index].classList.add("active");
+      }
+    }
+
+    function showTriageButtons() {
+      rightPanelTitle.textContent = "🚨 Step 4 — Choose the triage category";
+      rightPanelContent.innerHTML = `
+        <p class="small">Use the vitals and drone diagnostics on the left to decide how urgent this patient is.</p>
+        <div class="triage-grid">
+          <button class="triage-btn red" data-triage="Red">
+            <span>🟥 Red</span>
+            <span class="sub">Immediate – life-threatening</span>
+          </button>
+          <button class="triage-btn yellow" data-triage="Yellow">
+            <span>🟨 Yellow</span>
+            <span class="sub">Urgent – can tolerate short delay</span>
+          </button>
+          <button class="triage-btn green" data-triage="Green">
+            <span>🟩 Green</span>
+            <span class="sub">Minimal – walking wounded</span>
+          </button>
+          <button class="triage-btn black" data-triage="Black">
+            <span>⬛ Black</span>
+            <span class="sub">Expectant / deceased</span>
+          </button>
+        </div>
+      `;
+
+      document.querySelectorAll(".triage-btn").forEach(btn => {
+        btn.onclick = () => {
+          if (triageLocked) return;
+          chosenTriage = btn.dataset.triage;
+          triageLocked = true;
+          showHospitalAndTests();
+        };
+      });
+    }
+
+    function showHospitalAndTests() {
+      rightPanelTitle.textContent = "🏥 Step 5 — Choose hospital & ER tests";
+      const currentScenario = scenarios.find(s => s.id === (currentGame?.scenarioId || 0));
+
+      rightPanelContent.innerHTML = `
+        <div class="choice-grid">
+          <div>
+            <div class="label">Receiving hospital</div>
+            <div id="hospitalList"></div>
+          </div>
+          <div>
+            <div class="label">Emergency department tests</div>
+            <div class="tests-list" id="testsList"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="confirmChoicesBtn" style="margin-top:12px;">Confirm choices</button>
+        <div class="small" id="choiceStatus" style="margin-top:4px;"></div>
+      `;
+
+      const hospitalList = document.getElementById("hospitalList");
+      const testsList = document.getElementById("testsList");
+      const choiceStatus = document.getElementById("choiceStatus");
+
+      hospitalList.innerHTML = "";
+      Object.entries(hospitalsMap).forEach(([id, label]) => {
+        const card = document.createElement("div");
+        card.className = "hospital-card";
+        card.dataset.hospitalId = id;
+        card.innerHTML = `<div class="hospital-name">${label}</div>`;
+        card.onclick = () => {
+          hospitalSelection = id;
+          document.querySelectorAll(".hospital-card").forEach(c => c.classList.remove("selected"));
+          card.classList.add("selected");
+        };
+        hospitalList.appendChild(card);
+      });
+
+      testsList.innerHTML = "";
+      Object.entries(TESTS).forEach(([id, label]) => {
+        const lab = document.createElement("label");
+        lab.innerHTML = `<input type="checkbox" data-test-id="${id}"> ${label}`;
+        testsList.appendChild(lab);
+      });
+
+      document.querySelectorAll('input[data-test-id]').forEach(box => {
+        box.onchange = () => {
+          const id = box.dataset.testId;
+          if (box.checked) testSelection.add(id);
+          else testSelection.delete(id);
+        };
+      });
+
+      document.getElementById("confirmChoicesBtn").onclick = () => {
+        if (!hospitalSelection) {
+          choiceStatus.textContent = "Please select a receiving hospital.";
+          return;
+        }
+        if (!chosenTriage) {
+          choiceStatus.textContent = "Triage selection missing.";
+          return;
+        }
+        socket.emit("submitHumanDecision", {
+          triage: chosenTriage,
+          hospitalId: hospitalSelection,
+          testIds: Array.from(testSelection)
+        });
+        choiceStatus.textContent = "Decisions sent. Analysing against AI...";
+      };
+    }
+
+    function showResults(result) {
+      rightPanelTitle.textContent = "🤖 Step 6 — Human vs AI comparison";
+      const rows = [
+        {
+          label: "Triage category",
+          human: result.human.triage,
+          ai: result.ai.triage,
+          match: result.human.triage === result.ai.triage ? "✅" : "❌"
+        },
+        {
+          label: "Receiving hospital",
+          human: result.human.hospitalLabel,
+          ai: result.ai.hospitalLabel,
+          match: result.human.hospitalLabel === result.ai.hospitalLabel ? "✅" : "❌"
+        },
+        {
+          label: "ER tests",
+          human: result.human.testLabels.join(", ") || "None selected",
+          ai: result.ai.testLabels.join(", ") || "None",
+          match: result.human.testLabels.length === result.ai.testLabels.length &&
+                 result.human.testLabels.every(t => result.ai.testLabels.includes(t)) ? "✅" : "❌"
+        },
+        {
+          label: "Decision time",
+          human: `${result.human.timeSeconds.toFixed(2)} s`,
+          ai: `${result.ai.aiTimeSeconds.toFixed(2)} s`,
+          match: result.human.timeSeconds < result.ai.aiTimeSeconds ? "⚡ Faster than AI" : "⏱ AI faster"
+        }
+      ];
+
+      rightPanelContent.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Human team</th>
+              <th>AI drone</th>
+              <th>Match</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows
+              .map(
+                r => `<tr>
+                  <td>${r.label}</td>
+                  <td>${r.human}</td>
+                  <td>${r.ai}</td>
+                  <td>${r.match}</td>
+                </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>
+
+        <div class="label" style="margin-top:10px;">Score summary</div>
+        <div class="score-highlight">${result.scoreBreakdown.total} / 12 points</div>
+        <p class="small">
+          Correct triage <strong>+5</strong> • Correct hospital <strong>+3</strong> • Correct ER tests <strong>+3</strong> • Faster than AI <strong>+1</strong>
+        </p>
+
+        <h3 style="margin-top:12px;">🧠 Why the AI chose this plan</h3>
+        <p><strong>Triage:</strong> ${result.explanations.triage}</p>
+        <p><strong>Tests:</strong> ${result.explanations.tests}</p>
+        <p><strong>Treatment logic:</strong> ${result.explanations.treatment}</p>
+      `;
+    }
+
+    // --- SOCKET HANDLERS ---
+
+    socket.on("stateUpdate", data => {
+      scenarios = data.scenarios || [];
+      hospitalsMap = data.hospitals || hospitalsMap;
+      currentGame = data.currentGame;
+
+      // Populate scenario dropdown
+      scenarioSelect.innerHTML = "";
+      scenarios.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = `${s.id}. ${s.name}`;
+        scenarioSelect.appendChild(opt);
+      });
+
+      // Leaderboard
       leaderboardBody.innerHTML = "";
-      (data.leaderboard || []).forEach((entry, i) => {
+      (data.leaderboard || []).forEach((entry, idx) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${i + 1}</td>
+          <td>${idx + 1}</td>
           <td>${entry.playerName}</td>
           <td>${entry.mode}</td>
+          <td>${entry.scenarioShort}</td>
           <td>${entry.points}</td>
           <td>${entry.timeSeconds.toFixed(2)}</td>
         `;
@@ -400,187 +716,106 @@
       });
 
       if (!currentGame) {
-        teamInfoEl.textContent = "Waiting for player...";
-        patientInfoEl.textContent = "–";
-        patientNarrativeEl.textContent = "";
-        vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
-        infoMessageEl.textContent = "";
+        scenarioNameDisplay.textContent = "No active scenario.";
+        teamNameDisplay.textContent = "–";
+        setPatientPhoto(null);
+        resetVitalsPanel();
+        buildDroneBar([]);
+        droneStatus.style.display = "none";
         resetTimerDisplay();
+        rightPanelTitle.textContent = "🧩 Human Triage";
+        rightPanelContent.innerHTML =
+          "<p class='small'>Start a scenario above, then ask players to scan QR tags with their phones.</p>";
         return;
       }
 
-      teamInfoEl.textContent = currentGame.playerName;
-      patientInfoEl.textContent = currentGame.patientName;
-      patientNarrativeEl.textContent = currentGame.patientNarrative || "";
+      scenarioNameDisplay.textContent = currentGame.scenarioName;
+      teamNameDisplay.textContent = currentGame.playerName;
+      setPatientPhoto(currentGame.patientPhoto);
+      resetVitalsPanel();
+      buildDroneBar(currentGame.droneTestsText);
+      droneStatus.style.display = "inline-flex";
+      droneStatus.textContent = "🛰️ Waiting for first vital scan…";
+      infoMessageEl.textContent = "Scan any patient tag to begin.";
     });
 
-    // Map internal vital keys to clinical labels
-    const vitalLabels = {
-      consciousness: "Consciousness",
-      respiratoryRate: "Respiratory rate",
-      pulse: "Heart rate (pulse)",
-      bloodPressure: "Blood pressure",
-      oxygenSaturation: "Oxygen saturation"
-    };
+    socket.on("droneLoading", payload => {
+      if (!currentGame || !payload || payload.scenarioId !== currentGame.scenarioId) return;
+      droneStatus.style.display = "inline-flex";
+      droneStatus.textContent = "🛰️ Drone identifying patient…";
 
-    // VITAL SCAN HANDLER
-    socket.on("vitalScanned", (payload) => {
-      if (
-        vitalsListEl.firstChild &&
-        vitalsListEl.firstChild.classList &&
-        vitalsListEl.firstChild.classList.contains("small")
-      ) {
-        vitalsListEl.innerHTML = "";
+      setTimeout(() => {
+        droneStatus.textContent = "📡 Receiving sensor data…";
+      }, 800);
+      setTimeout(() => {
+        droneStatus.textContent = "🖥 Preparing visual feed…";
+      }, 1600);
+      setTimeout(() => {
+        droneStatus.textContent = "✅ Patient link established.";
+      }, 2400);
+    });
+
+    socket.on("vitalScanned", payload => {
+      const slot = vitalsPanel.querySelector(`.vital-slot[data-key="${payload.vitalKey}"]`);
+      if (slot) {
+        const valSpan = slot.querySelector(".vital-value");
+        valSpan.textContent = payload.vitalValue;
+        valSpan.classList.remove("empty");
+        slot.classList.add("vital-highlight");
+        setTimeout(() => slot.classList.remove("vital-highlight"), 900);
       }
 
-      let line = vitalsListEl.querySelector(`.vital[data-key="${payload.vitalKey}"]`);
+      // Activate drone icon sequence
+      activateDroneChip(payload.count - 1);
 
-      if (!line) {
-        line = document.createElement("div");
-        line.className = "vital";
-        line.dataset.key = payload.vitalKey;
-        vitalsListEl.appendChild(line);
-      }
-
-      const label = vitalLabels[payload.vitalKey] || payload.vitalKey;
-      line.textContent = `${label}: ${payload.vitalValue}`;
-
-      infoMessageEl.textContent =
-        `✅ Vital ${payload.count} of ${payload.total} received — scan the next tag.`;
-    });
-
-    socket.on("allVitalsCollected", (payload) => {
-      infoMessageEl.textContent =
-        "🚨 All vitals collected. Move to the triage zone and make your decision.";
-      startTimer(payload.triageTimerSeconds || 60);
-    });
-
-    socket.on("resultsReady", (result) => {
-      stopTimerAndFreeze();
-
-      resultsTableBody.innerHTML = "";
-      const rows = [
-        { category: "Triage category", human: result.human.triage, ai: result.ai.triage },
-        {
-          category: "Receiving hospital",
-          human: result.human.hospital || "Not selected",
-          ai: result.ai.hospital || "–"
-        },
-        {
-          category: "Emergency department tests",
-          human: result.human.tests.join(", ") || "None selected",
-          ai: result.ai.tests.join(", ") || "None"
-        },
-        {
-          category: "Treatment tag",
-          human: result.human.treatment,
-          ai: result.ai.treatment
-        },
-        {
-          category: "Treatment plan (primary / adjunct / disposition)",
-          human: `${result.human.treatmentSteps.primary || "–"} / ${result.human.treatmentSteps.secondary || "–"} / ${result.human.treatmentSteps.disposition || "–"}`,
-          ai: `${result.ai.treatmentSteps.primary} / ${result.ai.treatmentSteps.secondary} / ${result.ai.treatmentSteps.disposition}`
-        },
-        {
-          category: "Time to decision",
-          human: `${result.human.timeSeconds.toFixed(2)} s`,
-          ai: `${result.ai.aiTimeSeconds.toFixed(2)} s`
-        }
+      const phrases = [
+        "Vital 1 scanned — continue.",
+        "Vital 2 scanned — keep going.",
+        "Vital 3 scanned — almost there.",
+        "Vital 4 scanned — one more left!",
+        "All vitals scanned — look at the big screen!"
       ];
-
-      rows.forEach(r => {
-        const tr = document.createElement("tr");
-        let match = "–";
-
-        if (r.category === "Triage category") {
-          match = result.human.triage === result.ai.triage ? "✅" : "❌";
-        } else if (r.category === "Receiving hospital") {
-          match = result.human.hospital === result.ai.hospital ? "✅" : "❌";
-        } else if (r.category === "Emergency department tests") {
-          match = arraysEqualAsSets(result.human.tests, result.ai.tests) ? "✅" : "❌";
-        }
-
-        tr.innerHTML = `
-          <td>${r.category}</td>
-          <td>${r.human}</td>
-          <td>${r.ai}</td>
-          <td>${match}</td>
-        `;
-        resultsTableBody.appendChild(tr);
-      });
-
-      const bd = result.scoreBreakdown;
-      scoreDisplayEl.textContent = `${bd.total} / 12 points`;
-
-      scoreBreakdownEl.innerHTML = `
-        <strong>Scoring:</strong>
-        Correct triage <strong>+5</strong> &nbsp;•&nbsp;
-        Correct hospital <strong>+3</strong> &nbsp;•&nbsp;
-        Correct ER tests <strong>+2</strong> &nbsp;•&nbsp;
-        Finished under 30 seconds <strong>+2</strong>
-      `;
-
-      explainTriageEl.textContent = result.explanations.triage;
-      explainTestsEl.textContent = result.explanations.tests;
-      explainTreatmentEl.textContent = result.explanations.treatment;
+      infoMessageEl.textContent = phrases[Math.min(payload.count - 1, phrases.length - 1)];
     });
 
-    document.getElementById("resetBtn").onclick = () => {
+    socket.on("allVitalsCollected", payload => {
+      infoMessageEl.textContent =
+        "🚨 All vitals received. Make your triage decision on this screen.";
+      startCountdown(payload.triageTimerSeconds || 60);
+      triageLocked = false;
+      chosenTriage = null;
+      hospitalSelection = null;
+      testSelection = new Set();
+      showTriageButtons();
+    });
+
+    socket.on("resultsReady", result => {
+      stopTimerFreezeFinal();
+      showResults(result);
+    });
+
+    // --- BUTTONS ---
+
+    startScenarioBtn.onclick = () => {
+      const teamName = teamNameInput.value.trim() || "Guest Team";
+      const mode = modeSelect.value;
+      const scenarioId = parseInt(scenarioSelect.value, 10);
+
+      if (!scenarioId) {
+        setupStatus.textContent = "Please select a scenario.";
+        return;
+      }
+
+      socket.emit("registerPlayer", { playerName: teamName, mode, scenarioId });
+      setupStatus.textContent = "Scenario started. Ask players to scan the patient tags.";
+    };
+
+    resetGameBtn.onclick = () => {
       socket.emit("resetGame");
-      resetTimerDisplay();
-      vitalsListEl.innerHTML = "<span class='small'>No vitals scanned yet.</span>";
-      infoMessageEl.textContent = "";
-      resultsTableBody.innerHTML = "";
-      scoreDisplayEl.textContent = "–";
-      scoreBreakdownEl.textContent = "";
-      explainTriageEl.textContent = "–";
-      explainTestsEl.textContent = "–";
-      explainTreatmentEl.textContent = "–";
     };
 
-    document.getElementById("resetLeaderboardBtn").onclick = () => {
+    resetLeaderboardBtn.onclick = () => {
       socket.emit("resetLeaderboard");
-    };
-
-    document.getElementById("submitDecisionBtn").onclick = () => {
-      const triage = triageSelect.value;
-      const treatment = treatmentSelect.value;
-
-      const tests = Array.from(testCheckboxes)
-        .filter(c => c.checked)
-        .map(c => c.value);
-
-      const hospital =
-        Array.from(hospitalRadios).find(r => r.checked)?.value || "";
-
-      const treatmentSteps = {
-        primary: primarySelect.value || "",
-        secondary: secondarySelect.value || "",
-        disposition: dispositionSelect.value || ""
-      };
-
-      if (!triage) {
-        submitStatusEl.textContent = "Please select a triage category.";
-        return;
-      }
-      if (!hospital) {
-        submitStatusEl.textContent = "Please select a receiving hospital.";
-        return;
-      }
-      if (!treatment) {
-        submitStatusEl.textContent = "Please select an overall treatment tag.";
-        return;
-      }
-
-      socket.emit("submitHumanDecision", {
-        triage,
-        tests,
-        treatment,
-        treatmentSteps,
-        hospital
-      });
-
-      submitStatusEl.textContent = "Decision sent. Comparing with AI...";
     };
   </script>
 </body>
