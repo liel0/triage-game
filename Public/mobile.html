@@ -2,246 +2,162 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Triage Scanner – Mobile</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Drone Triage – Mobile Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/socket.io/socket.io.js"></script>
-  <!-- QR scanner library -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <!-- jsQR for QR decoding -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <style>
     body {
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #020617;
       color: #e5e7eb;
       margin: 0;
       padding: 16px;
+      text-align: center;
     }
-    h1 { font-size: 1.4rem; margin-bottom: 0.4rem; }
-    .small { font-size: 0.8rem; color: #9ca3af; }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      border: none;
-      margin: 6px 0 10px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
+    h1 { font-size: 1.4rem; margin-bottom: 4px; }
+    .small { font-size: 0.85rem; color: #9ca3af; }
+
+    #scanBtn {
+      margin-top: 16px;
+      padding: 12px 20px;
       border-radius: 999px;
       border: none;
+      background: #22c55e;
+      color: #020617;
+      font-weight: 600;
+      font-size: 1rem;
       cursor: pointer;
-      margin-top: 8px;
+      width: 100%;
+      max-width: 320px;
     }
-    button.primary { background: #22c55e; color: white; font-weight: 600; }
-    button.secondary { background: #1f2937; color: #e5e7eb; font-weight: 500; }
-    .card {
-      background: #0f172a;
-      border-radius: 12px;
-      padding: 12px;
-      margin-top: 12px;
+
+    #video {
+      margin-top: 16px;
+      width: 100%;
+      max-width: 340px;
+      border-radius: 16px;
+      border: 2px solid #4b5563;
+      background: #000;
     }
-    .vital-btn { margin-top: 6px; }
-    #qr-reader {
+
+    #status {
       margin-top: 10px;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    #scanImage {
-      margin-top: 10px;
-      max-width: 100%;
-      border-radius: 12px;
-      display: none;
+      font-size: 0.95rem;
     }
   </style>
 </head>
 <body>
-  <h1>🚑 Triage Scanner</h1>
+  <h1>🚑 Drone Triage – Scanner</h1>
   <p class="small">
-    Step 1: Register your team → Step 2: Scan mannequin QR codes → Step 3: Watch the big screen.
+    Tap “Scan patient tag”, point the camera at a QR on the mannequin, and keep scanning until your screen says
+    that all vitals are uploaded. Look up at the big screen for the case.
   </p>
 
-  <div class="card">
-    <div class="small">Team / Player Name</div>
-    <input id="playerNameInput" type="text" placeholder="e.g. Team Alpha" />
+  <button id="scanBtn">Scan patient tag</button>
+  <video id="video" playsinline></video>
+  <canvas id="canvas" style="display:none;"></canvas>
 
-    <div class="small">Mode</div>
-    <select id="modeSelect">
-      <option value="solo">Solo</option>
-      <option value="group">Group (2–3 players)</option>
-    </select>
-
-    <div class="small">Patient</div>
-    <select id="patientSelect">
-      <option value="1">Patient 1</option>
-      <option value="2">Patient 2</option>
-      <option value="3">Patient 3</option>
-      <option value="4">Patient 4</option>
-    </select>
-
-    <button class="primary" id="registerBtn">Join Simulation</button>
-    <div class="small" id="registerStatus"></div>
-  </div>
-
-  <div class="card">
-    <div class="small">Step 2: Scan vitals on the mannequin</div>
-
-    <!-- Each button decides WHICH vital we send to server -->
-    <button class="secondary vital-btn"
-            onclick="startScanner('consciousness')">
-      Scan Forehead – Consciousness
-    </button>
-
-    <button class="secondary vital-btn"
-            onclick="startScanner('respiratoryRate')">
-      Scan Chest – Respiratory Rate / X-ray
-    </button>
-
-    <button class="secondary vital-btn"
-            onclick="startScanner('pulse')">
-      Scan Wrist – Pulse
-    </button>
-
-    <button class="secondary vital-btn"
-            onclick="startScanner('bloodPressure')">
-      Scan Arm Tag – Blood Pressure
-    </button>
-
-    <button class="secondary vital-btn"
-            onclick="startScanner('oxygenSaturation')">
-      Scan Leg Tag – O₂ Saturation
-    </button>
-
-    <div class="small" id="scanStatus"></div>
-
-    <!-- QR scanner box (hidden until used) -->
-    <div id="qr-reader" style="width: 100%; display:none;"></div>
-
-    <!-- Image preview of what was scanned (e.g. X-ray) -->
-    <img id="scanImage" alt="Scanned clinical image" />
-  </div>
+  <div id="status" class="small">Waiting to start.</div>
 
   <script>
     const socket = io();
 
-    const playerNameInput = document.getElementById("playerNameInput");
-    const modeSelect = document.getElementById("modeSelect");
-    const patientSelect = document.getElementById("patientSelect");
-    const registerBtn = document.getElementById("registerBtn");
-    const registerStatus = document.getElementById("registerStatus");
-    const scanStatus = document.getElementById("scanStatus");
-    const qrReaderEl = document.getElementById("qr-reader");
-    const scanImageEl = document.getElementById("scanImage");
+    const scanBtn = document.getElementById("scanBtn");
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const statusEl = document.getElementById("status");
+    const ctx = canvas.getContext("2d");
 
-    let registered = false;
-    let qrScanner = null;
-    let scanningFor = null;
+    let scanning = false;
+    let stream = null;
+    let vitalsScanned = new Set();
 
-    // Register team
-    registerBtn.addEventListener("click", () => {
-      const playerName = playerNameInput.value.trim();
-      const mode = modeSelect.value;
-      const patientId = parseInt(patientSelect.value, 10);
+    const VALID_KEYS = ["hr","bp","rr","consciousness","injury"];
 
-      if (!playerName) {
-        registerStatus.textContent = "Please enter a team / player name.";
-        return;
-      }
+    function updateStatusAfterScan() {
+      const count = vitalsScanned.size;
+      const phrases = [
+        "Vital 1 scanned — continue.",
+        "Vital 2 scanned — keep going.",
+        "Vital 3 scanned — almost done.",
+        "Vital 4 scanned — one more left!",
+        "All vitals scanned — look up at the big screen!"
+      ];
+      statusEl.textContent = phrases[Math.min(count - 1, phrases.length - 1)];
+    }
 
-      socket.emit("registerPlayer", { playerName, mode, patientId });
-      registerStatus.textContent = "Registering...";
-    });
-
-    socket.on("gameRegistered", (game) => {
-      registerStatus.textContent = `Registered as "${game.playerName}". Start scanning vitals now.`;
-      registered = true;
-    });
-
-    socket.on("errorMessage", (msg) => {
-      registerStatus.textContent = msg;
-    });
-
-    socket.on("allVitalsCollected", () => {
-      scanStatus.textContent = "✅ All vitals collected! Go to the big screen to triage.";
-    });
-
-    // Start QR scanner for a specific vital (forehead/chest/wrist/etc.)
-    window.startScanner = async function (vitalKey) {
-      if (!registered) {
-        scanStatus.textContent = "You must register your team before scanning.";
-        return;
-      }
-
-      scanningFor = vitalKey;
-      scanStatus.textContent = `Scan the QR on the ${bodyPartName(vitalKey)}.`;
-      scanImageEl.style.display = "none";
-      scanImageEl.src = "";
-
-      qrReaderEl.style.display = "block";
-
-      // If scanner already exists, stop it first
-      if (qrScanner) {
-        try {
-          await qrScanner.stop();
-          qrScanner.clear();
-        } catch (e) {}
-        qrScanner = null;
-      }
-
-      qrScanner = new Html5Qrcode("qr-reader");
-
-      qrScanner
-        .start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: 250 },
-          (decodedText) => {
-            const text = decodedText.trim();
-            // 1) Send the vitalKey based on the button pressed (not QR content)
-            socket.emit("scanVital", { vitalKey: scanningFor });
-
-            // 2) If QR content looks like a URL, show it as an image
-            if (text.startsWith("http://") || text.startsWith("https://")) {
-              scanImageEl.src = text;
-              scanImageEl.style.display = "block";
-              scanStatus.textContent = "✅ QR scanned. Image loaded and vital sent.";
-            } else {
-              scanStatus.textContent = "✅ QR scanned. Vital sent to big screen.";
-            }
-
-            // Stop scanner after first successful scan
-            qrScanner
-              .stop()
-              .then(() => {
-                qrScanner.clear();
-                qrReaderEl.style.display = "none";
-                qrScanner = null;
-              })
-              .catch(() => {
-                qrReaderEl.style.display = "none";
-                qrScanner = null;
-              });
-          },
-          (errorMessage) => {
-            // ignore continuous scan errors
-          }
-        )
-        .catch((err) => {
-          console.error("start() error:", err);
-          scanStatus.textContent =
-            "Camera error. Check browser permissions or try another browser.";
-          qrReaderEl.style.display = "none";
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false
         });
-    };
-
-    function bodyPartName(vitalKey) {
-      switch (vitalKey) {
-        case "consciousness": return "forehead";
-        case "respiratoryRate": return "chest";
-        case "pulse": return "wrist";
-        case "bloodPressure": return "arm tag";
-        case "oxygenSaturation": return "leg tag";
-        default: return "correct body part";
+        video.srcObject = stream;
+        await video.play();
+        scanning = true;
+        statusEl.textContent = "Point your camera at a QR tag on the mannequin.";
+        scanFrame();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Camera access denied. Please allow camera in your browser settings.";
       }
     }
+
+    function stopCamera() {
+      scanning = false;
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+    }
+
+    function scanFrame() {
+      if (!scanning) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert"
+        });
+
+        if (code && code.data) {
+          const raw = code.data.trim().toLowerCase();
+          if (VALID_KEYS.includes(raw)) {
+            if (!vitalsScanned.has(raw)) {
+              vitalsScanned.add(raw);
+              socket.emit("scanVital", { vitalKey: raw });
+              updateStatusAfterScan();
+            } else {
+              statusEl.textContent = "This vital has already been scanned. Scan a different tag.";
+            }
+          } else {
+            statusEl.textContent = "Wrong QR code scanned. Use the tags attached to the mannequin.";
+          }
+          // small pause to avoid multiple reads of same code
+          setTimeout(scanFrame, 800);
+          return;
+        }
+      }
+      requestAnimationFrame(scanFrame);
+    }
+
+    scanBtn.onclick = () => {
+      if (!scanning) {
+        vitalsScanned.clear();
+        startCamera();
+      } else {
+        stopCamera();
+        statusEl.textContent = "Scanning stopped.";
+      }
+    };
+
+    socket.on("errorMessage", msg => {
+      statusEl.textContent = msg;
+    });
   </script>
 </body>
 </html>
