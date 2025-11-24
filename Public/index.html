@@ -12,7 +12,6 @@
       margin: 0;
       padding: 20px;
     }
-
     h1, h2, h3 { margin: 0.4rem 0; }
 
     .row {
@@ -109,23 +108,16 @@
       font-size: 1.05rem;
     }
 
-    .vital-label {
-      color: #9ca3af;
-    }
-
+    .vital-label { color: #9ca3af; }
     .vital-value {
       font-weight: 600;
       color: #f9fafb;
     }
-
-    .vital-value.empty {
-      color: #4b5563;
-    }
+    .vital-value.empty { color: #4b5563; }
 
     .vital-highlight {
       animation: glow 900ms ease-out;
     }
-
     @keyframes glow {
       from { box-shadow: 0 0 0 rgba(248, 250, 252, 0.0); }
       50% { box-shadow: 0 0 18px rgba(248, 250, 252, 0.7); }
@@ -164,22 +156,14 @@
       opacity: 0.35;
       transition: opacity 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
     }
-
     .drone-chip.active {
       opacity: 1;
       border-color: #22c55e;
       transform: translateY(-1px);
     }
 
-    .timer-big {
-      font-size: 1.8rem;
-      font-weight: 700;
-    }
-
-    .timer-ms {
-      font-size: 1rem;
-      opacity: 0.9;
-    }
+    .timer-big { font-size: 1.8rem; font-weight: 700; }
+    .timer-ms  { font-size: 1rem; opacity: 0.9; }
 
     .triage-grid {
       display: grid;
@@ -200,13 +184,11 @@
       justify-content: space-between;
       color: #020617;
     }
-
     .triage-btn span.sub {
       font-size: 0.8rem;
       font-weight: 400;
       opacity: 0.9;
     }
-
     .triage-btn.red    { background: #ef4444; }
     .triage-btn.yellow { background: #eab308; }
     .triage-btn.green  { background: #22c55e; }
@@ -230,15 +212,11 @@
       flex-direction: column;
       gap: 4px;
     }
-
     .hospital-card.selected {
       border-color: #22c55e;
       box-shadow: 0 0 16px rgba(34, 197, 94, 0.5);
     }
-
-    .hospital-name {
-      font-weight: 600;
-    }
+    .hospital-name { font-weight: 600; }
 
     .tests-list label {
       display: block;
@@ -271,7 +249,7 @@
     The main screen handles everything else automatically.
   </p>
 
-  <!-- GAME SETUP -->
+  <!-- SETUP -->
   <div class="card">
     <h2>🧭 Scenario Setup</h2>
     <div class="row" style="margin-top:6px;">
@@ -299,7 +277,7 @@
   </div>
 
   <div class="row">
-    <!-- LEFT: PATIENT + DRONE + VITALS -->
+    <!-- LEFT -->
     <div class="card">
       <h2>🧑‍⚕️ Patient & Drone Feed</h2>
 
@@ -324,9 +302,7 @@
           <div id="droneBar" class="drone-bar"></div>
 
           <div class="label">Vitals (live feed)</div>
-          <div id="vitalsPanel">
-            <!-- slots injected by JS -->
-          </div>
+          <div id="vitalsPanel"></div>
 
           <div class="label">Triage timer</div>
           <div id="timerDisplay" class="timer-big">--</div>
@@ -335,11 +311,13 @@
       </div>
     </div>
 
-    <!-- RIGHT: TRIAGE / HOSPITAL / TESTS / RESULTS -->
+    <!-- RIGHT -->
     <div class="card" id="rightPanel">
       <h2 id="rightPanelTitle">🧩 Human Triage</h2>
       <div id="rightPanelContent">
-        <p class="small">Scan a vital QR tag to begin. The triage interface will unlock after all vitals are received.</p>
+        <p class="small">
+          Scan a vital QR tag to begin. The triage interface will unlock after all vitals are received.
+        </p>
       </div>
     </div>
   </div>
@@ -391,7 +369,6 @@
     const vitalsPanel = document.getElementById("vitalsPanel");
     const timerDisplayEl = document.getElementById("timerDisplay");
     const infoMessageEl = document.getElementById("infoMessage");
-    const rightPanel = document.getElementById("rightPanel");
     const rightPanelTitle = document.getElementById("rightPanelTitle");
     const rightPanelContent = document.getElementById("rightPanelContent");
     const leaderboardBody = document.getElementById("leaderboardBody");
@@ -408,14 +385,14 @@
       fast: "FAST ultrasound",
       lactate: "Serum lactate",
       crossmatch: "Blood typing and crossmatch",
-      co: "Carboxyhaemoglobin level",
+      co: "Carboxyhaemoglobin level (CO)",
       xray: "Plain X-ray",
       burn: "Burn assessment",
       iv: "Intravenous (IV) fluids",
       ct: "CT scan"
     };
 
-    const DRONE_ICON_SET = [
+    const DRONE_DEFAULT_ICONS = [
       "🔶 Thermal imaging",
       "🟦 FAST ultrasound module",
       "🟪 Pallor / skin perfusion analysis",
@@ -425,7 +402,7 @@
 
     function resetVitalsPanel() {
       vitalsPanel.innerHTML = "";
-      ["hr","bp","rr","consciousness","injury"].forEach(key => {
+      ["hr", "bp", "rr", "consciousness", "injury"].forEach(key => {
         const slot = document.createElement("div");
         slot.className = "vital-slot";
         slot.dataset.key = key;
@@ -498,7 +475,7 @@
 
     function buildDroneBar(textArray) {
       droneBar.innerHTML = "";
-      (textArray || DRONE_ICON_SET).forEach(t => {
+      (textArray || DRONE_DEFAULT_ICONS).forEach(t => {
         const chip = document.createElement("div");
         chip.className = "drone-chip";
         chip.textContent = t;
@@ -516,7 +493,9 @@
     function showTriageButtons() {
       rightPanelTitle.textContent = "🚨 Step 4 — Choose the triage category";
       rightPanelContent.innerHTML = `
-        <p class="small">Use the vitals and drone diagnostics on the left to decide how urgent this patient is.</p>
+        <p class="small">
+          Use the vitals and drone diagnostics on the left to decide how urgent this patient is.
+        </p>
         <div class="triage-grid">
           <button class="triage-btn red" data-triage="Red">
             <span>🟥 Red</span>
@@ -549,8 +528,6 @@
 
     function showHospitalAndTests() {
       rightPanelTitle.textContent = "🏥 Step 5 — Choose hospital & ER tests";
-      const currentScenario = scenarios.find(s => s.id === (currentGame?.scenarioId || 0));
-
       rightPanelContent.innerHTML = `
         <div class="choice-grid">
           <div>
@@ -562,7 +539,9 @@
             <div class="tests-list" id="testsList"></div>
           </div>
         </div>
-        <button class="btn btn-primary" id="confirmChoicesBtn" style="margin-top:12px;">Confirm choices</button>
+        <button class="btn btn-primary" id="confirmChoicesBtn" style="margin-top:12px;">
+          Confirm choices
+        </button>
         <div class="small" id="choiceStatus" style="margin-top:4px;"></div>
       `;
 
@@ -578,7 +557,8 @@
         card.innerHTML = `<div class="hospital-name">${label}</div>`;
         card.onclick = () => {
           hospitalSelection = id;
-          document.querySelectorAll(".hospital-card").forEach(c => c.classList.remove("selected"));
+          document.querySelectorAll(".hospital-card")
+            .forEach(c => c.classList.remove("selected"));
           card.classList.add("selected");
         };
         hospitalList.appendChild(card);
@@ -613,12 +593,13 @@
           hospitalId: hospitalSelection,
           testIds: Array.from(testSelection)
         });
-        choiceStatus.textContent = "Decisions sent. Analysing against AI...";
+        choiceStatus.textContent = "Decisions sent. Comparing with AI…";
       };
     }
 
     function showResults(result) {
       rightPanelTitle.textContent = "🤖 Step 6 — Human vs AI comparison";
+
       const rows = [
         {
           label: "Triage category",
@@ -636,14 +617,20 @@
           label: "ER tests",
           human: result.human.testLabels.join(", ") || "None selected",
           ai: result.ai.testLabels.join(", ") || "None",
-          match: result.human.testLabels.length === result.ai.testLabels.length &&
-                 result.human.testLabels.every(t => result.ai.testLabels.includes(t)) ? "✅" : "❌"
+          match:
+            result.human.testLabels.length === result.ai.testLabels.length &&
+            result.human.testLabels.every(t => result.ai.testLabels.includes(t))
+              ? "✅"
+              : "❌"
         },
         {
           label: "Decision time",
           human: `${result.human.timeSeconds.toFixed(2)} s`,
           ai: `${result.ai.aiTimeSeconds.toFixed(2)} s`,
-          match: result.human.timeSeconds < result.ai.aiTimeSeconds ? "⚡ Faster than AI" : "⏱ AI faster"
+          match:
+            result.human.timeSeconds < result.ai.aiTimeSeconds
+              ? "⚡ Faster than AI"
+              : "⏱ AI faster"
         }
       ];
 
@@ -674,7 +661,8 @@
         <div class="label" style="margin-top:10px;">Score summary</div>
         <div class="score-highlight">${result.scoreBreakdown.total} / 12 points</div>
         <p class="small">
-          Correct triage <strong>+5</strong> • Correct hospital <strong>+3</strong> • Correct ER tests <strong>+3</strong> • Faster than AI <strong>+1</strong>
+          Correct triage <strong>+5</strong> • Correct hospital <strong>+3</strong> •
+          Correct ER tests <strong>+3</strong> • Faster than AI <strong>+1</strong>
         </p>
 
         <h3 style="margin-top:12px;">🧠 Why the AI chose this plan</h3>
@@ -684,14 +672,14 @@
       `;
     }
 
-    // --- SOCKET HANDLERS ---
+    // ----- SOCKET HANDLERS -----
 
     socket.on("stateUpdate", data => {
       scenarios = data.scenarios || [];
       hospitalsMap = data.hospitals || hospitalsMap;
       currentGame = data.currentGame;
 
-      // Populate scenario dropdown
+      // scenario dropdown
       scenarioSelect.innerHTML = "";
       scenarios.forEach(s => {
         const opt = document.createElement("option");
@@ -700,7 +688,7 @@
         scenarioSelect.appendChild(opt);
       });
 
-      // Leaderboard
+      // leaderboard
       leaderboardBody.innerHTML = "";
       (data.leaderboard || []).forEach((entry, idx) => {
         const tr = document.createElement("tr");
@@ -744,15 +732,9 @@
       droneStatus.style.display = "inline-flex";
       droneStatus.textContent = "🛰️ Drone identifying patient…";
 
-      setTimeout(() => {
-        droneStatus.textContent = "📡 Receiving sensor data…";
-      }, 800);
-      setTimeout(() => {
-        droneStatus.textContent = "🖥 Preparing visual feed…";
-      }, 1600);
-      setTimeout(() => {
-        droneStatus.textContent = "✅ Patient link established.";
-      }, 2400);
+      setTimeout(() => { droneStatus.textContent = "📡 Receiving sensor data…"; }, 800);
+      setTimeout(() => { droneStatus.textContent = "🖥 Preparing visual feed…"; }, 1600);
+      setTimeout(() => { droneStatus.textContent = "✅ Patient link established."; }, 2400);
     });
 
     socket.on("vitalScanned", payload => {
@@ -765,7 +747,6 @@
         setTimeout(() => slot.classList.remove("vital-highlight"), 900);
       }
 
-      // Activate drone icon sequence
       activateDroneChip(payload.count - 1);
 
       const phrases = [
@@ -775,7 +756,8 @@
         "Vital 4 scanned — one more left!",
         "All vitals scanned — look at the big screen!"
       ];
-      infoMessageEl.textContent = phrases[Math.min(payload.count - 1, phrases.length - 1)];
+      infoMessageEl.textContent =
+        phrases[Math.min(payload.count - 1, phrases.length - 1)];
     });
 
     socket.on("allVitalsCollected", payload => {
@@ -794,7 +776,7 @@
       showResults(result);
     });
 
-    // --- BUTTONS ---
+    // ----- BUTTONS -----
 
     startScenarioBtn.onclick = () => {
       const teamName = teamNameInput.value.trim() || "Guest Team";
@@ -807,7 +789,8 @@
       }
 
       socket.emit("registerPlayer", { playerName: teamName, mode, scenarioId });
-      setupStatus.textContent = "Scenario started. Ask players to scan the patient tags.";
+      setupStatus.textContent =
+        "Scenario started. Ask players to scan the patient tags on their phones.";
     };
 
     resetGameBtn.onclick = () => {
