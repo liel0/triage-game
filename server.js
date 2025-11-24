@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
 });
 
 //
-// ---------- MASTER DATA: HOSPITALS & TESTS (IDs -> labels) ----------
+// ---------- MASTER DATA: HOSPITALS & TESTS ----------
 //
 
 const HOSPITALS = {
@@ -29,7 +29,7 @@ const TESTS = {
   fast: "FAST ultrasound",
   lactate: "Serum lactate",
   crossmatch: "Blood typing and crossmatch",
-  co: "Carboxyhaemoglobin level",
+  co: "Carboxyhaemoglobin level (CO)",
   xray: "Plain X-ray",
   burn: "Burn assessment",
   iv: "Intravenous (IV) fluids",
@@ -37,14 +37,14 @@ const TESTS = {
 };
 
 //
-// ---------- SCENARIOS (exact vitals / answers from your spec) ----------
+// ---------- SCENARIOS (exact vitals / answers) ----------
 //
 
 const scenarios = [
   {
     id: 1,
     name: "Scenario 1 — Hajj Stampede (Red)",
-    patientPhoto: "/images/scenario1.jpg", // drop your own JPG/PNG here
+    patientPhoto: "/images/scenario1.jpg", // put your image here
     shortLabel: "Hajj Stampede",
     vitals: {
       hr: "142 bpm",
@@ -85,7 +85,7 @@ const scenarios = [
       bp: "100/70 mmHg",
       rr: "26 / min",
       consciousness: "Alert but confused",
-      injury: "Burns, dizziness, chest tightness"
+      injury: "Burns, dizziness and chest tightness"
     },
     droneTestsText: [
       "Thermal burn mapping – burn surface and depth",
@@ -119,7 +119,7 @@ const scenarios = [
       bp: "118/78 mmHg",
       rr: "18 / min",
       consciousness: "Walking",
-      injury: "Mild dehydration, heat stress"
+      injury: "Mild dehydration and heat stress"
     },
     droneTestsText: [
       "Thermal elevation – raised core temperature",
@@ -127,7 +127,7 @@ const scenarios = [
       "Facial flush detection – mild heat stress",
       "Hydration assessment – mouth and eye moisture"
     ],
-    // NOTE: Uses your “Correct” combo exactly, even if aggressive for mild dehydration
+    // Using the exact combo you requested
     correct: {
       triage: "Green",
       hospitalId: "alula",
@@ -179,7 +179,13 @@ const scenarios = [
 ];
 
 //
-// ---------- GAME STATE ----------
+// ---------- VITAL ORDER (for sequential filling) ----------
+//
+
+const VITAL_ORDER = ["hr", "bp", "rr", "consciousness", "injury"];
+
+//
+// ---------- GAME STATE & HELPERS ----------
 //
 
 let currentGame = null;
@@ -208,16 +214,9 @@ function scoreGame(human, correct) {
     total: 0
   };
 
-  // +5 correct triage
   if (human.triage === correct.triage) breakdown.triage = 5;
-
-  // +3 correct hospital
   if (human.hospitalId === correct.hospitalId) breakdown.hospital = 3;
-
-  // +3 correct ER tests (set match)
   if (arraysEqualAsSets(human.testIds, correct.testIds)) breakdown.tests = 3;
-
-  // +1 faster than AI
   if (human.timeSeconds < correct.aiTimeSeconds) breakdown.fasterThanAI = 1;
 
   breakdown.total =
@@ -249,10 +248,9 @@ function broadcastState() {
 io.on("connection", socket => {
   console.log("Client connected:", socket.id);
 
-  // Send initial state
   broadcastState();
 
-  // Big-screen: register a new team + scenario
+  // Start a new scenario / team from the big screen
   socket.on("registerPlayer", data => {
     const { playerName, mode, scenarioId } = data;
     const scenario = getScenario(scenarioId);
@@ -269,7 +267,8 @@ io.on("connection", socket => {
       scenarioName: scenario.name,
       patientPhoto: scenario.patientPhoto,
       droneTestsText: scenario.droneTestsText,
-      vitalsScanned: [],
+      vitalsScanned: [],      // which vital keys we’ve filled
+      scannedQrValues: [],    // raw QR contents to block duplicates
       allVitalsCollected: false,
       triagePhaseStartedAt: null,
       humanDecision: null,
@@ -280,28 +279,54 @@ io.on("connection", socket => {
     broadcastState();
   });
 
-  // Mobile: scan a QR → only sends which vital
-  // Expect QR contents to be: "hr", "bp", "rr", "consciousness", or "injury"
+  // QR scan from mobile (accept ANY QR text)
   socket.on("scanVital", data => {
     if (!currentGame) {
-      socket.emit("errorMessage", "No active scenario. Start a case on the main screen.");
+      socket.emit(
+        "errorMessage",
+        "No active scenario. Ask staff to start a case on the main screen."
+      );
       return;
     }
 
     const scenario = getScenario(currentGame.scenarioId);
     if (!scenario) return;
 
-    const { vitalKey } = data;
-    if (!scenario.vitals[vitalKey]) {
-      socket.emit("errorMessage", "Wrong QR code scanned.");
+    const qrData = (data.qrData || "").trim();
+
+    currentGame.vitalsScanned = currentGame.vitalsScanned || [];
+    currentGame.scannedQrValues = currentGame.scannedQrValues || [];
+
+    // prevent scanning the exact same QR twice
+    if (qrData && currentGame.scannedQrValues.includes(qrData)) {
+      socket.emit(
+        "errorMessage",
+        "This tag has already been scanned. Try another tag on the mannequin."
+      );
+      return;
+    }
+    if (qrData) currentGame.scannedQrValues.push(qrData);
+
+    const alreadyCount = currentGame.vitalsScanned.length;
+    const total = VITAL_ORDER.length;
+
+    if (alreadyCount >= total) {
+      socket.emit("errorMessage", "All vitals are already uploaded for this patient.");
       return;
     }
 
-    if (!currentGame.vitalsScanned.includes(vitalKey)) {
-      currentGame.vitalsScanned.push(vitalKey);
+    // assign next vital in order
+    const vitalKey = VITAL_ORDER[alreadyCount];
+
+    if (!scenario.vitals[vitalKey]) {
+      socket.emit(
+        "errorMessage",
+        "Scenario vitals are not configured correctly for this patient."
+      );
+      return;
     }
 
-    const total = Object.keys(scenario.vitals).length;
+    currentGame.vitalsScanned.push(vitalKey);
     const count = currentGame.vitalsScanned.length;
 
     io.emit("vitalScanned", {
@@ -311,11 +336,12 @@ io.on("connection", socket => {
       total
     });
 
+    // First vital triggers drone loading
     if (count === 1 && !currentGame.triagePhaseStartedAt) {
-      // First vital triggers the "drone loading" sequence on the big screen
       io.emit("droneLoading", { scenarioId: scenario.id });
     }
 
+    // All vitals collected -> unlock triage
     if (count === total && !currentGame.allVitalsCollected) {
       currentGame.allVitalsCollected = true;
       currentGame.triagePhaseStartedAt = Date.now();
@@ -327,7 +353,7 @@ io.on("connection", socket => {
     broadcastState();
   });
 
-  // Big screen: final human decision (triage + hospital + tests)
+  // Final human decision from big screen
   socket.on("submitHumanDecision", data => {
     if (!currentGame || !currentGame.allVitalsCollected) return;
 
