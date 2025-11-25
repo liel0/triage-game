@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Drone Triage – Mobile Scanner</title>
+  <title>AI Triage Drone 2040 – Mobile Scanner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/socket.io/socket.io.js"></script>
-  <!-- jsQR for QR decoding -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <style>
     body {
@@ -46,18 +45,34 @@
       margin-top: 10px;
       font-size: 0.95rem;
     }
+
+    #previewImage {
+      margin-top: 12px;
+      max-width: 340px;
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid #4b5563;
+      display: none;
+    }
+    #previewLink {
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
-  <h1>🚑 Drone Triage – Scanner</h1>
+  <h1>🚁 AI Triage Drone 2040 – Scanner</h1>
   <p class="small">
-    Tap “Scan patient tag”, point the camera at a QR on the mannequin, and keep scanning until your screen says
-    that all vitals are uploaded. Look up at the big screen for the case.
+    Tap “Scan patient tag”, point the camera at a QR code on the mannequin,
+    and keep scanning until your screen says that all vitals are uploaded.
+    All medical details appear on the big screen.
   </p>
 
   <button id="scanBtn">Scan patient tag</button>
   <video id="video" playsinline></video>
   <canvas id="canvas" style="display:none;"></canvas>
+
+  <img id="previewImage" alt="Scanned image preview" />
+  <div id="previewLink" class="small"></div>
 
   <div id="status" class="small">Waiting to start.</div>
 
@@ -68,16 +83,16 @@
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
     const statusEl = document.getElementById("status");
+    const previewImage = document.getElementById("previewImage");
+    const previewLink = document.getElementById("previewLink");
     const ctx = canvas.getContext("2d");
 
     let scanning = false;
     let stream = null;
-    let vitalsScanned = new Set();
-
-    const VALID_KEYS = ["hr","bp","rr","consciousness","injury"];
+    let scannedValues = new Set();   // stores EVERY QR content we used
 
     function updateStatusAfterScan() {
-      const count = vitalsScanned.size;
+      const count = scannedValues.size;
       const phrases = [
         "Vital 1 scanned — continue.",
         "Vital 2 scanned — keep going.",
@@ -85,7 +100,8 @@
         "Vital 4 scanned — one more left!",
         "All vitals scanned — look up at the big screen!"
       ];
-      statusEl.textContent = phrases[Math.min(count - 1, phrases.length - 1)];
+      statusEl.textContent =
+        phrases[Math.min(count - 1, phrases.length - 1)];
     }
 
     async function startCamera() {
@@ -97,11 +113,13 @@
         video.srcObject = stream;
         await video.play();
         scanning = true;
-        statusEl.textContent = "Point your camera at a QR tag on the mannequin.";
+        statusEl.textContent =
+          "Point your camera at a QR tag on the mannequin.";
         scanFrame();
       } catch (err) {
         console.error(err);
-        statusEl.textContent = "Camera access denied. Please allow camera in your browser settings.";
+        statusEl.textContent =
+          "Camera access denied. Allow camera permissions in your browser.";
       }
     }
 
@@ -113,8 +131,39 @@
       }
     }
 
+    function handleScannedData(raw) {
+      // Avoid double-counting exactly the same QR repeatedly
+      if (scannedValues.has(raw)) {
+        statusEl.textContent =
+          "This tag was already scanned. Try another tag on the mannequin.";
+        return;
+      }
+
+      scannedValues.add(raw);
+
+      // 1) Send to main screen (ALWAYS)
+      socket.emit("scanVital", { qrData: raw });
+
+      // 2) Show what is inside the QR on the phone
+      if (/^https?:\/\//i.test(raw)) {
+        // Looks like a URL → we assume it's an image URL for your case
+        previewImage.style.display = "block";
+        previewImage.src = raw;
+        previewLink.innerHTML =
+          `Image URL: <a href="${raw}" target="_blank" style="color:#38bdf8;">open in new tab</a>`;
+      } else {
+        // Plain text or something else
+        previewImage.style.display = "none";
+        previewImage.src = "";
+        previewLink.textContent = "Scanned data: " + raw;
+      }
+
+      updateStatusAfterScan();
+    }
+
     function scanFrame() {
       if (!scanning) return;
+
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -125,32 +174,29 @@
         });
 
         if (code && code.data) {
-          const raw = code.data.trim().toLowerCase();
-          if (VALID_KEYS.includes(raw)) {
-            if (!vitalsScanned.has(raw)) {
-              vitalsScanned.add(raw);
-              socket.emit("scanVital", { vitalKey: raw });
-              updateStatusAfterScan();
-            } else {
-              statusEl.textContent = "This vital has already been scanned. Scan a different tag.";
-            }
-          } else {
-            statusEl.textContent = "Wrong QR code scanned. Use the tags attached to the mannequin.";
-          }
-          // small pause to avoid multiple reads of same code
+          const raw = code.data.trim();  // ANY QR CONTENT ACCEPTED
+          handleScannedData(raw);
+
+          // Small pause so we don't read the same frame repeatedly
           setTimeout(scanFrame, 800);
           return;
         }
       }
+
       requestAnimationFrame(scanFrame);
     }
 
     scanBtn.onclick = () => {
       if (!scanning) {
-        vitalsScanned.clear();
+        scannedValues.clear();
+        previewImage.style.display = "none";
+        previewImage.src = "";
+        previewLink.textContent = "";
         startCamera();
+        scanBtn.textContent = "Stop scanning";
       } else {
         stopCamera();
+        scanBtn.textContent = "Scan patient tag";
         statusEl.textContent = "Scanning stopped.";
       }
     };
