@@ -614,4 +614,367 @@
       }
 
       async function fetchState() {
-        const
+        const res = await fetch("/api/state");
+        const data = await res.json();
+        scenarios = data.scenarios;
+        state = data.gameState;
+        renderAll();
+      }
+
+      function renderScenarioSelect() {
+        scenarioSelect.innerHTML = "";
+        Object.values(scenarios).forEach((sc) => {
+          const opt = document.createElement("option");
+          opt.value = sc.id;
+          opt.textContent = sc.label;
+          if (sc.id === state.currentScenarioId) opt.selected = true;
+          scenarioSelect.appendChild(opt);
+        });
+      }
+
+      function renderOperatorLine() {
+        const modeLabel =
+          state.operatorMode === "group" ? "Group" : "Solo";
+        operatorLine.textContent = `Operator: ${state.operatorName} (${modeLabel})`;
+      }
+
+      function renderBodyGrid() {
+        const scenario = scenarios[state.currentScenarioId];
+        bodyGrid.innerHTML = "";
+
+        const order = ["head", "chest", "abdomen", "arms", "legs"];
+        const badgeColors = {
+          head: "#38bdf8",
+          chest: "#22c55e",
+          abdomen: "#f97316",
+          arms: "#a855f7",
+          legs: "#facc15",
+        };
+
+        order.forEach((part) => {
+          const rowLabel = document.createElement("div");
+          rowLabel.className = "body-label";
+          rowLabel.textContent = scenario.bodyParts[part].label;
+
+          const slot = document.createElement("div");
+          slot.className = "body-slot";
+
+          const scan = state.scans[part];
+          if (scan && scan.imageUrl) {
+            const img = document.createElement("img");
+            img.src = scan.imageUrl;
+            img.alt = scenario.bodyParts[part].label;
+            slot.appendChild(img);
+          } else {
+            const ph = document.createElement("div");
+            ph.className = "slot-placeholder";
+            ph.textContent = `Scan tag for ${scenario.bodyParts[part].label.toLowerCase()}`;
+            slot.appendChild(ph);
+          }
+
+          const info = document.createElement("div");
+          info.className = "drone-text";
+          const dot = document.createElement("span");
+          dot.className = "drone-badge";
+          dot.style.background = badgeColors[part];
+          info.appendChild(dot);
+          info.append(
+            scenario.bodyParts[part].droneText
+          );
+
+          bodyGrid.appendChild(rowLabel);
+          bodyGrid.appendChild(slot);
+          bodyGrid.appendChild(info);
+        });
+      }
+
+      function renderVitals() {
+        const scenario = scenarios[state.currentScenarioId];
+        const order = ["head", "chest", "abdomen", "arms", "legs"];
+
+        vitalsList.innerHTML = "";
+        vitalsRight.innerHTML = "";
+
+        order.forEach((part) => {
+          const cfg = scenario.bodyParts[part];
+
+          // big two-column vitals
+          const label = document.createElement("div");
+          label.className = "vital-label";
+          label.textContent = cfg.vitalLabel;
+
+          const value = document.createElement("div");
+          value.className = "vital-value";
+          value.textContent = cfg.vitalValue;
+
+          vitalsList.appendChild(label);
+          vitalsList.appendChild(value);
+
+          // compact right-side list
+          const rowR = document.createElement("div");
+          rowR.style.display = "flex";
+          rowR.style.justifyContent = "space-between";
+          rowR.style.fontSize = "13px";
+          rowR.style.marginBottom = "4px";
+
+          const leftR = document.createElement("div");
+          leftR.textContent = cfg.vitalLabel;
+
+          const rightR = document.createElement("div");
+          rightR.textContent = cfg.vitalValue;
+
+          rowR.appendChild(leftR);
+          rowR.appendChild(rightR);
+          vitalsRight.appendChild(rowR);
+        });
+      }
+
+      function renderTimer() {
+        if (!state.timerStartedAt) {
+          timerValue.textContent = "--";
+          return;
+        }
+        const start = state.timerStartedAt;
+        const end = state.timerStoppedAt || Date.now();
+        const seconds = (end - start) / 1000;
+        timerValue.textContent = seconds.toFixed(2);
+      }
+
+      function renderHospitalsAndTests() {
+        const scenario = scenarios[state.currentScenarioId];
+        hospitalList.innerHTML = "";
+        testsList.innerHTML = "";
+
+        const hospitals = [
+          {
+            id: "mina",
+            label: "Mina Emergency Hospital",
+            subtitle: "Closest high-priority emergency facility",
+          },
+          {
+            id: "kfmc",
+            label: "King Fahad Medical City — Level 1 Trauma Centre",
+            subtitle: "Advanced trauma, burns and intensive care",
+          },
+          {
+            id: "alula",
+            label: "AlUla Field Medical Base — Desert Response",
+            subtitle: "Heat illness, dehydration and trauma",
+          },
+          {
+            id: "dhahran",
+            label: "Dhahran Trauma Center — Highway Critical Care",
+            subtitle: "Major collisions and polytrauma",
+          },
+        ];
+
+        hospitals.forEach((h) => {
+          const card = document.createElement("div");
+          card.className = "hospital-card";
+          card.dataset.hospitalId = h.id;
+          card.innerHTML = `<strong>${h.label}</strong><br /><small>${h.subtitle}</small>`;
+          card.addEventListener("click", () => {
+            document
+              .querySelectorAll(".hospital-card")
+              .forEach((c) => c.classList.remove("selected"));
+            card.classList.add("selected");
+          });
+          hospitalList.appendChild(card);
+        });
+
+        const tests = [
+          { id: "fast", label: "FAST ultrasound" },
+          { id: "co", label: "Carboxyhaemoglobin level (CO)" },
+          { id: "xray", label: "Plain X-ray" },
+          { id: "mri", label: "MRI scan" },
+          { id: "ct", label: "CT scan" },
+          { id: "iv", label: "Intravenous (IV) fluids" },
+          { id: "crossmatch", label: "Blood typing and crossmatch" },
+          { id: "lactate", label: "Serum lactate" },
+          { id: "burn", label: "Burn depth assessment" },
+        ];
+
+        tests.forEach((t) => {
+          const label = document.createElement("label");
+          const chk = document.createElement("input");
+          chk.type = "checkbox";
+          chk.value = t.id;
+          label.appendChild(chk);
+          label.append(" " + t.label);
+          testsList.appendChild(label);
+        });
+      }
+
+      function renderLeaderboard(lb) {
+        leaderboardTable.innerHTML = "";
+        lb.forEach((row, idx) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${row.name}</td>
+            <td>${row.scenario}</td>
+            <td>${row.score}</td>
+            <td>${row.time != null ? row.time.toFixed(2) : "--"}</td>
+          `;
+          leaderboardTable.appendChild(tr);
+        });
+      }
+
+      function renderAll() {
+        if (!state || !scenarios) return;
+        renderScenarioSelect();
+        renderOperatorLine();
+        renderBodyGrid();
+        renderVitals();
+        renderTimer();
+        renderHospitalsAndTests();
+        renderLeaderboard(state.leaderboard);
+
+        if (!timerInterval) {
+          timerInterval = setInterval(renderTimer, 200);
+        }
+      }
+
+      // Handlers
+
+      scenarioSelect.addEventListener("change", async () => {
+        const scenarioId = scenarioSelect.value;
+        await fetch("/api/scenario", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scenarioId }),
+        });
+        await fetchState();
+        showToast("Scenario changed.");
+      });
+
+      triageCircles.forEach((circle) => {
+        circle.addEventListener("click", () => {
+          triageCircles.forEach((c) => c.classList.remove("selected"));
+          circle.classList.add("selected");
+          circle.querySelector("input").checked = true;
+        });
+      });
+
+      async function handleSubmitDecision() {
+        if (!state) return;
+        const triageInput = document.querySelector(
+          'input[name="triage"]:checked'
+        );
+        if (!triageInput) {
+          showToast("Choose a triage category first.");
+          return;
+        }
+        const triage = triageInput.value;
+
+        const selectedHospitalCard =
+          document.querySelector(".hospital-card.selected");
+        if (!selectedHospitalCard) {
+          showToast("Choose a receiving hospital.");
+          return;
+        }
+        const hospital = selectedHospitalCard.dataset.hospitalId;
+
+        const tests = Array.from(
+          testsList.querySelectorAll("input[type=checkbox]:checked")
+        ).map((c) => c.value);
+
+        const elapsed =
+          state.timerStartedAt && state.timerStoppedAt
+            ? (state.timerStoppedAt - state.timerStartedAt) / 1000
+            : state.timerStartedAt
+            ? (Date.now() - state.timerStartedAt) / 1000
+            : null;
+
+        const res = await fetch("/api/decision", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            triage,
+            hospital,
+            tests,
+            elapsedSeconds: elapsed,
+          }),
+        });
+        const data = await res.json();
+        if (!data.ok) return;
+
+        state.lastResult = data.result;
+        state.leaderboard = data.leaderboard;
+        renderLeaderboard(state.leaderboard);
+        renderDecisionResult(data.result);
+        showToast("Decision submitted.");
+      }
+
+      function renderDecisionResult(result) {
+        resultsSection.style.display = "block";
+        const scenario = scenarios[result.scenarioId];
+
+        resultsBody.innerHTML = "";
+
+        const rows = [
+          {
+            label: "Triage",
+            human: result.triage.toUpperCase(),
+            ai: scenario.ai.triage.toUpperCase(),
+            match: result.details.triageCorrect,
+          },
+          {
+            label: "Hospital",
+            human: result.hospital,
+            ai: scenario.ai.hospital,
+            match: result.details.hospitalCorrect,
+          },
+          {
+            label: "ER tests",
+            human: result.tests.join(", ") || "None selected",
+            ai: scenario.ai.tests.join(", "),
+            match: result.details.testsCorrect,
+          },
+          {
+            label: "Time",
+            human:
+              result.humanTime != null
+                ? result.humanTime.toFixed(2) + " s"
+                : "--",
+            ai: result.aiTime.toFixed(2) + " s",
+            match: result.details.fasterThanAI,
+          },
+        ];
+
+        rows.forEach((r) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${r.label}</td>
+            <td>${r.human}</td>
+            <td>${r.ai}</td>
+            <td class="match">${
+              r.match ? '<span class="check">✔</span>' : '<span class="cross">✘</span>'
+            }</td>
+          `;
+          resultsBody.appendChild(tr);
+        });
+
+        scoreSummary.textContent = `Total score: ${result.score} / 12 points`;
+      }
+
+      resetSimBtn.addEventListener("click", async () => {
+        await fetch("/api/reset", { method: "POST" });
+        await fetchState();
+        showToast("Simulation reset.");
+      });
+
+      resetLbBtn.addEventListener("click", async () => {
+        await fetch("/api/reset-leaderboard", { method: "POST" });
+        await fetchState();
+        showToast("Leaderboard cleared.");
+      });
+
+      submitDecisionBtn.addEventListener("click", handleSubmitDecision);
+
+      // poll state regularly so big screen stays in sync
+      setInterval(fetchState, 2500);
+      fetchState();
+    </script>
+  </body>
+</html>
