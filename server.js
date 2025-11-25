@@ -1,40 +1,49 @@
 // server.js
-// Simple Express + Socket.IO relay for the AI Triage Drone booth.
-
+const path = require("path");
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
+// Serve static files from /Public
+app.use(express.static(path.join(__dirname, "Public")));
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, "Public")));
-
+// Simple broadcast relays – no complex rooms (1 screen + 1 mobile in booth)
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
-  // Operator joins from mobile (name + mode)
-  socket.on("operator-joined", (payload) => {
-    io.emit("operator-joined", payload); // broadcast to all, including big screen
+  // Operator joined (from mobile)
+  socket.on("operatorInfo", (payload) => {
+    io.emit("operatorInfo", payload);
   });
 
-  // QR scanned on mobile
-  socket.on("qr-scanned", (payload) => {
-    io.emit("qr-scanned", payload); // { url }
+  // QR scan result (from mobile)
+  socket.on("scanVital", (payload) => {
+    io.emit("scanVital", payload);
   });
 
-  // Human triage decision submitted on big screen (for leaderboard)
-  socket.on("triage-submitted", (payload) => {
-    io.emit("triage-submitted", payload);
+  // Human triage decision (from big screen)
+  socket.on("triageDecision", (payload) => {
+    io.emit("triageDecision", payload);
   });
 
-  // Reset leaderboard if needed
-  socket.on("reset-leaderboard", () => {
-    io.emit("reset-leaderboard");
+  // Reset simulation (from big screen)
+  socket.on("resetSimulation", () => {
+    io.emit("resetSimulation");
+  });
+
+  // Reset leaderboard (from big screen)
+  socket.on("resetLeaderboard", () => {
+    io.emit("resetLeaderboard");
   });
 
   socket.on("disconnect", () => {
@@ -43,5 +52,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log("Server running on port", PORT);
 });
