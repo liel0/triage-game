@@ -2,580 +2,376 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI Triage Drone 2040 — Mobile Scanner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Triage Drone 2040 – Mobile Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     :root {
-      --bg: #050816;
-      --card: #0b1020;
-      --accent: #38bdf8;
-      --accent-soft: rgba(56, 189, 248, 0.12);
-      --danger: #f97373;
-      --success: #4ade80;
+      --bg: #020617;
+      --card: #020b1f;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.15);
       --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
-      --border-subtle: #1f2937;
-      --radius-xl: 18px;
-      --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.6);
+      --text-soft: #9ca3af;
+      --border-subtle: #111827;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Segoe UI", sans-serif;
     }
 
     body {
-      min-height: 100vh;
-      background: radial-gradient(circle at top, #020617 0, #020617 40%, #000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #020617 0, #000 70%);
       color: var(--text-main);
+      min-height: 100vh;
       display: flex;
       align-items: stretch;
       justify-content: center;
-      padding: 16px;
+      padding: 12px;
     }
 
-    .app {
+    .shell {
       width: 100%;
-      max-width: 520px;
-      margin: auto;
+      max-width: 480px;
+      background: radial-gradient(circle at top left, #020b1f 0, #020617 60%, #000 100%);
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 14px 16px 18px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .card {
-      background: linear-gradient(135deg, #020617, #020617);
-      border-radius: 22px;
-      padding: 20px 18px 18px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.12);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: -80%;
-      background: radial-gradient(circle at top right,
-        rgba(56, 189, 248, 0.09),
-        transparent 55%);
-      opacity: 0.9;
-      pointer-events: none;
-    }
-
-    .card-inner {
-      position: relative;
-      z-index: 1;
-    }
-
-    .title-row {
+    header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
-    }
-
-    .title-main {
-      display: flex;
-      align-items: center;
       gap: 10px;
     }
 
-    .drone-badge {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 0, #38bdf8, #0ea5e9);
+    header h1 {
+      font-size: 16px;
+      font-weight: 600;
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 16px;
-      box-shadow: 0 0 22px rgba(56, 189, 248, 0.7);
-    }
-
-    .title-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .title-text h1 {
-      font-size: 18px;
-      font-weight: 650;
-      letter-spacing: 0.02em;
-    }
-
-    .title-text span {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .pill {
-      font-size: 11px;
-      padding: 3px 9px;
-      border-radius: 999px;
-      background: rgba(56, 189, 248, 0.12);
-      color: #e0f2fe;
-      border: 1px solid rgba(56, 189, 248, 0.4);
-    }
-
-    .section-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: var(--text-muted);
-      margin-top: 4px;
-      margin-bottom: 6px;
-    }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-
-    label {
-      font-size: 13px;
-      color: var(--text-main);
-    }
-
-    input, select {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 11px;
-      border: 1px solid var(--border-subtle);
-      background: rgba(15, 23, 42, 0.85);
-      color: var(--text-main);
-      font-size: 13px;
-      outline: none;
-    }
-
-    input::placeholder {
-      color: rgba(148, 163, 184, 0.7);
-    }
-
-    input:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
-      background: rgba(15, 23, 42, 0.95);
-    }
-
-    .inline-fields {
-      display: flex;
       gap: 8px;
     }
 
-    .inline-fields > .field-group {
-      flex: 1;
-      margin-bottom: 0;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 8px;
-      margin-bottom: 10px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 9px 10px;
+    header h1 span.icon {
+      background: linear-gradient(135deg, #22c55e, #0ea5e9);
+      width: 28px;
+      height: 28px;
       border-radius: 999px;
-      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #020617;
+    }
+
+    header p {
+      font-size: 11px;
+      color: var(--text-soft);
+      text-align: right;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 16px;
+      padding: 10px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .card h2 {
       font-size: 13px;
       font-weight: 600;
-      letter-spacing: 0.02em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-soft);
       text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .card h2 i {
+      color: var(--accent);
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      border-radius: 999px;
+      padding: 7px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: #020617;
+      color: var(--text-main);
+      font-size: 13px;
+    }
+
+    .mode-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .mode-pill {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      padding: 6px 0;
+      cursor: pointer;
+      color: var(--text-soft);
+    }
+
+    .mode-pill.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .primary-btn {
+      margin-top: 8px;
+      width: 100%;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #22c55e, #0ea5e9);
+      color: #020617;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
     }
 
-    .btn-primary {
-      background: radial-gradient(circle at top left, #38bdf8, #0ea5e9);
-      color: #0b1020;
-      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.45);
-    }
-
-    .btn-primary:active {
-      transform: translateY(1px) scale(0.99);
-      box-shadow: 0 5px 14px rgba(56, 189, 248, 0.3);
-    }
-
-    .btn-secondary {
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-main);
-      border: 1px solid rgba(148, 163, 184, 0.6);
-    }
-
-    .btn-secondary:active {
-      transform: translateY(1px) scale(0.99);
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.8);
-    }
-
-    .btn:disabled {
-      opacity: 0.55;
+    .primary-btn:disabled {
+      opacity: 0.6;
       cursor: default;
-      box-shadow: none;
-      transform: none;
     }
 
-    .status-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 9px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #64748b;
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
-    }
-
-    .status-dot.live {
-      background: #22c55e;
-      box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
-    }
-
-    .status-chip strong {
-      color: #e5e7eb;
-    }
-
-    .scan-panel {
-      border-radius: 16px;
-      border: 1px dashed rgba(148, 163, 184, 0.4);
-      background: radial-gradient(circle at top left,
-        rgba(56, 189, 248, 0.09),
-        transparent 55%);
-      padding: 10px;
-      margin-bottom: 8px;
-    }
-
-    .scan-panel h2 {
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .scan-panel p {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .preview-shell {
-      margin-top: 10px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: rgba(15, 23, 42, 0.96);
-      border: 1px solid rgba(30, 64, 175, 0.7);
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
-      position: relative;
-    }
-
-    video {
-      width: 100%;
-      display: none;
-      background: #000;
-    }
-
-    .preview-overlay {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      border: 2px dashed rgba(248, 250, 252, 0.2);
-      pointer-events: none;
-    }
-
-    .preview-overlay::before {
-      content: "Align the QR code inside the frame";
-      position: absolute;
-      left: 50%;
-      bottom: 10px;
-      transform: translateX(-50%);
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.82);
-      color: rgba(248, 250, 252, 0.88);
-      font-size: 11px;
-    }
-
-    .message {
-      font-size: 12px;
+    .status-line {
       margin-top: 6px;
-      color: var(--text-muted);
+      font-size: 11px;
+      color: var(--text-soft);
     }
 
-    .message.error {
-      color: var(--danger);
+    .status-line span {
+      color: var(--accent);
     }
 
-    .message.success {
-      color: var(--success);
+    .scanner-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #qr-reader {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .hint-text {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    .hint-text strong {
+      color: var(--accent);
     }
 
     footer {
-      margin-top: 10px;
       font-size: 10px;
-      color: var(--text-muted);
+      color: var(--text-soft);
       text-align: center;
+      margin-top: 2px;
     }
   </style>
 </head>
 <body>
-  <div class="app">
+  <div class="shell">
+    <header>
+      <div>
+        <h1>
+          <span class="icon"><i class="fa-solid fa-qrcode"></i></span>
+          Drone Operator
+        </h1>
+        <p>Use this phone as the <strong>AI triage drone</strong>. Scan only the tags on the mannequin.</p>
+      </div>
+      <div style="font-size:11px;color:var(--accent);text-align:right;">
+        Connected to<br /><span id="connectionLabel">main screen…</span>
+      </div>
+    </header>
+
+    <!-- Operator info -->
     <div class="card">
-      <div class="card-inner">
-        <div class="title-row">
-          <div class="title-main">
-            <div class="drone-badge">🚁</div>
-            <div class="title-text">
-              <h1>AI Triage Drone 2040</h1>
-              <span>Mobile drone operator console</span>
-            </div>
-          </div>
-          <span class="pill">Scanner linked to main screen</span>
+      <h2><i class="fa-solid fa-user"></i>Operator details</h2>
+      <label for="nameInput">Name or team</label>
+      <input id="nameInput" type="text" placeholder="Example: Riyadh EMS Team" />
+
+      <div class="mode-row">
+        <div class="mode-pill active" data-mode="Solo">
+          <i class="fa-solid fa-user"></i> Solo
         </div>
-
-        <div class="section-label">Operator</div>
-        <form id="sessionForm">
-          <div class="field-group">
-            <label for="operatorName">Name / Team name</label>
-            <input id="operatorName" name="operatorName"
-                   placeholder="e.g. Team A, Trauma Squad, Sara" required />
-          </div>
-
-          <div class="inline-fields">
-            <div class="field-group">
-              <label for="mode">Play mode</label>
-              <select id="mode" name="mode">
-                <option value="solo">Solo</option>
-                <option value="group">Group</option>
-              </select>
-            </div>
-            <div class="field-group">
-              <label for="patientId">Patient label (optional)</label>
-              <input id="patientId" name="patientId"
-                     placeholder="e.g. Patient 1" />
-            </div>
-          </div>
-
-          <div class="btn-row">
-            <button type="submit" class="btn btn-primary" id="startSessionBtn">
-              <span>Start session</span> <span>•</span>
-            </button>
-            <button type="button" class="btn btn-secondary" id="scanBtn" disabled>
-              📷 Start scanning
-            </button>
-          </div>
-        </form>
-
-        <div class="status-chip" id="statusChip">
-          <span class="status-dot" id="statusDot"></span>
-          <span id="statusText"><strong>Offline</strong> — connect to the main screen first</span>
+        <div class="mode-pill" data-mode="Group">
+          <i class="fa-solid fa-users"></i> Group
         </div>
+      </div>
 
-        <div class="scan-panel">
-          <h2>Scan mannequin tags</h2>
-          <p>
-            Use this phone as the drone. Each QR code on the mannequin contains
-            a visual clue. Scan one tag at a time and look up at the big screen
-            to see the patient body map update.
-          </p>
+      <button id="startSessionBtn" class="primary-btn">
+        <i class="fa-solid fa-plug-circle-bolt"></i> Connect &amp; start scanning
+      </button>
 
-          <div class="preview-shell" id="previewShell" style="display:none;">
-            <video id="video" playsinline></video>
-            <div class="preview-overlay"></div>
-          </div>
-
-          <p class="message" id="message">
-            Session not started yet.
-          </p>
-        </div>
-
-        <footer>
-          Your camera feed stays on this device. Only the QR content is sent
-          securely to the main triage screen.
-        </footer>
+      <div class="status-line">
+        Status: <span id="statusText">Not connected yet.</span>
       </div>
     </div>
+
+    <!-- Scanner -->
+    <div class="card scanner-card">
+      <h2><i class="fa-solid fa-qrcode"></i>Scan patient tags</h2>
+      <div id="qr-reader" style="display:none;"></div>
+      <button id="startScanBtn" class="primary-btn" disabled>
+        <i class="fa-solid fa-camera"></i> Start QR camera
+      </button>
+      <div class="hint-text">
+        Scan the tags on: <strong>head, chest, abdomen, arms, legs / ID</strong>.  
+        Each tag loads a different drone view and vital on the big screen.
+      </div>
+    </div>
+
+    <footer>
+      If camera does not open, check browser permissions for camera access.
+    </footer>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
   <script>
-    // --- Socket.IO connection (same origin, WebSocket only) ---
-    const socket = io({
-      transports: ["websocket"],
-      upgrade: false
-    });
+    const socket = io();
 
-    const sessionForm = document.getElementById("sessionForm");
-    const operatorNameInput = document.getElementById("operatorName");
-    const modeSelect = document.getElementById("mode");
-    const patientIdInput = document.getElementById("patientId");
+    const nameInput = document.getElementById("nameInput");
+    const modePills = document.querySelectorAll(".mode-pill");
     const startSessionBtn = document.getElementById("startSessionBtn");
-    const scanBtn = document.getElementById("scanBtn");
-    const statusChip = document.getElementById("statusChip");
-    const statusDot = document.getElementById("statusDot");
+    const startScanBtn = document.getElementById("startScanBtn");
     const statusText = document.getElementById("statusText");
-    const messageEl = document.getElementById("message");
-    const previewShell = document.getElementById("previewShell");
-    const video = document.getElementById("video");
+    const connectionLabel = document.getElementById("connectionLabel");
+    const qrReaderContainer = document.getElementById("qr-reader");
 
-    let scanning = false;
-    let videoStream = null;
-    let animationFrameId = null;
-    let operatorSession = null; // store name/mode/patient
+    let currentMode = "Solo";
+    let sessionStarted = false;
+    let scanner = null;
 
-    function setStatus(live, text) {
-      if (live) {
-        statusDot.classList.add("live");
-      } else {
-        statusDot.classList.remove("live");
-      }
-      statusText.innerHTML = text;
-    }
-
-    function setMessage(text, type = "normal") {
-      messageEl.textContent = text;
-      messageEl.classList.remove("error", "success");
-      if (type === "error") messageEl.classList.add("error");
-      if (type === "success") messageEl.classList.add("success");
-    }
-
-    // --- Session registration ---
-    sessionForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const name = operatorNameInput.value.trim();
-      if (!name) {
-        setMessage("Please enter your name or team name.", "error");
-        return;
-      }
-      const mode = modeSelect.value;
-      const patientLabel = patientIdInput.value.trim() || null;
-
-      operatorSession = { name, mode, patientLabel };
-
-      socket.emit("register-operator", operatorSession);
-
-      setStatus(true, `<strong>Linked</strong> — operator: ${name} (${mode})`);
-      setMessage("Session started. You can now start scanning tags.", "success");
-      scanBtn.disabled = false;
+    modePills.forEach((pill) => {
+      pill.addEventListener("click", () => {
+        modePills.forEach((p) => p.classList.remove("active"));
+        pill.classList.add("active");
+        currentMode = pill.dataset.mode || "Solo";
+      });
     });
 
-    // --- QR scanning logic ---
-    scanBtn.addEventListener("click", async () => {
-      if (!operatorSession) {
-        setMessage("Start the session first.", "error");
-        return;
-      }
-
-      if (scanning) {
-        // Stop scanning if already active
-        stopScanning("Scanning stopped. Tap again to rescan.");
-        return;
-      }
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" }
-        });
-
-        videoStream = stream;
-        video.srcObject = stream;
-        await video.play();
-
-        previewShell.style.display = "block";
-        video.style.display = "block";
-        scanning = true;
-        setMessage("Point the camera at a QR tag on the mannequin…");
-
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d", { willReadFrequently: true });
-
-        const scanFrame = () => {
-          if (!scanning) return;
-
-          if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, canvas.width, canvas.height, {
-              inversionAttempts: "dontInvert"
-            });
-
-            if (code && code.data) {
-              // Successfully decoded QR
-              const qrContent = code.data.trim();
-              stopScanning();
-
-              setMessage("Tag scanned and sent to the main screen.", "success");
-
-              // Send to server – main screen decides body part + scenario
-              socket.emit("qr-scanned", {
-                qrContent,
-                operator: operatorSession
-              });
-
-              return; // stop the animation loop
-            }
-          }
-
-          animationFrameId = requestAnimationFrame(scanFrame);
-        };
-
-        scanFrame();
-
-      } catch (err) {
-        console.error("Camera error:", err);
-        setMessage("Camera access failed. Please allow camera permission.", "error");
-      }
-    });
-
-    function stopScanning(infoMessage) {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-      }
-      if (videoStream) {
-        videoStream.getTracks().forEach((t) => t.stop());
-        videoStream = null;
-      }
-      video.pause();
-      video.srcObject = null;
-      video.style.display = "none";
-      previewShell.style.display = "none";
-      scanning = false;
-      if (infoMessage) setMessage(infoMessage);
-    }
-
-    // When the socket connects / disconnects
     socket.on("connect", () => {
-      setStatus(false, "<strong>Connected</strong> — start a session to link with the main screen.");
+      connectionLabel.textContent = "main screen ready";
     });
 
     socket.on("disconnect", () => {
-      stopScanning();
-      scanBtn.disabled = true;
-      operatorSession = null;
-      setStatus(false, "<strong>Offline</strong> — connection lost. Check internet or server.");
-      setMessage("Disconnected from server.", "error");
+      connectionLabel.textContent = "disconnected";
+      statusText.textContent = "Lost connection. Try refreshing the page.";
     });
+
+    startSessionBtn.addEventListener("click", () => {
+      const name = nameInput.value.trim() || "Visitor";
+      const payload = { name, mode: currentMode };
+      socket.emit("operatorInfo", payload);
+      sessionStarted = true;
+      statusText.textContent = `Connected as ${name} (${currentMode}). You can start scanning.`;
+      startScanBtn.disabled = false;
+    });
+
+    startScanBtn.addEventListener("click", () => {
+      if (!sessionStarted) {
+        statusText.textContent = "Connect first, then start scanning.";
+        return;
+      }
+      startScanBtn.style.display = "none";
+      qrReaderContainer.style.display = "block";
+      initScanner();
+    });
+
+    function parseQr(decodedText) {
+      // We accept full URLs or just filenames.
+      let pathname = decodedText;
+      try {
+        const url = new URL(decodedText);
+        pathname = url.pathname;
+      } catch (e) {
+        // not a full URL, that's fine
+      }
+      const fileName = pathname.split("/").pop() || "";
+      const m = fileName.match(/s([1-4])_(head|chest|abdomen|arms|legs)\.(jpg|jpeg|png)$/i);
+      if (!m) return null;
+      return {
+        scenarioId: "s" + m[1],
+        bodyPart: m[2].toLowerCase(),
+        imageUrl: decodedText,
+      };
+    }
+
+    function initScanner() {
+      const html5QrcodeScanner = new Html5Qrcode("qr-reader");
+
+      function onScanSuccess(decodedText) {
+        const parsed = parseQr(decodedText);
+        if (!parsed) {
+          statusText.textContent =
+            "Tag scanned but format not recognised. Confirm image name like s1_head.jpg.";
+          return;
+        }
+        socket.emit("scanVital", parsed);
+        statusText.textContent =
+          "Tag accepted: " +
+          parsed.scenarioId.toUpperCase() +
+          " " +
+          parsed.bodyPart +
+          ". Check the big screen.";
+      }
+
+      function onScanFailure(error) {
+        // ignore continuous errors, we only care about successes
+      }
+
+      html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 8,
+          qrbox: { width: 240, height: 240 },
+        },
+        onScanSuccess,
+        onScanFailure
+      );
+      scanner = html5QrcodeScanner;
+    }
   </script>
 </body>
 </html>
