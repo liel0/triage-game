@@ -1,71 +1,32 @@
 // server.js
 const express = require("express");
 const http = require("http");
-const path = require("path");
 const { Server } = require("socket.io");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// serve everything in Public/
 app.use(express.static(path.join(__dirname, "Public")));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "Public", "index.html"));
-});
-
-app.get("/mobile.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "Public", "mobile.html"));
-});
-
-// Simple in-memory leaderboard
-let leaderboard = [];
-const MAX_LEADERBOARD = 20;
 
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
-  // Send current leaderboard to new client
-  socket.emit("leaderboardUpdate", leaderboard);
-
-  // 🔹 Every QR scan from any phone arrives here
-  socket.on("scanVital", (payload = {}) => {
-    const { qrData = null } = payload;
-
-    // Broadcast a generic "tag scanned" event to all big screens.
-    // We NO LONGER check what the QR value is.
-    io.emit("tagScanned", {
-      qrData,
-      at: Date.now(),
-    });
+  // Visitor name + mode from mobile
+  socket.on("operatorInfo", (info) => {
+    io.emit("operatorInfo", info); // broadcast to all screens
   });
 
-  // Start simulation (e.g. new team, new scenario)
-  socket.on("startSimulation", (data) => {
-    io.emit("startSimulation", data);
+  // QR scan from mobile
+  socket.on("scan", (payload) => {
+    io.emit("scan", payload); // forward to big screen
   });
 
-  // Human decision submitted from big screen
-  socket.on("submitDecision", (result) => {
-    // result should contain: { teamName, scenarioId, score, timeSeconds, ... }
-
-    leaderboard.push(result);
-    leaderboard.sort((a, b) => {
-      // Higher score first
-      if (b.score !== a.score) return b.score - a.score;
-      // If same score, faster time first
-      return a.timeSeconds - b.timeSeconds;
-    });
-    leaderboard = leaderboard.slice(0, MAX_LEADERBOARD);
-
-    io.emit("leaderboardUpdate", leaderboard);
-    io.emit("decisionResult", result);
-  });
-
-  // Reset leaderboard from admin button
-  socket.on("resetLeaderboard", () => {
-    leaderboard = [];
-    io.emit("leaderboardUpdate", leaderboard);
+  // Optional: score events can be broadcast here if you build a global leaderboard
+  socket.on("submitScore", (score) => {
+    io.emit("submitScore", score);
   });
 
   socket.on("disconnect", () => {
@@ -75,5 +36,5 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Triage game server listening on port ${PORT}`);
+  console.log("Server listening on port", PORT);
 });
