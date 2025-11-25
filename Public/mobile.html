@@ -1,209 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>AI Triage Drone 2040 – Mobile Scanner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      margin: 0;
-      padding: 16px;
-      text-align: center;
-    }
-    h1 { font-size: 1.4rem; margin-bottom: 4px; }
-    .small { font-size: 0.85rem; color: #9ca3af; }
+<meta charset="UTF-8" />
+<title>Drone Scanner – Mobile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    #scanBtn {
-      margin-top: 16px;
-      padding: 12px 20px;
-      border-radius: 999px;
-      border: none;
-      background: #22c55e;
-      color: #020617;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      width: 100%;
-      max-width: 320px;
-    }
+<style>
+body {
+  background: #020617;
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 16px;
+}
+h1 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+label {
+  font-size: 14px;
+}
+input, select, button {
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+button {
+  background: #16a34a;
+  border: none;
+  font-weight: 600;
+}
+button:active {
+  transform: scale(0.98);
+}
+#status {
+  margin-top: 10px;
+  font-size: 14px;
+}
+#reader {
+  margin-top: 14px;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: auto;
+}
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #1f2937;
+  border-radius: 999px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+</style>
 
-    #video {
-      margin-top: 16px;
-      width: 100%;
-      max-width: 340px;
-      border-radius: 16px;
-      border: 2px solid #4b5563;
-      background: #000;
-    }
-
-    #status {
-      margin-top: 10px;
-      font-size: 0.95rem;
-    }
-
-    #previewImage {
-      margin-top: 12px;
-      max-width: 340px;
-      width: 100%;
-      border-radius: 14px;
-      border: 1px solid #4b5563;
-      display: none;
-    }
-    #previewLink {
-      margin-top: 4px;
-    }
-  </style>
+<!-- html5-qrcode -->
+<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+<!-- socket.io -->
+<script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-  <h1>🚁 AI Triage Drone 2040 – Scanner</h1>
-  <p class="small">
-    Tap “Scan patient tag”, point the camera at a QR code on the mannequin,
-    and keep scanning until your screen says that all vitals are uploaded.
-    All medical details appear on the big screen.
-  </p>
 
-  <button id="scanBtn">Scan patient tag</button>
-  <video id="video" playsinline></video>
-  <canvas id="canvas" style="display:none;"></canvas>
+<h1>📱 Drone Scanner</h1>
+<div class="badge">Step 1 — Enter name & mode</div>
 
-  <img id="previewImage" alt="Scanned image preview" />
-  <div id="previewLink" class="small"></div>
+<label for="nameInput">Visitor or team name</label>
+<input id="nameInput" type="text" placeholder="e.g. Trauma Team A" />
 
-  <div id="status" class="small">Waiting to start.</div>
+<label for="modeSelect">Mode</label>
+<select id="modeSelect">
+  <option value="Solo">Solo</option>
+  <option value="Group">Group</option>
+</select>
 
-  <script>
-    const socket = io();
+<button id="startBtn">Start scanning</button>
 
-    const scanBtn = document.getElementById("scanBtn");
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const statusEl = document.getElementById("status");
-    const previewImage = document.getElementById("previewImage");
-    const previewLink = document.getElementById("previewLink");
-    const ctx = canvas.getContext("2d");
+<div id="status">Scanner not started yet.</div>
 
-    let scanning = false;
-    let stream = null;
-    let scannedValues = new Set();   // stores EVERY QR content we used
+<div id="reader"></div>
 
-    function updateStatusAfterScan() {
-      const count = scannedValues.size;
-      const phrases = [
-        "Vital 1 scanned — continue.",
-        "Vital 2 scanned — keep going.",
-        "Vital 3 scanned — almost done.",
-        "Vital 4 scanned — one more left!",
-        "All vitals scanned — look up at the big screen!"
-      ];
-      statusEl.textContent =
-        phrases[Math.min(count - 1, phrases.length - 1)];
-    }
+<script>
+const socket = io();
 
-    async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-          audio: false
-        });
-        video.srcObject = stream;
-        await video.play();
-        scanning = true;
-        statusEl.textContent =
-          "Point your camera at a QR tag on the mannequin.";
-        scanFrame();
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent =
-          "Camera access denied. Allow camera permissions in your browser.";
-      }
-    }
+let operatorName = "";
+let operatorMode = "Solo";
+let scanner = null;
 
-    function stopCamera() {
-      scanning = false;
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
-        stream = null;
-      }
-    }
+function sendOperatorInfo() {
+  socket.emit("operatorInfo", {
+    name: operatorName,
+    mode: operatorMode
+  });
+}
 
-    function handleScannedData(raw) {
-      // Avoid double-counting exactly the same QR repeatedly
-      if (scannedValues.has(raw)) {
-        statusEl.textContent =
-          "This tag was already scanned. Try another tag on the mannequin.";
-        return;
-      }
+document.getElementById("startBtn").addEventListener("click", () => {
+  operatorName = document.getElementById("nameInput").value.trim() || "Visitor";
+  operatorMode = document.getElementById("modeSelect").value || "Solo";
 
-      scannedValues.add(raw);
+  sendOperatorInfo();
 
-      // 1) Send to main screen (ALWAYS)
-      socket.emit("scanVital", { qrData: raw });
+  document.getElementById("status").textContent =
+    `Scanner ready. Operator: ${operatorName} (${operatorMode}). Point camera at a QR tag.`;
 
-      // 2) Show what is inside the QR on the phone
-      if (/^https?:\/\//i.test(raw)) {
-        // Looks like a URL → we assume it's an image URL for your case
-        previewImage.style.display = "block";
-        previewImage.src = raw;
-        previewLink.innerHTML =
-          `Image URL: <a href="${raw}" target="_blank" style="color:#38bdf8;">open in new tab</a>`;
-      } else {
-        // Plain text or something else
-        previewImage.style.display = "none";
-        previewImage.src = "";
-        previewLink.textContent = "Scanned data: " + raw;
-      }
+  if (scanner) return; // already running
 
-      updateStatusAfterScan();
-    }
+  scanner = new Html5Qrcode("reader");
 
-    function scanFrame() {
-      if (!scanning) return;
+  const config = {
+    fps: 10,
+    qrbox: { width: 260, height: 260 }
+  };
 
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: "dontInvert"
-        });
+  scanner.start(
+    { facingMode: "environment" },
+    config,
+    onScanSuccess,
+    onScanFailure
+  );
+});
 
-        if (code && code.data) {
-          const raw = code.data.trim();  // ANY QR CONTENT ACCEPTED
-          handleScannedData(raw);
+function onScanSuccess(decodedText, decodedResult) {
+  // Do NOT open the URL on the phone – only send it to the big screen
+  document.getElementById("status").textContent =
+    `Tag scanned. Sending to main screen…`;
 
-          // Small pause so we don't read the same frame repeatedly
-          setTimeout(scanFrame, 800);
-          return;
-        }
-      }
+  socket.emit("scan", {
+    qrText: decodedText,
+    operatorName,
+    mode: operatorMode
+  });
+}
 
-      requestAnimationFrame(scanFrame);
-    }
+function onScanFailure(error) {
+  // ignore; keeps scanner running smoothly
+}
+</script>
 
-    scanBtn.onclick = () => {
-      if (!scanning) {
-        scannedValues.clear();
-        previewImage.style.display = "none";
-        previewImage.src = "";
-        previewLink.textContent = "";
-        startCamera();
-        scanBtn.textContent = "Stop scanning";
-      } else {
-        stopCamera();
-        scanBtn.textContent = "Scan patient tag";
-        statusEl.textContent = "Scanning stopped.";
-      }
-    };
-
-    socket.on("errorMessage", msg => {
-      statusEl.textContent = msg;
-    });
-  </script>
 </body>
 </html>
