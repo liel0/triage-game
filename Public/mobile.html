@@ -1,353 +1,581 @@
-<!-- Public/public-mobile.html -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>AI Triage Drone 2040 – Mobile Scanner</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>
-      :root {
-        color-scheme: dark;
-        --bg: #020617;
-        --card: #020617;
-        --accent: #22c55e;
-        --border: #1f2937;
-        --muted: #94a3b8;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Triage Drone 2040 — Mobile Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050816;
+      --card: #0b1020;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --danger: #f97373;
+      --success: #4ade80;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-subtle: #1f2937;
+      --radius-xl: 18px;
+      --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.6);
+    }
 
-      * {
-        box-sizing: border-box;
-      }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
 
-      body {
-        margin: 0;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          sans-serif;
-        background: radial-gradient(circle at top, #020617 0, #000 60%);
-        color: #e5e7eb;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-      }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #020617 0, #020617 40%, #000 100%);
+      color: var(--text-main);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 16px;
+    }
 
-      .shell {
-        width: 100%;
-        max-width: 480px;
-        padding: 16px 14px 24px;
-      }
+    .app {
+      width: 100%;
+      max-width: 520px;
+      margin: auto;
+    }
 
-      h1 {
-        font-size: 20px;
-        margin: 0 0 4px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
+    .card {
+      background: linear-gradient(135deg, #020617, #020617);
+      border-radius: 22px;
+      padding: 20px 18px 18px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
 
-      h1 span {
-        font-size: 22px;
-      }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -80%;
+      background: radial-gradient(circle at top right,
+        rgba(56, 189, 248, 0.09),
+        transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
 
-      .sub {
-        font-size: 12px;
-        color: var(--muted);
-        margin-bottom: 12px;
-      }
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
 
-      .card {
-        background: rgba(15, 23, 42, 0.97);
-        border-radius: 16px;
-        padding: 12px 12px 16px;
-        border: 1px solid var(--border);
-        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.6);
-      }
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
 
-      label {
-        font-size: 13px;
-        display: block;
-        margin-bottom: 4px;
-      }
+    .title-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-      input[type="text"] {
-        width: 100%;
-        padding: 7px 9px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        background: #020617;
-        color: #e5e7eb;
-        font-size: 13px;
-      }
+    .drone-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #38bdf8, #0ea5e9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.7);
+    }
 
-      .mode-row {
-        display: flex;
-        gap: 10px;
-        margin: 8px 0 10px;
-        font-size: 13px;
-      }
+    .title-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
 
-      .mode-row label {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        margin-bottom: 0;
-      }
+    .title-text h1 {
+      font-size: 18px;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+    }
 
-      .btn {
-        width: 100%;
-        margin-top: 8px;
-        padding: 9px 12px;
-        border-radius: 999px;
-        border: 1px solid transparent;
-        background: linear-gradient(to right, #22c55e, #0ea5e9);
-        color: #022c22;
-        font-weight: 600;
-        font-size: 14px;
-        text-align: center;
-      }
+    .title-text span {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
 
-      .btn-secondary {
-        margin-top: 6px;
-        background: #020617;
-        border-color: var(--border);
-        color: #e5e7eb;
-        font-weight: 500;
-      }
+    .pill {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #e0f2fe;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
 
-      #videoContainer {
-        margin-top: 14px;
-        border-radius: 14px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-        background: #020617;
-        position: relative;
-      }
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      margin-top: 4px;
+      margin-bottom: 6px;
+    }
 
-      video {
-        width: 100%;
-        display: block;
-        background: #000;
-      }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
 
-      #scanOverlay {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 65%;
-        height: 45%;
-        transform: translate(-50%, -50%);
-        border: 2px solid rgba(34, 197, 94, 0.9);
-        border-radius: 16px;
-      }
+    label {
+      font-size: 13px;
+      color: var(--text-main);
+    }
 
-      #status {
-        margin-top: 8px;
-        font-size: 13px;
-        color: var(--muted);
-      }
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 11px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+    }
 
-      #lastTag {
-        margin-top: 4px;
-        font-size: 11px;
-        color: #64748b;
-        word-break: break-all;
-      }
+    input::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
 
-      #thumb {
-        margin-top: 10px;
-        width: 100%;
-        border-radius: 12px;
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="shell">
-      <h1><span>📱</span>Drone QR Scanner</h1>
-      <div class="sub">
-        Phone = drone. Point at the mannequin tags to send images and vitals to
-        the big screen.
-      </div>
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+      background: rgba(15, 23, 42, 0.95);
+    }
 
-      <div class="card">
-        <label for="nameInput">Visitor or team name</label>
-        <input
-          id="nameInput"
-          type="text"
-          placeholder="Example: Team Alpha or Sara"
-        />
+    .inline-fields {
+      display: flex;
+      gap: 8px;
+    }
 
-        <div class="mode-row">
-          <label>
-            <input type="radio" name="mode" value="solo" checked />
-            Solo
-          </label>
-          <label>
-            <input type="radio" name="mode" value="group" />
-            Group
-          </label>
+    .inline-fields > .field-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 9px 10px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+    }
+
+    .btn-primary {
+      background: radial-gradient(circle at top left, #38bdf8, #0ea5e9);
+      color: #0b1020;
+      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 5px 14px rgba(56, 189, 248, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .btn-secondary:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.8);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #64748b;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+    }
+
+    .status-dot.live {
+      background: #22c55e;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+    }
+
+    .status-chip strong {
+      color: #e5e7eb;
+    }
+
+    .scan-panel {
+      border-radius: 16px;
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      background: radial-gradient(circle at top left,
+        rgba(56, 189, 248, 0.09),
+        transparent 55%);
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+
+    .scan-panel h2 {
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .scan-panel p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .preview-shell {
+      margin-top: 10px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+      position: relative;
+    }
+
+    video {
+      width: 100%;
+      display: none;
+      background: #000;
+    }
+
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 2px dashed rgba(248, 250, 252, 0.2);
+      pointer-events: none;
+    }
+
+    .preview-overlay::before {
+      content: "Align the QR code inside the frame";
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.82);
+      color: rgba(248, 250, 252, 0.88);
+      font-size: 11px;
+    }
+
+    .message {
+      font-size: 12px;
+      margin-top: 6px;
+      color: var(--text-muted);
+    }
+
+    .message.error {
+      color: var(--danger);
+    }
+
+    .message.success {
+      color: var(--success);
+    }
+
+    footer {
+      margin-top: 10px;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="card-inner">
+        <div class="title-row">
+          <div class="title-main">
+            <div class="drone-badge">🚁</div>
+            <div class="title-text">
+              <h1>AI Triage Drone 2040</h1>
+              <span>Mobile drone operator console</span>
+            </div>
+          </div>
+          <span class="pill">Scanner linked to main screen</span>
         </div>
 
-        <button class="btn" id="startBtn">Save & start scanning</button>
-        <button class="btn btn-secondary" id="stopBtn" disabled>
-          Stop camera
-        </button>
+        <div class="section-label">Operator</div>
+        <form id="sessionForm">
+          <div class="field-group">
+            <label for="operatorName">Name / Team name</label>
+            <input id="operatorName" name="operatorName"
+                   placeholder="e.g. Team A, Trauma Squad, Sara" required />
+          </div>
 
-        <div id="videoContainer" style="display: none">
-          <video id="preview" playsinline></video>
-          <div id="scanOverlay"></div>
+          <div class="inline-fields">
+            <div class="field-group">
+              <label for="mode">Play mode</label>
+              <select id="mode" name="mode">
+                <option value="solo">Solo</option>
+                <option value="group">Group</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="patientId">Patient label (optional)</label>
+              <input id="patientId" name="patientId"
+                     placeholder="e.g. Patient 1" />
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="submit" class="btn btn-primary" id="startSessionBtn">
+              <span>Start session</span> <span>•</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="scanBtn" disabled>
+              📷 Start scanning
+            </button>
+          </div>
+        </form>
+
+        <div class="status-chip" id="statusChip">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText"><strong>Offline</strong> — connect to the main screen first</span>
         </div>
 
-        <div id="status">Ready. Enter a name and tap “Save & start scanning”.</div>
-        <div id="lastTag"></div>
-        <img id="thumb" alt="Last QR image preview" />
+        <div class="scan-panel">
+          <h2>Scan mannequin tags</h2>
+          <p>
+            Use this phone as the drone. Each QR code on the mannequin contains
+            a visual clue. Scan one tag at a time and look up at the big screen
+            to see the patient body map update.
+          </p>
+
+          <div class="preview-shell" id="previewShell" style="display:none;">
+            <video id="video" playsinline></video>
+            <div class="preview-overlay"></div>
+          </div>
+
+          <p class="message" id="message">
+            Session not started yet.
+          </p>
+        </div>
+
+        <footer>
+          Your camera feed stays on this device. Only the QR content is sent
+          securely to the main triage screen.
+        </footer>
       </div>
     </div>
+  </div>
 
-    <canvas id="qrCanvas" style="display: none"></canvas>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script>
+    // --- Socket.IO connection (same origin, WebSocket only) ---
+    const socket = io({
+      transports: ["websocket"],
+      upgrade: false
+    });
 
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-    <script>
-      const startBtn = document.getElementById("startBtn");
-      const stopBtn = document.getElementById("stopBtn");
-      const video = document.getElementById("preview");
-      const canvas = document.getElementById("qrCanvas");
-      const ctx = canvas.getContext("2d");
-      const statusEl = document.getElementById("status");
-      const lastTagEl = document.getElementById("lastTag");
-      const thumb = document.getElementById("thumb");
-      const videoContainer = document.getElementById("videoContainer");
+    const sessionForm = document.getElementById("sessionForm");
+    const operatorNameInput = document.getElementById("operatorName");
+    const modeSelect = document.getElementById("mode");
+    const patientIdInput = document.getElementById("patientId");
+    const startSessionBtn = document.getElementById("startSessionBtn");
+    const scanBtn = document.getElementById("scanBtn");
+    const statusChip = document.getElementById("statusChip");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const messageEl = document.getElementById("message");
+    const previewShell = document.getElementById("previewShell");
+    const video = document.getElementById("video");
 
-      let stream = null;
-      let scanTimer = null;
-      let operatorSet = false;
+    let scanning = false;
+    let videoStream = null;
+    let animationFrameId = null;
+    let operatorSession = null; // store name/mode/patient
 
-      function logStatus(msg) {
-        statusEl.textContent = msg;
+    function setStatus(live, text) {
+      if (live) {
+        statusDot.classList.add("live");
+      } else {
+        statusDot.classList.remove("live");
+      }
+      statusText.innerHTML = text;
+    }
+
+    function setMessage(text, type = "normal") {
+      messageEl.textContent = text;
+      messageEl.classList.remove("error", "success");
+      if (type === "error") messageEl.classList.add("error");
+      if (type === "success") messageEl.classList.add("success");
+    }
+
+    // --- Session registration ---
+    sessionForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = operatorNameInput.value.trim();
+      if (!name) {
+        setMessage("Please enter your name or team name.", "error");
+        return;
+      }
+      const mode = modeSelect.value;
+      const patientLabel = patientIdInput.value.trim() || null;
+
+      operatorSession = { name, mode, patientLabel };
+
+      socket.emit("register-operator", operatorSession);
+
+      setStatus(true, `<strong>Linked</strong> — operator: ${name} (${mode})`);
+      setMessage("Session started. You can now start scanning tags.", "success");
+      scanBtn.disabled = false;
+    });
+
+    // --- QR scanning logic ---
+    scanBtn.addEventListener("click", async () => {
+      if (!operatorSession) {
+        setMessage("Start the session first.", "error");
+        return;
       }
 
-      async function setOperator() {
-        const nameInput = document.getElementById("nameInput");
-        const modeInput = document.querySelector('input[name="mode"]:checked');
-        const name = nameInput.value.trim() || "Visitor";
-        const mode = modeInput ? modeInput.value : "solo";
+      if (scanning) {
+        // Stop scanning if already active
+        stopScanning("Scanning stopped. Tap again to rescan.");
+        return;
+      }
 
-        await fetch("/api/operator", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, mode }),
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
         });
 
-        operatorSet = true;
-      }
+        videoStream = stream;
+        video.srcObject = stream;
+        await video.play();
 
-      async function startCamera() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          logStatus(
-            "Camera access not supported in this browser. Try Chrome or Safari."
-          );
-          return;
-        }
+        previewShell.style.display = "block";
+        video.style.display = "block";
+        scanning = true;
+        setMessage("Point the camera at a QR tag on the mannequin…");
 
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment" },
-          });
-          video.srcObject = stream;
-          await video.play();
-          videoContainer.style.display = "block";
-          stopBtn.disabled = false;
-          startScanLoop();
-          logStatus("Camera active. Hold a QR tag inside the green box.");
-        } catch (err) {
-          console.error(err);
-          logStatus(
-            "Could not access camera. Check browser permissions and HTTPS."
-          );
-        }
-      }
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
-      function stopCamera() {
-        if (scanTimer) {
-          clearInterval(scanTimer);
-          scanTimer = null;
-        }
-        if (stream) {
-          stream.getTracks().forEach((t) => t.stop());
-          stream = null;
-        }
-        videoContainer.style.display = "none";
-        stopBtn.disabled = true;
-        logStatus("Camera stopped. Tap “Save & start scanning” to resume.");
-      }
+        const scanFrame = () => {
+          if (!scanning) return;
 
-      function startScanLoop() {
-        const scan = () => {
-          if (!video.videoWidth) return;
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const imageData = ctx.getImageData(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-          );
-          const code = jsQR(imageData.data, canvas.width, canvas.height, {
-            inversionAttempts: "dontInvert",
-          });
-          if (code && code.data) {
-            handleDecoded(code.data);
+          if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, canvas.width, canvas.height, {
+              inversionAttempts: "dontInvert"
+            });
+
+            if (code && code.data) {
+              // Successfully decoded QR
+              const qrContent = code.data.trim();
+              stopScanning();
+
+              setMessage("Tag scanned and sent to the main screen.", "success");
+
+              // Send to server – main screen decides body part + scenario
+              socket.emit("qr-scanned", {
+                qrContent,
+                operator: operatorSession
+              });
+
+              return; // stop the animation loop
+            }
           }
+
+          animationFrameId = requestAnimationFrame(scanFrame);
         };
-        if (scanTimer) clearInterval(scanTimer);
-        scanTimer = setInterval(scan, 250);
+
+        scanFrame();
+
+      } catch (err) {
+        console.error("Camera error:", err);
+        setMessage("Camera access failed. Please allow camera permission.", "error");
       }
+    });
 
-      async function handleDecoded(data) {
-        // Do NOT open the URL on the phone – just send to server
-        lastTagEl.textContent = data;
-
-        if (!operatorSet) {
-          await setOperator();
-        }
-
-        try {
-          const res = await fetch("/api/scan", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payload: data }),
-          });
-          const out = await res.json();
-          if (out.ok) {
-            logStatus(out.message || "Tag received.");
-          } else {
-            logStatus(out.message || "Tag not recognised.");
-          }
-        } catch (err) {
-          console.error(err);
-          logStatus("Error sending tag to server.");
-        }
-
-        // If QR contains an image URL, show a thumbnail on the phone for fun
-        if (/^https?:\/\//i.test(data) && /\.(png|jpe?g|gif|webp)$/i.test(data)) {
-          thumb.src = data;
-          thumb.style.display = "block";
-        } else {
-          thumb.style.display = "none";
-        }
+    function stopScanning(infoMessage) {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
       }
+      if (videoStream) {
+        videoStream.getTracks().forEach((t) => t.stop());
+        videoStream = null;
+      }
+      video.pause();
+      video.srcObject = null;
+      video.style.display = "none";
+      previewShell.style.display = "none";
+      scanning = false;
+      if (infoMessage) setMessage(infoMessage);
+    }
 
-      startBtn.addEventListener("click", async () => {
-        await setOperator();
-        logStatus("Operator saved. Opening camera…");
-        await startCamera();
-      });
+    // When the socket connects / disconnects
+    socket.on("connect", () => {
+      setStatus(false, "<strong>Connected</strong> — start a session to link with the main screen.");
+    });
 
-      stopBtn.addEventListener("click", stopCamera);
-
-      window.addEventListener("beforeunload", () => {
-        stopCamera();
-      });
-    </script>
-  </body>
+    socket.on("disconnect", () => {
+      stopScanning();
+      scanBtn.disabled = true;
+      operatorSession = null;
+      setStatus(false, "<strong>Offline</strong> — connection lost. Check internet or server.");
+      setMessage("Disconnected from server.", "error");
+    });
+  </script>
+</body>
 </html>
