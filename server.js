@@ -23,18 +23,15 @@ app.get("/mobile", (req, res) => {
 
 // Socket.io
 io.on("connection", (socket) => {
-  // store operator info on this connection
   socket.on("operator-joined", (payload) => {
     socket.operatorInfo = {
       name: payload.name || "Visitor",
       mode: payload.mode || "Solo",
     };
-
-    // broadcast to all screens so the main display can show the operator
-    io.emit("operator-joined", socket.operatorInfo);
+    // notify big screen(s)
+    io.emit("operator-info", socket.operatorInfo);
   });
 
-  // QR tag scanned on mobile
   socket.on("qr-scanned", (data) => {
     const info = socket.operatorInfo || { name: "Visitor", mode: "Solo" };
     io.emit("qr-scanned", {
@@ -44,14 +41,18 @@ io.on("connection", (socket) => {
     });
   });
 
-  // triage result submitted on the big screen
-  socket.on("triage-submitted", (payload) => {
-    io.emit("triage-submitted", payload);
+  // leaderboard + results sharing between screens
+  socket.on("triage-submitted", (data) => {
+    io.emit("triage-submitted", data);
   });
 
-  // reset leaderboard from any screen
   socket.on("reset-leaderboard", () => {
     io.emit("reset-leaderboard");
+  });
+
+  // kept for future use if needed
+  socket.on("final-score", (data) => {
+    io.emit("final-score", data);
   });
 });
 
