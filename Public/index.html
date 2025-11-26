@@ -158,7 +158,7 @@
       background: rgba(15, 23, 42, 0.95);
       border-radius: 18px;
       border: 1px solid rgba(148, 163, 184, 0.4);
-      height: 100px;
+      height: 110px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -168,7 +168,7 @@
     .body-image-slot img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover; /* fill box, no tiny images */
       border-radius: 14px;
     }
 
@@ -827,9 +827,11 @@
   let currentScenario = scenarios[0];
   let collected = {}; // bodyPart -> { scanned, imageUrl }
   let vitalsState = { consciousness:null, rr:null, hr:null, bp:null, keyInjury:null };
+
   let timerRunning = false;
   let timerStart = null;
   let finalTimeMs = null;
+
   let leaderboard = [];
 
   const bodyOrder = ["head","chest","abdomen","arms","legs"];
@@ -884,6 +886,14 @@
     });
   }
 
+  function resetTimer() {
+    timerRunning = false;
+    timerStart = null;
+    finalTimeMs = null;
+    timerDisplayEl.textContent = "0.00 s";
+    timerHintEl.textContent = "Awaiting patient. Scan the head tag to begin the drone scan.";
+  }
+
   function resetBodyAndVitals() {
     collected = {};
     bodyOrder.forEach(part => {
@@ -897,12 +907,7 @@
 
     vitalsState = { consciousness:null, rr:null, hr:null, bp:null, keyInjury:null };
     updateVitalsDisplay();
-
-    timerRunning = false;
-    timerStart = null;
-    finalTimeMs = null;
-    timerDisplayEl.textContent = "0.00 s";
-    timerHintEl.textContent = "Awaiting patient. Scan the head tag to begin the drone scan.";
+    resetTimer();
   }
 
   function updateVitalsDisplay() {
@@ -925,12 +930,12 @@
     selectScenarioById(scenarioSelectEl.value);
   });
 
-  // ---- Timer ----
-  function startTimerIfNeeded() {
+  // ---- Timer (starts AFTER all vitals scanned) ----
+  function startDecisionTimer() {
     if (timerRunning || finalTimeMs !== null) return;
     timerRunning = true;
     timerStart = performance.now();
-    timerHintEl.textContent = "Drone identifying patient… receiving visual feeds… assembling body map.";
+    timerHintEl.textContent = "All vitals collected. Timer started – make your triage decision.";
     requestAnimationFrame(updateTimerLoop);
   }
 
@@ -944,7 +949,7 @@
     requestAnimationFrame(updateTimerLoop);
   }
 
-  function stopTimer() {
+  function stopDecisionTimer() {
     if (!timerRunning) return;
     const now = performance.now();
     finalTimeMs = now - timerStart;
@@ -952,7 +957,7 @@
     const seconds = Math.floor(finalTimeMs / 1000);
     const centis = Math.floor((finalTimeMs % 1000) / 10);
     timerDisplayEl.textContent = `${seconds}.${String(centis).padStart(2, "0")} s (final)`;
-    timerHintEl.textContent = "All drone passes complete. Move to triage zone and make your decisions.";
+    timerHintEl.textContent = "Decision locked. Compare with the AI drone.";
   }
 
   function haveAllVitalsForScenario() {
@@ -960,21 +965,22 @@
   }
 
   // ---- Infer body part from image URL ----
-  // Supports your current filenames: s1_head, s1_chest, s1_abdomen, s1_bp, s1_heart, s1_history, s1_pelvis
+  // Use these exact filenames for tags:
+  // head:   s1_head.jpg or s1_history.jpg
+  // chest:  s1_chest.jpg
+  // abdomen:s1_abdomen.jpg
+  // arms:   s1_bp.jpg
+  // legs:   s1_pelvis.jpg
   function inferBodyPartFromUrl(url) {
     const lower = url.toLowerCase();
 
-    if (lower.includes("head")) return "head";
-    if (lower.includes("chest") || lower.includes("thorax")) return "chest";
-    if (lower.includes("abdomen") || lower.includes("abdo") || lower.includes("belly")) return "abdomen";
+    if (lower.includes("s1_head") || lower.includes("history")) return "head";
+    if (lower.includes("chest")) return "chest";
+    if (lower.includes("abdomen") || lower.includes("abdo")) return "abdomen";
+    if (lower.includes("bp")) return "arms";
+    if (lower.includes("pelvis") || lower.includes("leg")) return "legs";
 
-    // map BP cuff / arm close-ups to arms row
-    if (lower.includes("bp") || lower.includes("pressure") || lower.includes("arm")) return "arms";
-
-    // map pelvis / history / heart / limb close-ups to legs row
-    if (lower.includes("pelvis") || lower.includes("leg") || lower.includes("history") || lower.includes("heart") || lower.includes("limb"))
-      return "legs";
-
+    // ignore other images (e.g. heart) so they don't go to the wrong box
     return null;
   }
 
@@ -986,10 +992,8 @@
       return;
     }
 
-    startTimerIfNeeded();
-
     const partState = collected[part];
-    // show only first scan per part (prevents accidental double taps)
+    // only first scan per part (prevents accidental double taps)
     if (!partState.scanned) {
       const row = document.querySelector(`.body-row[data-part="${part}"]`);
       if (!row) return;
@@ -1018,8 +1022,9 @@
         updateVitalsDisplay();
       }
 
+      // once all five body parts are scanned, THEN start the timer
       if (haveAllVitalsForScenario()) {
-        stopTimer();
+        startDecisionTimer();
       }
     }
   });
@@ -1051,206 +1056,4 @@
     resHumanTime.textContent = "—";
     resAITime.textContent = "—";
     [matchTriage,matchHospital,matchTests,matchTime].forEach(el => { el.textContent = "—"; el.className="match-cell"; });
-    scoreSummaryEl.textContent = "Score: 0 / 12 points";
-  }
-
-  triageCircles.forEach(circle => {
-    circle.addEventListener("click", () => {
-      triageCircles.forEach(c => c.classList.remove("selected"));
-      circle.classList.add("selected");
-      selectedTriage = circle.dataset.level;
-      updateSubmitState();
-    });
-  });
-
-  function renderHospitalsAndTests() {
-    hospitalListEl.innerHTML = "";
-    currentScenario.hospitals.forEach(h => {
-      const card = document.createElement("div");
-      card.className = "hospital-card";
-      card.dataset.name = h.name;
-      card.innerHTML = `<div class="hospital-name">${h.name}</div>
-                        <div class="hospital-meta">${h.meta}</div>`;
-      card.addEventListener("click", () => {
-        selectedHospital = h.name;
-        Array.from(hospitalListEl.children).forEach(c => c.classList.remove("selected"));
-        card.classList.add("selected");
-        renderTests(h.testsAvailable);
-        updateSubmitState();
-      });
-      hospitalListEl.appendChild(card);
-    });
-
-    const first = currentScenario.hospitals[0];
-    if (first) {
-      selectedHospital = first.name;
-      // visually mark first hospital as preselected
-      const firstCard = hospitalListEl.querySelector(`[data-name="${first.name}"]`);
-      if (firstCard) firstCard.classList.add("selected");
-      renderTests(first.testsAvailable);
-    } else {
-      testsListEl.innerHTML = "<div style='font-size:12px;color:var(--muted);'>No ER tests configured.</div>";
-    }
-  }
-
-  function renderTests(list) {
-    testsListEl.innerHTML = "";
-    selectedTests = new Set();
-    list.forEach(testName => {
-      const row = document.createElement("label");
-      row.className = "test-row";
-      row.innerHTML = `<input type="checkbox" value="${testName}">
-                       <span>${testName}</span>`;
-      const checkbox = row.querySelector("input");
-      checkbox.addEventListener("change", () => {
-        if (checkbox.checked) selectedTests.add(testName);
-        else selectedTests.delete(testName);
-        updateSubmitState();
-      });
-      testsListEl.appendChild(row);
-    });
-  }
-
-  function updateSubmitState() {
-    const ready = selectedTriage && selectedHospital && selectedTests.size > 0 && finalTimeMs !== null;
-    submitDecisionBtn.disabled = !ready;
-    decisionHintEl.textContent = ready
-      ? "Ready to submit. Compare your plan with the AI."
-      : "Complete triage, hospital and ER tests after all vitals are collected.";
-  }
-
-  submitDecisionBtn.addEventListener("click", () => {
-    if (submitDecisionBtn.disabled) return;
-    const human = {
-      triage: selectedTriage,
-      hospital: selectedHospital,
-      tests: Array.from(selectedTests),
-      timeSeconds: finalTimeMs ? finalTimeMs / 1000 : null
-    };
-    showResults(human);
-    addToLeaderboard(human);
-    socket.emit("triage-submitted", {
-      operator: currentOperator,
-      human,
-      scenarioId: currentScenario.id
-    });
-  });
-
-  // ---- Scoring & results ----
-  function showResults(human) {
-    const ai = currentScenario.ai;
-    resHumanTriage.textContent = human.triage;
-    resAITriage.textContent = ai.triage;
-    resHumanHospital.textContent = human.hospital;
-    resAIHospital.textContent = ai.hospital;
-    resHumanTests.textContent = human.tests.join(", ");
-    resAITests.textContent = ai.erTests.join(", ");
-
-    const tHuman = human.timeSeconds ?? 0;
-    resHumanTime.textContent = `${tHuman.toFixed(2)} s`;
-    resAITime.textContent = `${ai.timeSeconds.toFixed(2)} s`;
-
-    let score = 0;
-
-    const triageMatch = human.triage === ai.triage;
-    markMatch(matchTriage, triageMatch);
-    if (triageMatch) score += 5;
-
-    const hospMatch = human.hospital === ai.hospital;
-    markMatch(matchHospital, hospMatch);
-    if (hospMatch) score += 3;
-
-    const aiSet = new Set(ai.erTests);
-    const humanSet = new Set(human.tests);
-    const testsMatch = ai.erTests.length === human.tests.length &&
-                       ai.erTests.every(t => humanSet.has(t));
-    markMatch(matchTests, testsMatch);
-    if (testsMatch) score += 2;
-
-    const faster = human.timeSeconds && human.timeSeconds < ai.timeSeconds;
-    markMatch(matchTime, faster);
-    if (faster) score += 2;
-
-    scoreSummaryEl.textContent = `Score: ${score} / 12 points`;
-  }
-
-  function markMatch(cell, ok) {
-    cell.className = "match-cell " + (ok ? "match-yes" : "match-no");
-    cell.textContent = ok ? "✅" : "❌";
-  }
-
-  function addToLeaderboard(human) {
-    const scoreText = scoreSummaryEl.textContent;
-    const scoreMatch = /Score:\s+(\d+)\s+\/\s+12/.exec(scoreText);
-    const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
-
-    leaderboard.push({
-      name: currentOperator.name || "Unknown",
-      mode: currentOperator.mode || "Solo",
-      scenario: currentScenario.label,
-      score,
-      time: human.timeSeconds ?? 0
-    });
-
-    leaderboard.sort((a,b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return a.time - b.time;
-    });
-
-    renderLeaderboard();
-  }
-
-  function renderLeaderboard() {
-    leaderboardBody.innerHTML = "";
-    leaderboard.forEach((entry, idx) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${idx+1}</td>
-                      <td>${entry.name}</td>
-                      <td>${entry.mode}</td>
-                      <td>${entry.scenario}</td>
-                      <td>${entry.score}</td>
-                      <td>${entry.time.toFixed(2)} s</td>`;
-      leaderboardBody.appendChild(tr);
-    });
-  }
-
-  resetLeaderboardBtn.addEventListener("click", () => {
-    leaderboard = [];
-    renderLeaderboard();
-    socket.emit("reset-leaderboard");
-  });
-
-  socket.on("reset-leaderboard", () => {
-    leaderboard = [];
-    renderLeaderboard();
-  });
-
-  // When another screen submits, we also update our leaderboard.
-  socket.on("triage-submitted", ({ operator, human, scenarioId }) => {
-    if (!human || !operator) return;
-    const sc = scenarios.find(s => s.id === scenarioId);
-    if (!sc) return;
-    const entryScenario = sc.label;
-
-    const scoreLocalText = scoreSummaryEl.textContent;
-    const scoreMatch = /Score:\s+(\d+)\s+\/\s+12/.exec(scoreLocalText);
-    const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
-
-    leaderboard.push({
-      name: operator.name || "Unknown",
-      mode: operator.mode || "Solo",
-      scenario: entryScenario,
-      score,
-      time: human.timeSeconds ?? 0
-    });
-
-    leaderboard.sort((a,b)=> (b.score !== a.score ? b.score-a.score : a.time-b.time));
-    renderLeaderboard();
-  });
-
-  // Initial setup
-  populateScenarioDropdown();
-  selectScenarioById(scenarios[0].id);
-</script>
-</body>
-</html>
+    scoreSummaryEl.textCon
