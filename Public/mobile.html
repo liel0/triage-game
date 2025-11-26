@@ -277,7 +277,6 @@
         scanStatus.textContent = "Tag scanned successfully. You can scan another body region.";
         socket.emit("qr-scanned", { url });
 
-        // Small delay before allowing another scan
         setTimeout(() => {
           if (scanning) {
             requestAnimationFrame(tickScan);
