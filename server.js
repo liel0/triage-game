@@ -46,7 +46,6 @@ io.on("connection", (socket) => {
 
   // triage result submitted on the big screen
   socket.on("triage-submitted", (payload) => {
-    // broadcast so any other big displays can mirror the leaderboard
     io.emit("triage-submitted", payload);
   });
 
