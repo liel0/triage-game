@@ -2,154 +2,148 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI Triage Drone 2040 – Main Screen</title>
+  <title>AI Triage Drone 2040 – Control Screen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
-      --bg: #020617;
-      --card: #020617;
-      --border: #1f2937;
-      --accent: #22c55e;
-      --accent2: #06b6d4;
-      --accent3: #f97316;
-      --text: #e5e7eb;
+      --bg: #040814;
+      --panel: #0b1020;
+      --accent: #3fbcff;
+      --accent-soft: rgba(63, 188, 255, 0.18);
+      --danger: #ff4b5c;
+      --warning: #ffc857;
+      --success: #4ade80;
       --muted: #9ca3af;
-      --danger: #f97373;
+      --text: #f9fafb;
+      --card-radius: 18px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
+      background: radial-gradient(circle at top, #111827 0, #020617 40%, #000 100%);
       color: var(--text);
-      height: 100vh;
       overflow: hidden;
+    }
+
+    .root {
       display: flex;
       flex-direction: column;
-    }
-
-    .main-layout {
-      display: grid;
-      grid-template-rows: auto 1fr auto auto;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 16px;
-      padding: 16px 24px;
-      height: 100%;
-    }
-
-    .main-layout > * {
-      background: rgba(15, 23, 42, 0.96);
-      border-radius: 24px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.95);
-    }
-
-    .title-card {
-      grid-column: 1 / span 2;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 18px;
-    }
-
-    .title-card h1 {
-      font-size: 22px;
-      display: flex;
-      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      padding: 12px 18px;
       gap: 10px;
     }
 
-    .title-card h1 span {
-      font-size: 28px;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #020617, #020617, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      font-size: 14px;
     }
 
-    .subtitle {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .operator-label {
-      font-size: 13px;
-      text-align: right;
-    }
-
-    .operator-label span {
-      color: var(--accent);
+    header .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
       font-weight: 600;
     }
 
-    .body-card {
-      grid-row: 2 / span 1;
-      grid-column: 1 / span 1;
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
+    header .title span {
+      font-size: 20px;
+    }
+
+    header .operator {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-rows: 60% 40%;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .top-row {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .panel {
+      background: radial-gradient(circle at top left, #111827 0, #020617 55%);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 14px 16px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.8);
+      min-height: 0;
       overflow: hidden;
     }
 
-    .vitals-card {
-      grid-row: 2 / span 2;
-      grid-column: 2 / span 1;
-      padding: 12px 18px;
+    .panel h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .triage-card {
-      grid-row: 3 / span 1;
-      grid-column: 1 / span 1;
-      padding: 12px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .results-card {
-      grid-row: 4 / span 1;
-      grid-column: 1 / span 2;
-      padding: 12px 18px;
-      display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 8px;
     }
 
-    .card-title-row {
-      display: flex;
-      justify-content: space-between;
+    .pill {
+      display: inline-flex;
       align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .card-title-row h2 {
-      font-size: 16px;
-      letter-spacing: 0.04em;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--muted);
     }
 
     .scenario-select {
-      padding: 6px 12px;
+      width: 100%;
+      margin-top: 4px;
+      margin-bottom: 12px;
+    }
+
+    .scenario-select select {
+      width: 100%;
+      padding: 8px 10px;
       border-radius: 999px;
       border: 1px solid rgba(148, 163, 184, 0.5);
       background: #020617;
       color: var(--text);
-      font-size: 13px;
-      min-width: 260px;
+      font-size: 14px;
+      outline: none;
     }
 
-    .body-grid {
+    .body-map {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
-      overflow-y: auto;
+      grid-template-rows: repeat(5, 1fr);
+      gap: 8px;
+      min-height: 0;
     }
 
     .body-row {
       display: grid;
-      grid-template-columns: 90px minmax(0, 1fr);
+      grid-template-columns: 10% 45% 45%;
       align-items: center;
       gap: 10px;
-      padding: 4px 0;
+      min-height: 0;
     }
 
     .body-label {
@@ -157,197 +151,265 @@
       color: var(--muted);
     }
 
-    .image-box {
+    .body-image-slot {
       position: relative;
-      background: #020617;
+      background: rgba(15, 23, 42, 0.95);
       border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      height: 140px;
-      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      height: 100px;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
 
-    .image-box img {
-      max-width: 100%;
-      max-height: 100%;
+    .body-image-slot img {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
-      display: block;
+      border-radius: 14px;
     }
 
-    .image-placeholder {
+    .body-placeholder {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 0 6px;
+    }
+
+    .drone-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 12px;
       color: var(--muted);
     }
 
-    .hint-pill {
-      position: absolute;
-      bottom: 6px;
-      left: 10px;
-      font-size: 11px;
-      color: var(--muted);
-      background: rgba(15, 23, 42, 0.9);
-      padding: 2px 8px;
+    .drone-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 999px;
+      background: #64748b;
+      box-shadow: 0 0 12px rgba(148, 163, 184, 0.7);
     }
 
-    .vital-pair {
+    .drone-dot.active {
+      background: var(--accent);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.9);
+    }
+
+    .vitals-list {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    .vital-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      margin-bottom: 3px;
-      font-size: 14px;
+      border-bottom: 1px dashed rgba(51, 65, 85, 0.7);
+      padding: 4px 0;
     }
 
     .vital-label {
       color: var(--muted);
-      font-size: 13px;
     }
 
     .vital-value {
       font-weight: 600;
     }
 
-    .timer-block {
+    .timer {
       margin-top: 12px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(55, 65, 81, 0.8);
-    }
-
-    .timer-label {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 2px;
-    }
-
-    .timer-value {
-      font-size: 24px;
-      font-weight: 700;
-    }
-
-    .timer-note {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .triage-buttons {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
       display: flex;
-      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .timer span.time {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .triage-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 100%;
+    }
+
+    .triage-circles {
+      display: flex;
+      gap: 14px;
       align-items: center;
     }
 
     .triage-circle {
-      width: 46px;
-      height: 46px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 2px solid transparent;
       cursor: pointer;
-      border: 3px solid transparent;
-      text-align: center;
+      position: relative;
+      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+      transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, border-color 0.12s ease-out;
     }
 
-    .triage-red { background: #ef4444; }
-    .triage-yellow { background: #eab308; color: #111827; }
-    .triage-green { background: #22c55e; }
-    .triage-black { background: #111827; border-color: #4b5563; }
+    .triage-circle[data-level="Red"] { background: var(--danger); }
+    .triage-circle[data-level="Yellow"] { background: var(--warning); }
+    .triage-circle[data-level="Green"] { background: var(--success); }
+    .triage-circle[data-level="Black"] { background: #020617; border: 1px solid #6b7280; }
 
-    .triage-circle.active {
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.7);
+    .triage-circle span {
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      white-space: nowrap;
+      color: var(--muted);
     }
 
-    .triage-label {
+    .triage-circle.selected {
+      transform: scale(1.08);
+      box-shadow: 0 0 18px rgba(94, 234, 212, 0.8);
+      border-color: #e5e7eb;
+    }
+
+    .triage-steps-label {
       font-size: 12px;
       color: var(--muted);
-      margin-top: 4px;
-      text-align: center;
     }
 
     .hospital-tests {
+      margin-top: 8px;
       display: grid;
-      grid-template-columns: 1.4fr 1.4fr;
-      gap: 10px;
-      font-size: 12px;
+      grid-template-columns: 55% 45%;
+      gap: 8px;
+      font-size: 13px;
     }
 
     .hospital-card {
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
+      border-radius: 16px;
       padding: 8px 10px;
-      background: #020617;
-    }
-
-    .hospital-title {
-      font-weight: 600;
-      font-size: 13px;
-      margin-bottom: 2px;
-    }
-
-    .hospital-sub {
-      color: var(--muted);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.92);
+      cursor: pointer;
       margin-bottom: 6px;
+    }
+
+    .hospital-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.7);
+    }
+
+    .hospital-name {
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .hospital-meta {
       font-size: 11px;
+      color: var(--muted);
     }
 
-    .hospital-option {
-      margin-bottom: 4px;
+    .tests-list {
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.96);
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
-    .submit-btn {
-      margin-top: 6px;
-      align-self: flex-start;
-      padding: 7px 18px;
+    .test-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .test-row input {
+      accent-color: var(--accent);
+    }
+
+    .submit-row {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .btn-primary {
+      padding: 7px 14px;
       border-radius: 999px;
       border: none;
+      background: linear-gradient(135deg, #3b82f6, #22c55e);
+      color: white;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #22c55e, #06b6d4);
-      color: white;
-      box-shadow: 0 10px 25px rgba(6, 182, 212, 0.6);
+      box-shadow: 0 12px 30px rgba(34, 197, 94, 0.5);
     }
 
-    .submit-btn:disabled {
-      opacity: 0.5;
+    .btn-primary:disabled {
+      opacity: 0.4;
       cursor: default;
       box-shadow: none;
     }
 
     .results-table {
       width: 100%;
-      border-collapse: collapse;
       font-size: 12px;
+      border-collapse: collapse;
     }
 
     .results-table th,
     .results-table td {
       padding: 4px 6px;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      border-bottom: 1px solid rgba(30, 64, 175, 0.5);
       text-align: left;
     }
 
     .results-table th {
+      font-weight: 600;
       color: var(--muted);
-      font-weight: 500;
     }
 
-    .results-table td.match {
+    .match-cell {
       text-align: center;
-      width: 60px;
+      font-size: 14px;
     }
 
-    .score-line {
+    .match-yes { color: #4ade80; }
+    .match-no { color: #f97373; }
+
+    .score-summary {
+      margin-top: 6px;
       font-size: 13px;
-      margin-top: 4px;
     }
 
     .leaderboard {
-      margin-top: 6px;
+      margin-top: 8px;
       font-size: 12px;
     }
 
@@ -358,719 +420,809 @@
 
     .leaderboard th,
     .leaderboard td {
-      padding: 3px 6px;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      padding: 3px 4px;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.4);
       text-align: left;
     }
 
     .leaderboard th {
+      font-weight: 600;
       color: var(--muted);
-      font-weight: 500;
+    }
+
+    .glow {
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
     }
   </style>
 </head>
 <body>
-<div class="main-layout">
-  <div class="title-card">
-    <div>
-      <h1><span>🚁</span>AI Triage Drone 2040</h1>
-      <div class="subtitle">Mass-casualty triage simulator – drone + human collaboration.</div>
+<div class="root">
+  <header>
+    <div class="title">
+      <span>🚁</span>
+      <div>
+        <div>AI Triage Drone 2040</div>
+        <div style="font-size:12px;color:var(--muted);">Mass casualty triage training • Human vs AI</div>
+      </div>
     </div>
-    <div class="operator-label" id="operatorDisplay">
-      Operator: <span>Waiting for phone…</span>
+    <div class="operator" id="operatorLabel">
+      Operator: Waiting for mobile operator…
     </div>
-  </div>
+  </header>
 
-  <!-- Left: patient body map -->
-  <div class="body-card">
-    <div class="card-title-row">
-      <h2>Patient Body Map & Drone Feed</h2>
-      <select id="scenarioSelect" class="scenario-select">
-        <option value="s1">Scenario 1 — Hajj Stampede</option>
-        <option value="s2">Scenario 2 — Industrial Explosion</option>
-        <option value="s3">Scenario 3 — Desert Rally</option>
-        <option value="s4">Scenario 4 — Highway Collision</option>
-      </select>
-    </div>
+  <main>
+    <!-- TOP ROW -->
+    <div class="top-row">
+      <!-- BODY MAP -->
+      <section class="panel" id="bodyPanel">
+        <h2>Patient Body Map &amp; Drone Feed</h2>
 
-    <div class="body-grid">
-      <div class="body-row">
-        <div class="body-label">Head</div>
-        <div class="image-box" data-part="head">
-          <span class="image-placeholder">Scan tag for head</span>
-          <img style="display:none;" />
-          <div class="hint-pill">Facial analysis – consciousness & pallor</div>
+        <div class="scenario-select">
+          <select id="scenarioSelect"></select>
         </div>
-      </div>
-      <div class="body-row">
-        <div class="body-label">Chest</div>
-        <div class="image-box" data-part="chest">
-          <span class="image-placeholder">Scan tag for chest</span>
-          <img style="display:none;" />
-          <div class="hint-pill">Respiratory module – RR</div>
-        </div>
-      </div>
-      <div class="body-row">
-        <div class="body-label">Abdomen</div>
-        <div class="image-box" data-part="abdomen">
-          <span class="image-placeholder">Scan tag for abdomen</span>
-          <img style="display:none;" />
-          <div class="hint-pill">FAST ultrasound – bleeding</div>
-        </div>
-      </div>
-      <div class="body-row">
-        <div class="body-label">Arms</div>
-        <div class="image-box" data-part="arms">
-          <span class="image-placeholder">Scan tag for arms</span>
-          <img style="display:none;" />
-          <div class="hint-pill">Circulatory sensors – BP</div>
-        </div>
-      </div>
-      <div class="body-row">
-        <div class="body-label">Legs / ID</div>
-        <div class="image-box" data-part="legs">
-          <span class="image-placeholder">Scan tag for legs / ID</span>
-          <img style="display:none;" />
-          <div class="hint-pill">Injury map – key trauma / history</div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Right: vitals -->
-  <div class="vitals-card">
-    <div>
-      <div class="card-title-row">
+        <div class="body-map">
+          <div class="body-row" data-part="head">
+            <div class="body-label">Head</div>
+            <div class="body-image-slot">
+              <span class="body-placeholder">Scan head tag</span>
+            </div>
+            <div class="drone-chip">
+              <span class="drone-dot" data-dot="head"></span>
+              <span>Facial analysis – consciousness &amp; pallor</span>
+            </div>
+          </div>
+
+          <div class="body-row" data-part="chest">
+            <div class="body-label">Chest</div>
+            <div class="body-image-slot">
+              <span class="body-placeholder">Scan chest tag</span>
+            </div>
+            <div class="drone-chip">
+              <span class="drone-dot" data-dot="chest"></span>
+              <span>Respiratory module – measuring RR</span>
+            </div>
+          </div>
+
+          <div class="body-row" data-part="abdomen">
+            <div class="body-label">Abdomen</div>
+            <div class="body-image-slot">
+              <span class="body-placeholder">Scan abdomen tag</span>
+            </div>
+            <div class="drone-chip">
+              <span class="drone-dot" data-dot="abdomen"></span>
+              <span>FAST ultrasound – looking for bleeding</span>
+            </div>
+          </div>
+
+          <div class="body-row" data-part="arms">
+            <div class="body-label">Arms</div>
+            <div class="body-image-slot">
+              <span class="body-placeholder">Scan arms tag</span>
+            </div>
+            <div class="drone-chip">
+              <span class="drone-dot" data-dot="arms"></span>
+              <span>Circulatory sensors – BP &amp; perfusion</span>
+            </div>
+          </div>
+
+          <div class="body-row" data-part="legs">
+            <div class="body-label">Legs</div>
+            <div class="body-image-slot">
+              <span class="body-placeholder">Scan legs tag</span>
+            </div>
+            <div class="drone-chip">
+              <span class="drone-dot" data-dot="legs"></span>
+              <span>Injury mapping – classifying key trauma</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VITALS PANEL -->
+      <section class="panel">
         <h2>Live Vitals (from drone)</h2>
-      </div>
+        <div class="vitals-list">
+          <div class="vital-row">
+            <div class="vital-label">Consciousness</div>
+            <div class="vital-value" id="vConsciousness">—</div>
+          </div>
+          <div class="vital-row">
+            <div class="vital-label">Respiratory rate (RR)</div>
+            <div class="vital-value" id="vRR">—</div>
+          </div>
+          <div class="vital-row">
+            <div class="vital-label">Heart rate (HR)</div>
+            <div class="vital-value" id="vHR">—</div>
+          </div>
+          <div class="vital-row">
+            <div class="vital-label">Blood pressure (BP)</div>
+            <div class="vital-value" id="vBP">—</div>
+          </div>
+          <div class="vital-row">
+            <div class="vital-label">Key injury / problem</div>
+            <div class="vital-value" id="vKeyInjury">—</div>
+          </div>
+        </div>
 
-      <div id="vitalsList">
-        <div class="vital-pair">
-          <div class="vital-label">Consciousness</div>
-          <div class="vital-value" id="vital-consciousness">—</div>
+        <div class="timer">
+          <div>TRIAGE TIMER</div>
+          <span class="time" id="timerDisplay">0.00 s</span>
         </div>
-        <div class="vital-pair">
-          <div class="vital-label">Respiratory rate (RR)</div>
-          <div class="vital-value" id="vital-respRate">—</div>
+        <div style="margin-top:4px;font-size:12px;color:var(--muted);" id="timerHint">
+          Scan any patient tag to start the timer.
         </div>
-        <div class="vital-pair">
-          <div class="vital-label">Heart rate (HR)</div>
-          <div class="vital-value" id="vital-heartRate">—</div>
-        </div>
-        <div class="vital-pair">
-          <div class="vital-label">Blood pressure (BP)</div>
-          <div class="vital-value" id="vital-bloodPressure">—</div>
-        </div>
-        <div class="vital-pair">
-          <div class="vital-label">Key injury / problem</div>
-          <div class="vital-value" id="vital-injury">—</div>
-        </div>
-      </div>
-
-      <div class="timer-block">
-        <div class="timer-label">TRIAGE TIMER</div>
-        <div class="timer-value" id="timerText">0.00 s</div>
-        <div class="timer-note" id="timerNote">
-          Scan any patient tag to begin.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Human triage + hospital/tests -->
-  <div class="triage-card">
-    <div class="card-title-row">
-      <h2>Human Triage Decision</h2>
+      </section>
     </div>
 
-    <div class="triage-buttons">
-      <div>
-        <div class="triage-circle triage-red" data-triage="Red">RED</div>
-        <div class="triage-label">Immediate</div>
-      </div>
-      <div>
-        <div class="triage-circle triage-yellow" data-triage="Yellow">YELLOW</div>
-        <div class="triage-label">Urgent</div>
-      </div>
-      <div>
-        <div class="triage-circle triage-green" data-triage="Green">GREEN</div>
-        <div class="triage-label">Minimal</div>
-      </div>
-      <div>
-        <div class="triage-circle triage-black" data-triage="Black">BLACK</div>
-        <div class="triage-label">Expectant</div>
-      </div>
+    <!-- BOTTOM ROW -->
+    <div class="bottom-row">
+      <!-- TRIAGE DECISION -->
+      <section class="panel">
+        <h2>Human Triage Decision</h2>
+        <div class="triage-controls">
+          <div class="triage-steps-label">Step 1 — choose triage category</div>
+          <div class="triage-circles">
+            <div class="triage-circle" data-level="Red">
+              <span>Red</span>
+            </div>
+            <div class="triage-circle" data-level="Yellow">
+              <span>Yellow</span>
+            </div>
+            <div class="triage-circle" data-level="Green">
+              <span>Green</span>
+            </div>
+            <div class="triage-circle" data-level="Black">
+              <span>Black</span>
+            </div>
+          </div>
+
+          <div class="hospital-tests">
+            <div>
+              <div class="triage-steps-label" style="margin-bottom:4px;">Step 2 — choose receiving hospital</div>
+              <div id="hospitalList"></div>
+            </div>
+            <div>
+              <div class="triage-steps-label" style="margin-bottom:4px;">Step 3 — choose ER tests</div>
+              <div class="tests-list" id="testsList"></div>
+            </div>
+          </div>
+
+          <div class="submit-row">
+            <span id="decisionHint">Complete triage + hospital + tests.</span>
+            <button class="btn-primary" id="submitDecisionBtn" disabled>Submit Decision</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULTS + LEADERBOARD -->
+      <section class="panel">
+        <h2>Human vs AI Results</h2>
+
+        <table class="results-table">
+          <thead>
+          <tr>
+            <th>Category</th>
+            <th>Human</th>
+            <th>AI</th>
+            <th class="match-cell">Match</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>Triage</td>
+            <td id="resHumanTriage">—</td>
+            <td id="resAITriage">—</td>
+            <td class="match-cell" id="matchTriage">—</td>
+          </tr>
+          <tr>
+            <td>Hospital</td>
+            <td id="resHumanHospital">—</td>
+            <td id="resAIHospital">—</td>
+            <td class="match-cell" id="matchHospital">—</td>
+          </tr>
+          <tr>
+            <td>ER tests</td>
+            <td id="resHumanTests">—</td>
+            <td id="resAITests">—</td>
+            <td class="match-cell" id="matchTests">—</td>
+          </tr>
+          <tr>
+            <td>Time</td>
+            <td id="resHumanTime">—</td>
+            <td id="resAITime">—</td>
+            <td class="match-cell" id="matchTime">—</td>
+          </tr>
+          </tbody>
+        </table>
+
+        <div class="score-summary" id="scoreSummary">
+          Score: 0 / 12 points
+        </div>
+
+        <div class="leaderboard">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <div style="font-weight:600;">Live Leaderboard</div>
+            <button class="btn-primary" style="padding:4px 10px;font-size:11px;background:linear-gradient(135deg,#ef4444,#f97316);" id="resetLeaderboardBtn">
+              Reset board
+            </button>
+          </div>
+          <table>
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Mode</th>
+              <th>Scenario</th>
+              <th>Score</th>
+              <th>Time</th>
+            </tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
-
-    <div class="hospital-tests">
-      <div class="hospital-card">
-        <div class="hospital-title">Receiving hospital</div>
-        <div class="hospital-sub" id="hospitalHint">Choose the most appropriate facility.</div>
-        <div id="hospitalOptions"></div>
-      </div>
-
-      <div class="hospital-card">
-        <div class="hospital-title">Emergency department tests</div>
-        <div class="hospital-sub">Select all tests you would order on arrival.</div>
-        <div id="testOptions"></div>
-      </div>
-    </div>
-
-    <button class="submit-btn" id="submitDecisionBtn" disabled>
-      Submit Decision
-    </button>
-  </div>
-
-  <!-- Results & leaderboard -->
-  <div class="results-card">
-    <div class="card-title-row">
-      <h2>Human vs AI Results</h2>
-    </div>
-
-    <table class="results-table">
-      <thead>
-      <tr>
-        <th>Category</th>
-        <th>Human</th>
-        <th>AI</th>
-        <th class="match">Match</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr>
-        <td>Triage</td>
-        <td id="res-human-triage">—</td>
-        <td id="res-ai-triage">—</td>
-        <td class="match" id="res-match-triage">—</td>
-      </tr>
-      <tr>
-        <td>Hospital</td>
-        <td id="res-human-hospital">—</td>
-        <td id="res-ai-hospital">—</td>
-        <td class="match" id="res-match-hospital">—</td>
-      </tr>
-      <tr>
-        <td>ER tests</td>
-        <td id="res-human-tests">—</td>
-        <td id="res-ai-tests">—</td>
-        <td class="match" id="res-match-tests">—</td>
-      </tr>
-      <tr>
-        <td>Time</td>
-        <td id="res-human-time">—</td>
-        <td id="res-ai-time">—</td>
-        <td class="match" id="res-match-time">—</td>
-      </tr>
-      </tbody>
-    </table>
-
-    <div class="score-line" id="scoreLine">Score: — / 12 points</div>
-
-    <div class="leaderboard">
-      <div style="margin-bottom:2px; font-weight:600;">Leaderboard</div>
-      <table>
-        <thead>
-        <tr>
-          <th>#</th>
-          <th>Name / team</th>
-          <th>Scenario</th>
-          <th>Score</th>
-          <th>Time</th>
-        </tr>
-        </thead>
-        <tbody id="leaderboardBody"></tbody>
-      </table>
-    </div>
-  </div>
+  </main>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
 
-  const scenarioSelect = document.getElementById("scenarioSelect");
-  const bodyImageBoxes = document.querySelectorAll(".image-box");
-  const timerText = document.getElementById("timerText");
-  const timerNote = document.getElementById("timerNote");
-  const operatorDisplay = document.getElementById("operatorDisplay").querySelector("span");
-
-  const vitalEls = {
-    consciousness: document.getElementById("vital-consciousness"),
-    respRate: document.getElementById("vital-respRate"),
-    heartRate: document.getElementById("vital-heartRate"),
-    bloodPressure: document.getElementById("vital-bloodPressure"),
-    injury: document.getElementById("vital-injury"),
-  };
-
-  const triageCircles = document.querySelectorAll(".triage-circle");
-  const submitDecisionBtn = document.getElementById("submitDecisionBtn");
-
-  const resHumanTriage = document.getElementById("res-human-triage");
-  const resAiTriage = document.getElementById("res-ai-triage");
-  const resMatchTriage = document.getElementById("res-match-triage");
-
-  const resHumanHospital = document.getElementById("res-human-hospital");
-  const resAiHospital = document.getElementById("res-ai-hospital");
-  const resMatchHospital = document.getElementById("res-match-hospital");
-
-  const resHumanTests = document.getElementById("res-human-tests");
-  const resAiTests = document.getElementById("res-ai-tests");
-  const resMatchTests = document.getElementById("res-match-tests");
-
-  const resHumanTime = document.getElementById("res-human-time");
-  const resAiTime = document.getElementById("res-ai-time");
-  const resMatchTime = document.getElementById("res-match-time");
-
-  const scoreLine = document.getElementById("scoreLine");
-  const leaderboardBody = document.getElementById("leaderboardBody");
-  const hospitalOptionsDiv = document.getElementById("hospitalOptions");
-  const testOptionsDiv = document.getElementById("testOptions");
-
-  const partToVitalKey = {
-    head: "consciousness",
-    chest: "respRate",
-    abdomen: "heartRate",
-    arms: "bloodPressure",
-    legs: "injury",
-  };
-
-  const scenarios = {
-    s1: {
-      name: "Scenario 1 — Hajj Stampede",
-      aiTriage: "Red",
-      aiHospital: "Mina Emergency Hospital — Hajj Priority Centre",
-      aiTests: ["FAST ultrasound", "Serum lactate", "Blood typing and crossmatch"],
-      aiTimeSec: 1.2,
-      vitals: {
-        consciousness: "Unconscious",
-        respRate: "34 / min",
-        heartRate: "142 bpm",
-        bloodPressure: "78/45 mmHg",
-        injury: "Severe abdominal bleeding & suspected pelvic fracture",
+  // ---- Scenario config (no correct answer hints in labels) ----
+  const scenarios = [
+    {
+      id: "s1",
+      label: "Scenario 1 — Hajj Stampede",
+      ai: {
+        triage: "Red",
+        hospital: "Mina Emergency Hospital",
+        erTests: ["FAST ultrasound", "Serum lactate", "Blood typing and crossmatch"],
+        timeSeconds: 1.2
+      },
+      bodyPartVitals: {
+        head:   { vitalKey: "consciousness", value: "Unconscious" },
+        chest:  { vitalKey: "rr", value: "34 / min" },
+        abdomen:{ vitalKey: "hr", value: "142 bpm" },
+        arms:   { vitalKey: "bp", value: "78/45 mmHg" },
+        legs:   { vitalKey: "keyInjury", value: "Severe abdominal bleeding & suspected pelvic fracture" }
       },
       hospitals: [
-        "Mina Emergency Hospital — Hajj Priority Centre",
-        "King Fahad Medical City — Level 1 Trauma Centre",
-        "Dhahran Trauma Center — Highway Critical Care",
-        "AlUla Field Medical Base — Desert Response",
-      ],
-      tests: [
-        "FAST ultrasound",
-        "Carboxyhaemoglobin level (CO)",
-        "Plain X-ray",
-        "MRI scan",
-        "CT scan",
-        "Intravenous (IV) fluids",
-        "Blood typing and crossmatch",
-        "Serum lactate",
-        "Burn depth assessment",
-      ],
+        {
+          name: "Mina Emergency Hospital",
+          meta: "Closest high-emergency facility",
+          testsAvailable: ["FAST ultrasound", "Serum lactate", "Blood typing and crossmatch"]
+        },
+        {
+          name: "King Fahad Medical City — Trauma Centre",
+          meta: "Level 1 trauma centre, Riyadh",
+          testsAvailable: ["FAST ultrasound", "Serum lactate", "Blood typing and crossmatch", "CT scan"]
+        },
+        {
+          name: "Dhahran Trauma Center",
+          meta: "Highway critical care hub",
+          testsAvailable: ["FAST ultrasound", "CT scan", "Serum lactate"]
+        }
+      ]
     },
-    s2: {
-      name: "Scenario 2 — Industrial Explosion",
-      aiTriage: "Yellow",
-      aiHospital: "King Fahad Medical City — Level 1 Trauma Centre",
-      aiTests: ["Plain X-ray", "Carboxyhaemoglobin level (CO)", "Burn depth assessment"],
-      aiTimeSec: 1.4,
-      vitals: {
-        consciousness: "Alert, confused",
-        respRate: "26 / min",
-        heartRate: "110 bpm",
-        bloodPressure: "100/70 mmHg",
-        injury: "Burns, chest tightness & dizziness",
+    {
+      id: "s2",
+      label: "Scenario 2 — Industrial Explosion",
+      ai: {
+        triage: "Yellow",
+        hospital: "King Fahad Medical City — Trauma Centre",
+        erTests: ["Plain X-ray", "Carboxyhaemoglobin level (CO)", "Burn depth assessment"],
+        timeSeconds: 1.4
+      },
+      bodyPartVitals: {
+        head:   { vitalKey: "consciousness", value: "Alert but confused" },
+        chest:  { vitalKey: "rr", value: "26 / min" },
+        abdomen:{ vitalKey: "hr", value: "110 bpm" },
+        arms:   { vitalKey: "bp", value: "100/70 mmHg" },
+        legs:   { vitalKey: "keyInjury", value: "Partial-thickness burns, chest tightness" }
       },
       hospitals: [
-        "King Fahad Medical City — Level 1 Trauma Centre",
-        "Mina Emergency Hospital — Hajj Priority Centre",
-        "Dhahran Trauma Center — Highway Critical Care",
-        "AlUla Field Medical Base — Desert Response",
-      ],
-      tests: [
-        "FAST ultrasound",
-        "Carboxyhaemoglobin level (CO)",
-        "Plain X-ray",
-        "MRI scan",
-        "CT scan",
-        "Intravenous (IV) fluids",
-        "Blood typing and crossmatch",
-        "Serum lactate",
-        "Burn depth assessment",
-      ],
+        {
+          name: "King Fahad Medical City — Trauma Centre",
+          meta: "Level 1 trauma centre",
+          testsAvailable: ["Plain X-ray", "Carboxyhaemoglobin level (CO)", "Burn depth assessment", "ECG"]
+        },
+        {
+          name: "Mina Emergency Hospital",
+          meta: "Mass-casualty capable unit",
+          testsAvailable: ["Plain X-ray", "Burn depth assessment"]
+        },
+        {
+          name: "Dhahran Trauma Center",
+          meta: "High-capacity burn and trauma",
+          testsAvailable: ["Plain X-ray", "CT scan", "Burn depth assessment"]
+        }
+      ]
     },
-    s3: {
-      name: "Scenario 3 — Desert Rally",
-      aiTriage: "Green",
-      aiHospital: "AlUla Field Medical Base — Desert Response",
-      aiTests: ["Intravenous (IV) fluids", "Plain X-ray", "FAST ultrasound"],
-      aiTimeSec: 1.3,
-      vitals: {
-        consciousness: "Walking, talking",
-        respRate: "18 / min",
-        heartRate: "92 bpm",
-        bloodPressure: "118/78 mmHg",
-        injury: "Mild dehydration & heat stress",
+    {
+      id: "s3",
+      label: "Scenario 3 — Desert Rally",
+      ai: {
+        triage: "Green",
+        hospital: "AlUla Field Medical Base",
+        erTests: ["Plain X-ray", "Intravenous (IV) fluids", "FAST ultrasound"],
+        timeSeconds: 1.5
+      },
+      bodyPartVitals: {
+        head:   { vitalKey: "consciousness", value: "Walking, answering appropriately" },
+        chest:  { vitalKey: "rr", value: "18 / min" },
+        abdomen:{ vitalKey: "hr", value: "92 bpm" },
+        arms:   { vitalKey: "bp", value: "118/78 mmHg" },
+        legs:   { vitalKey: "keyInjury", value: "Mild dehydration, heat stress" }
       },
       hospitals: [
-        "AlUla Field Medical Base — Desert Response",
-        "Mina Emergency Hospital — Hajj Priority Centre",
-        "King Fahad Medical City — Level 1 Trauma Centre",
-        "Dhahran Trauma Center — Highway Critical Care",
-      ],
-      tests: [
-        "FAST ultrasound",
-        "Carboxyhaemoglobin level (CO)",
-        "Plain X-ray",
-        "MRI scan",
-        "CT scan",
-        "Intravenous (IV) fluids",
-        "Blood typing and crossmatch",
-        "Serum lactate",
-        "Burn depth assessment",
-      ],
+        {
+          name: "AlUla Field Medical Base",
+          meta: "Desert response unit",
+          testsAvailable: ["Plain X-ray", "Intravenous (IV) fluids", "FAST ultrasound"]
+        },
+        {
+          name: "King Fahad Medical City — Trauma Centre",
+          meta: "Definitive care (if required)",
+          testsAvailable: ["Plain X-ray", "CT scan", "ECG"]
+        }
+      ]
     },
-    s4: {
-      name: "Scenario 4 — Highway Collision",
-      aiTriage: "Black",
-      aiHospital: "Dhahran Trauma Center — Highway Critical Care",
-      aiTests: ["CT scan", "FAST ultrasound", "Blood typing and crossmatch"],
-      aiTimeSec: 1.2,
-      vitals: {
-        consciousness: "No response",
-        respRate: "0 / min",
-        heartRate: "0 bpm",
-        bloodPressure: "Undetectable",
-        injury: "Massive polytrauma, non-survivable",
+    {
+      id: "s4",
+      label: "Scenario 4 — Highway Collision",
+      ai: {
+        triage: "Black",
+        hospital: "Dhahran Trauma Center",
+        erTests: ["FAST ultrasound", "CT scan", "Blood typing and crossmatch"],
+        timeSeconds: 1.3
+      },
+      bodyPartVitals: {
+        head:   { vitalKey: "consciousness", value: "Unresponsive, fixed dilated pupils" },
+        chest:  { vitalKey: "rr", value: "No respiratory effort" },
+        abdomen:{ vitalKey: "hr", value: "No palpable pulse" },
+        arms:   { vitalKey: "bp", value: "No measurable blood pressure" },
+        legs:   { vitalKey: "keyInjury", value: "Massive head and chest trauma" }
       },
       hospitals: [
-        "Dhahran Trauma Center — Highway Critical Care",
-        "King Fahad Medical City — Level 1 Trauma Centre",
-        "Mina Emergency Hospital — Hajj Priority Centre",
-        "AlUla Field Medical Base — Desert Response",
-      ],
-      tests: [
-        "FAST ultrasound",
-        "Carboxyhaemoglobin level (CO)",
-        "Plain X-ray",
-        "MRI scan",
-        "CT scan",
-        "Intravenous (IV) fluids",
-        "Blood typing and crossmatch",
-        "Serum lactate",
-        "Burn depth assessment",
-      ],
-    },
-  };
+        {
+          name: "Dhahran Trauma Center",
+          meta: "Highway critical care",
+          testsAvailable: ["FAST ultrasound", "CT scan", "Blood typing and crossmatch"]
+        },
+        {
+          name: "King Fahad Medical City — Trauma Centre",
+          meta: "Level 1 trauma, tertiary review",
+          testsAvailable: ["FAST ultrasound", "CT scan", "Serum lactate"]
+        }
+      ]
+    }
+  ];
 
-  let currentScenarioId = "s1";
-
-  let collectedVitals;
-  let imagesByPart;
+  // ---- State ----
+  let currentScenario = scenarios[0];
+  let collected = {}; // bodyPart -> { scanned, imageUrl }
+  let vitalsState = { consciousness:null, rr:null, hr:null, bp:null, keyInjury:null };
   let timerRunning = false;
-  let timerStartMs = 0;
-  let timerStoppedValue = 0;
+  let timerStart = null;
+  let finalTimeMs = null;
+  let leaderboard = [];
 
-  let currentTriage = null;
-  let currentHospital = null;
-  let currentTests = new Set();
-  let lastOperatorName = "Visitor";
-  let lastOperatorMode = "Solo";
+  const bodyOrder = ["head","chest","abdomen","arms","legs"];
 
-  const leaderboard = [];
+  // ---- DOM helpers ----
+  const scenarioSelectEl = document.getElementById("scenarioSelect");
+  const operatorLabelEl = document.getElementById("operatorLabel");
+  const timerDisplayEl = document.getElementById("timerDisplay");
+  const timerHintEl = document.getElementById("timerHint");
 
-  function resetStateForScenario() {
-    collectedVitals = {
-      consciousness: false,
-      respRate: false,
-      heartRate: false,
-      bloodPressure: false,
-      injury: false,
-    };
-    imagesByPart = {
-      head: null,
-      chest: null,
-      abdomen: null,
-      arms: null,
-      legs: null,
-    };
+  const vConEl = document.getElementById("vConsciousness");
+  const vRREl = document.getElementById("vRR");
+  const vHREl = document.getElementById("vHR");
+  const vBPEl = document.getElementById("vBP");
+  const vKeyEl = document.getElementById("vKeyInjury");
 
-    Object.keys(vitalEls).forEach((key) => {
-      vitalEls[key].textContent = "—";
+  const triageCircles = Array.from(document.querySelectorAll(".triage-circle"));
+  const hospitalListEl = document.getElementById("hospitalList");
+  const testsListEl = document.getElementById("testsList");
+  const submitDecisionBtn = document.getElementById("submitDecisionBtn");
+  const decisionHintEl = document.getElementById("decisionHint");
+
+  const resHumanTriage = document.getElementById("resHumanTriage");
+  const resAITriage = document.getElementById("resAITriage");
+  const resHumanHospital = document.getElementById("resHumanHospital");
+  const resAIHospital = document.getElementById("resAIHospital");
+  const resHumanTests = document.getElementById("resHumanTests");
+  const resAITests = document.getElementById("resAITests");
+  const resHumanTime = document.getElementById("resHumanTime");
+  const resAITime = document.getElementById("resAITime");
+  const matchTriage = document.getElementById("matchTriage");
+  const matchHospital = document.getElementById("matchHospital");
+  const matchTests = document.getElementById("matchTests");
+  const matchTime = document.getElementById("matchTime");
+  const scoreSummaryEl = document.getElementById("scoreSummary");
+  const leaderboardBody = document.getElementById("leaderboardBody");
+  const resetLeaderboardBtn = document.getElementById("resetLeaderboardBtn");
+
+  let selectedTriage = null;
+  let selectedHospital = null;
+  let selectedTests = new Set();
+  let currentOperator = { name: "Unknown", mode: "Solo" };
+
+  // ---- Scenario setup ----
+  function populateScenarioDropdown() {
+    scenarioSelectEl.innerHTML = "";
+    scenarios.forEach((sc) => {
+      const opt = document.createElement("option");
+      opt.value = sc.id;
+      opt.textContent = sc.label; // No correct triage colour shown here
+      scenarioSelectEl.appendChild(opt);
+    });
+  }
+
+  function resetBodyAndVitals() {
+    collected = {};
+    bodyOrder.forEach(part => {
+      collected[part] = { scanned:false, imageUrl:null };
+      const row = document.querySelector(`.body-row[data-part="${part}"]`);
+      const slot = row.querySelector(".body-image-slot");
+      slot.innerHTML = `<span class="body-placeholder">Scan ${part} tag</span>`;
+      const dot = row.querySelector(".drone-dot");
+      dot.classList.remove("active");
     });
 
-    bodyImageBoxes.forEach((box) => {
-      const img = box.querySelector("img");
-      const ph = box.querySelector(".image-placeholder");
-      img.style.display = "none";
-      img.src = "";
-      ph.style.display = "block";
-    });
+    vitalsState = { consciousness:null, rr:null, hr:null, bp:null, keyInjury:null };
+    updateVitalsDisplay();
 
     timerRunning = false;
-    timerStartMs = 0;
-    timerStoppedValue = 0;
-    timerText.textContent = "0.00 s";
-    timerNote.textContent = "Scan any patient tag to begin.";
-
-    currentTriage = null;
-    currentHospital = null;
-    currentTests = new Set();
-
-    triageCircles.forEach((c) => c.classList.remove("active"));
-    submitDecisionBtn.disabled = true;
-
-    resHumanTriage.textContent = "—";
-    resAiTriage.textContent = "—";
-    resMatchTriage.textContent = "—";
-    resHumanHospital.textContent = "—";
-    resAiHospital.textContent = "—";
-    resMatchHospital.textContent = "—";
-    resHumanTests.textContent = "—";
-    resAiTests.textContent = "—";
-    resMatchTests.textContent = "—";
-    resHumanTime.textContent = "—";
-    resAiTime.textContent = "—";
-    resMatchTime.textContent = "—";
-    scoreLine.textContent = "Score: — / 12 points";
-
-    populateHospitalAndTests();
+    timerStart = null;
+    finalTimeMs = null;
+    timerDisplayEl.textContent = "0.00 s";
+    timerHintEl.textContent = "Scan any patient tag to start the timer.";
   }
 
-  function populateHospitalAndTests() {
-    const sc = scenarios[currentScenarioId];
-    hospitalOptionsDiv.innerHTML = "";
-    sc.hospitals.forEach((name) => {
-      const id = "hosp-" + name.replace(/\W+/g, "-");
-      const wrapper = document.createElement("div");
-      wrapper.className = "hospital-option";
-      wrapper.innerHTML = `
-        <label>
-          <input type="radio" name="hospital" value="${name}" id="${id}">
-          ${name}
-        </label>`;
-      hospitalOptionsDiv.appendChild(wrapper);
-    });
-
-    testOptionsDiv.innerHTML = "";
-    sc.tests.forEach((t) => {
-      const id = "test-" + t.replace(/\W+/g, "-");
-      const wrapper = document.createElement("div");
-      wrapper.className = "hospital-option";
-      wrapper.innerHTML = `
-        <label>
-          <input type="checkbox" value="${t}" id="${id}">
-          ${t}
-        </label>`;
-      testOptionsDiv.appendChild(wrapper);
-    });
+  function updateVitalsDisplay() {
+    vConEl.textContent = vitalsState.consciousness || "—";
+    vRREl.textContent = vitalsState.rr || "—";
+    vHREl.textContent = vitalsState.hr || "—";
+    vBPEl.textContent = vitalsState.bp || "—";
+    vKeyEl.textContent = vitalsState.keyInjury || "—";
   }
 
+  function selectScenarioById(id) {
+    const sc = scenarios.find(s => s.id === id) || scenarios[0];
+    currentScenario = sc;
+    resetBodyAndVitals();
+    resetDecision();
+    clearResultsOnly();
+  }
+
+  scenarioSelectEl.addEventListener("change", () => {
+    selectScenarioById(scenarioSelectEl.value);
+  });
+
+  // ---- Timer ----
+  function startTimerIfNeeded() {
+    if (timerRunning || finalTimeMs !== null) return;
+    timerRunning = true;
+    timerStart = performance.now();
+    timerHintEl.textContent = "Timer running… make your triage decision.";
+    requestAnimationFrame(updateTimerLoop);
+  }
+
+  function updateTimerLoop() {
+    if (!timerRunning) return;
+    const now = performance.now();
+    const elapsed = now - timerStart;
+    const seconds = Math.floor(elapsed / 1000);
+    const centis = Math.floor((elapsed % 1000) / 10);
+    timerDisplayEl.textContent = `${seconds}.${String(centis).padStart(2, "0")} s`;
+    requestAnimationFrame(updateTimerLoop);
+  }
+
+  function stopTimer() {
+    if (!timerRunning) return;
+    const now = performance.now();
+    finalTimeMs = now - timerStart;
+    timerRunning = false;
+    const seconds = Math.floor(finalTimeMs / 1000);
+    const centis = Math.floor((finalTimeMs % 1000) / 10);
+    timerDisplayEl.textContent = `${seconds}.${String(centis).padStart(2, "0")} s (final)`;
+    timerHintEl.textContent = "All vitals collected. Move to triage zone and make your decisions.";
+  }
+
+  function haveAllVitalsForScenario() {
+    const cfg = currentScenario.bodyPartVitals;
+    // All five body parts scanned -> all vitals known
+    return bodyOrder.every(p => collected[p].scanned);
+  }
+
+  // ---- Infer body part from image URL ----
   function inferBodyPartFromUrl(url) {
-    const u = url.toLowerCase();
-    if (u.includes("head")) return "head";
-    if (u.includes("chest")) return "chest";
-    if (u.includes("abdomen")) return "abdomen";
-    if (u.includes("arm")) return "arms";
-    if (u.includes("leg") || u.includes("id")) return "legs";
+    const lower = url.toLowerCase();
+    if (lower.includes("_head")) return "head";
+    if (lower.includes("_chest")) return "chest";
+    if (lower.includes("_abdomen")) return "abdomen";
+    if (lower.includes("_arms")) return "arms";
+    if (lower.includes("_legs")) return "legs";
     return null;
   }
 
-  function handleValidScan(url) {
+  // ---- Handling QR scans from mobile ----
+  socket.on("qr-scanned", ({ url }) => {
     const part = inferBodyPartFromUrl(url);
     if (!part) {
-      timerNote.textContent = "Tag scanned, but body region not recognised.";
+      // Unknown tag – ignore silently on big screen
       return;
     }
 
-    if (!timerRunning) {
-      timerRunning = true;
-      timerStartMs = performance.now();
-      requestAnimationFrame(updateTimer);
-      timerNote.textContent = "Vitals incoming…";
+    startTimerIfNeeded();
+
+    const partState = collected[part];
+    if (!partState.scanned) {
+      // Set image in the correct row (fixes "abdomen image in head row")
+      const row = document.querySelector(`.body-row[data-part="${part}"]`);
+      if (!row) return;
+      const slot = row.querySelector(".body-image-slot");
+      slot.innerHTML = "";
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = `${part} image`;
+      slot.appendChild(img);
+
+      const dot = row.querySelector(".drone-dot");
+      dot.classList.add("active");
+
+      partState.scanned = true;
+      partState.imageUrl = url;
+
+      // Reveal the associated vital for this body part and this scenario
+      const mapping = currentScenario.bodyPartVitals[part];
+      if (mapping) {
+        const { vitalKey, value } = mapping;
+        if (vitalKey === "consciousness") vitalsState.consciousness = value;
+        if (vitalKey === "rr") vitalsState.rr = value;
+        if (vitalKey === "hr") vitalsState.hr = value;
+        if (vitalKey === "bp") vitalsState.bp = value;
+        if (vitalKey === "keyInjury") vitalsState.keyInjury = value;
+        updateVitalsDisplay();
+      }
+
+      if (haveAllVitalsForScenario()) {
+        stopTimer();
+      }
     }
-
-    const box = document.querySelector(`.image-box[data-part="${part}"]`);
-    if (!box) return;
-    const img = box.querySelector("img");
-    const ph = box.querySelector(".image-placeholder");
-    img.src = url;
-    img.style.display = "block";
-    ph.style.display = "none";
-    imagesByPart[part] = url;
-
-    const vitalKey = partToVitalKey[part];
-    if (vitalKey && !collectedVitals[vitalKey]) {
-      const sc = scenarios[currentScenarioId];
-      vitalEls[vitalKey].textContent = sc.vitals[vitalKey];
-      collectedVitals[vitalKey] = true;
-    }
-
-    const allVitalsDone = Object.values(collectedVitals).every(Boolean);
-    if (allVitalsDone) {
-      timerNote.textContent = "All vitals collected! Make your triage decision.";
-      submitDecisionBtn.disabled = false;
-    } else {
-      const count = Object.values(collectedVitals).filter(Boolean).length;
-      timerNote.textContent = `Vitals scanned: ${count} / 5`;
-    }
-  }
-
-  function updateTimer(timestamp) {
-    if (!timerRunning) return;
-    const elapsedMs = timestamp - timerStartMs;
-    timerStoppedValue = elapsedMs;
-    const sec = elapsedMs / 1000;
-    const whole = Math.floor(sec);
-    const ms2 = Math.floor((sec - whole) * 100);
-    timerText.textContent = `${whole}.${ms2.toString().padStart(2, "0")} s`;
-    requestAnimationFrame(updateTimer);
-  }
-
-  function aiForScenario() {
-    return scenarios[currentScenarioId];
-  }
-
-  function computeScore(human, ai, humanTimeSec) {
-    let score = 0;
-    if (human.triage === ai.aiTriage) score += 5;
-    if (human.hospital === ai.aiHospital) score += 3;
-
-    const setHuman = new Set(human.tests);
-    const setAi = new Set(ai.aiTests);
-    const sameSize = setHuman.size === setAi.size;
-    const allIn = [...setHuman].every((t) => setAi.has(t));
-    if (sameSize && allIn) score += 3;
-
-    if (humanTimeSec < ai.aiTimeSec) score += 1;
-
-    return score;
-  }
-
-  function updateLeaderboard() {
-    leaderboardBody.innerHTML = "";
-    leaderboard
-      .sort((a, b) => b.score - a.score || a.timeSec - b.timeSec)
-      .forEach((row, idx) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${row.name}</td>
-          <td>${row.scenario}</td>
-          <td>${row.score} / 12</td>
-          <td>${row.time.toFixed(2)} s</td>
-        `;
-        leaderboardBody.appendChild(tr);
-      });
-  }
-
-  // Scenario change
-  scenarioSelect.addEventListener("change", () => {
-    currentScenarioId = scenarioSelect.value;
-    resetStateForScenario();
   });
 
-  // Triages
-  triageCircles.forEach((circle) => {
+  // ---- Operator info from mobile ----
+  socket.on("operator-joined", ({ name, mode }) => {
+    currentOperator = { name, mode };
+    operatorLabelEl.innerHTML = `Operator: <span class="glow">${name || "Unknown"}</span> (${mode || "Solo"})`;
+  });
+
+  // ---- Triage decision UI ----
+  function resetDecision() {
+    selectedTriage = null;
+    selectedHospital = null;
+    selectedTests = new Set();
+    triageCircles.forEach(c => c.classList.remove("selected"));
+    decisionHintEl.textContent = "Complete triage + hospital + tests.";
+    submitDecisionBtn.disabled = true;
+    renderHospitalsAndTests();
+  }
+
+  function clearResultsOnly() {
+    resHumanTriage.textContent = "—";
+    resAITriage.textContent = "—";
+    resHumanHospital.textContent = "—";
+    resAIHospital.textContent = "—";
+    resHumanTests.textContent = "—";
+    resAITests.textContent = "—";
+    resHumanTime.textContent = "—";
+    resAITime.textContent = "—";
+    [matchTriage,matchHospital,matchTests,matchTime].forEach(el => { el.textContent = "—"; el.className="match-cell"; });
+    scoreSummaryEl.textContent = "Score: 0 / 12 points";
+  }
+
+  triageCircles.forEach(circle => {
     circle.addEventListener("click", () => {
-      triageCircles.forEach((c) => c.classList.remove("active"));
-      circle.classList.add("active");
-      currentTriage = circle.getAttribute("data-triage");
+      triageCircles.forEach(c => c.classList.remove("selected"));
+      circle.classList.add("selected");
+      selectedTriage = circle.dataset.level;
+      updateSubmitState();
     });
   });
 
-  // Hospital selection
-  hospitalOptionsDiv.addEventListener("change", (e) => {
-    if (e.target && e.target.name === "hospital") {
-      currentHospital = e.target.value;
-    }
-  });
+  function renderHospitalsAndTests() {
+    // Hospitals
+    hospitalListEl.innerHTML = "";
+    currentScenario.hospitals.forEach(h => {
+      const card = document.createElement("div");
+      card.className = "hospital-card";
+      card.dataset.name = h.name;
+      card.innerHTML = `<div class="hospital-name">${h.name}</div>
+                        <div class="hospital-meta">${h.meta}</div>`;
+      card.addEventListener("click", () => {
+        selectedHospital = h.name;
+        Array.from(hospitalListEl.children).forEach(c => c.classList.remove("selected"));
+        card.classList.add("selected");
+        // Update tests list to those available at this hospital
+        renderTests(h.testsAvailable);
+        updateSubmitState();
+      });
+      hospitalListEl.appendChild(card);
+    });
 
-  // Tests selection
-  testOptionsDiv.addEventListener("change", (e) => {
-    if (e.target && e.target.type === "checkbox") {
-      const val = e.target.value;
-      if (e.target.checked) currentTests.add(val);
-      else currentTests.delete(val);
+    // Tests default = first hospital if any
+    const first = currentScenario.hospitals[0];
+    if (first) {
+      selectedHospital = first.name;
+      setTimeout(() => {
+        const firstCard = hospitalListEl.querySelector(`[data-name="${first.name}"]`);
+        if (firstCard) firstCard.classList.add("selected");
+      }, 0);
+      renderTests(first.testsAvailable);
+    } else {
+      testsListEl.innerHTML = "<div style='font-size:12px;color:var(--muted);'>No ER tests configured.</div>";
     }
-  });
+  }
 
-  // Submit
+  function renderTests(list) {
+    testsListEl.innerHTML = "";
+    selectedTests = new Set();
+    list.forEach(testName => {
+      const row = document.createElement("label");
+      row.className = "test-row";
+      row.innerHTML = `<input type="checkbox" value="${testName}">
+                       <span>${testName}</span>`;
+      const checkbox = row.querySelector("input");
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) selectedTests.add(testName);
+        else selectedTests.delete(testName);
+        updateSubmitState();
+      });
+      testsListEl.appendChild(row);
+    });
+  }
+
+  function updateSubmitState() {
+    const ready = selectedTriage && selectedHospital && selectedTests.size > 0 && finalTimeMs !== null;
+    submitDecisionBtn.disabled = !ready;
+    decisionHintEl.textContent = ready
+      ? "Ready to submit. Compare your plan with the AI."
+      : "Complete triage, hospital and ER tests after all vitals are collected.";
+  }
+
   submitDecisionBtn.addEventListener("click", () => {
-    if (!currentTriage || !currentHospital) return;
-
-    timerRunning = false;
-    const timeSec = timerStoppedValue / 1000;
-
-    const ai = aiForScenario();
+    if (submitDecisionBtn.disabled) return;
     const human = {
-      triage: currentTriage,
-      hospital: currentHospital,
-      tests: Array.from(currentTests),
+      triage: selectedTriage,
+      hospital: selectedHospital,
+      tests: Array.from(selectedTests),
+      timeSeconds: finalTimeMs ? finalTimeMs / 1000 : null
     };
+    showResults(human);
+    addToLeaderboard(human);
+    socket.emit("triage-submitted", {
+      operator: currentOperator,
+      human,
+      scenarioId: currentScenario.id
+    });
+  });
 
-    const score = computeScore(human, ai, timeSec);
-
+  // ---- Scoring & results ----
+  function showResults(human) {
+    const ai = currentScenario.ai;
     resHumanTriage.textContent = human.triage;
-    resAiTriage.textContent = ai.aiTriage;
-    resMatchTriage.textContent =
-      human.triage === ai.aiTriage ? "✅" : "❌";
-
+    resAITriage.textContent = ai.triage;
     resHumanHospital.textContent = human.hospital;
-    resAiHospital.textContent = ai.aiHospital;
-    resMatchHospital.textContent =
-      human.hospital === ai.aiHospital ? "✅" : "❌";
+    resAIHospital.textContent = ai.hospital;
+    resHumanTests.textContent = human.tests.join(", ");
+    resAITests.textContent = ai.erTests.join(", ");
 
-    resHumanTests.textContent = human.tests.join(", ") || "None";
-    resAiTests.textContent = ai.aiTests.join(", ");
-    const sameTests =
-      human.tests.length === ai.aiTests.length &&
-      human.tests.every((t) => ai.aiTests.includes(t));
-    resMatchTests.textContent = sameTests ? "✅" : "❌";
+    const tHuman = human.timeSeconds ?? 0;
+    resHumanTime.textContent = `${tHuman.toFixed(2)} s`;
+    resAITime.textContent = `${ai.timeSeconds.toFixed(2)} s`;
 
-    resHumanTime.textContent = `${timeSec.toFixed(2)} s`;
-    resAiTime.textContent = `${ai.aiTimeSec.toFixed(2)} s`;
-    resMatchTime.textContent =
-      timeSec < ai.aiTimeSec ? "⏱️✅" : "⏱️❌";
+    let score = 0;
 
-    scoreLine.textContent = `Score: ${score} / 12 points`;
+    const triageMatch = human.triage === ai.triage;
+    markMatch(matchTriage, triageMatch);
+    if (triageMatch) score += 5;
 
-    const nameDisplay = `${lastOperatorName} (${lastOperatorMode})`;
+    const hospMatch = human.hospital === ai.hospital;
+    markMatch(matchHospital, hospMatch);
+    if (hospMatch) score += 3;
 
-    const lbRow = {
-      name: nameDisplay,
-      scenario: scenarios[currentScenarioId].name,
+    const aiSet = new Set(ai.erTests);
+    const humanSet = new Set(human.tests);
+    let testsMatch = ai.erTests.length === human.tests.length &&
+                     ai.erTests.every(t => humanSet.has(t));
+    markMatch(matchTests, testsMatch);
+    if (testsMatch) score += 2;
+
+    const faster = human.timeSeconds && human.timeSeconds < ai.timeSeconds;
+    markMatch(matchTime, faster);
+    if (faster) score += 2;
+
+    scoreSummaryEl.textContent = `Score: ${score} / 12 points`;
+  }
+
+  function markMatch(cell, ok) {
+    cell.className = "match-cell " + (ok ? "match-yes" : "match-no");
+    cell.textContent = ok ? "✅" : "❌";
+  }
+
+  function addToLeaderboard(human) {
+    const scoreText = scoreSummaryEl.textContent;
+    const scoreMatch = /Score:\s+(\d+)\s+\/\s+12/.exec(scoreText);
+    const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+
+    leaderboard.push({
+      name: currentOperator.name || "Unknown",
+      mode: currentOperator.mode || "Solo",
+      scenario: currentScenario.label,
       score,
-      time: timeSec,
-      timeSec,
-    };
-    leaderboard.push(lbRow);
-    updateLeaderboard();
+      time: human.timeSeconds ?? 0
+    });
 
-    socket.emit("final-score", lbRow);
+    leaderboard.sort((a,b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.time - b.time;
+    });
+
+    renderLeaderboard();
+  }
+
+  function renderLeaderboard() {
+    leaderboardBody.innerHTML = "";
+    leaderboard.forEach((entry, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${idx+1}</td>
+                      <td>${entry.name}</td>
+                      <td>${entry.mode}</td>
+                      <td>${entry.scenario}</td>
+                      <td>${entry.score}</td>
+                      <td>${entry.time.toFixed(2)} s</td>`;
+      leaderboardBody.appendChild(tr);
+    });
+  }
+
+  resetLeaderboardBtn.addEventListener("click", () => {
+    leaderboard = [];
+    renderLeaderboard();
+    socket.emit("reset-leaderboard");
   });
 
-  // Socket listeners
-  socket.on("operator-info", (info) => {
-    lastOperatorName = info.name || "Visitor";
-    lastOperatorMode = info.mode || "Solo";
-    operatorDisplay.textContent = `${lastOperatorName} (${lastOperatorMode})`;
+  socket.on("reset-leaderboard", () => {
+    leaderboard = [];
+    renderLeaderboard();
   });
 
-  socket.on("qr-scanned", (data) => {
-    if (data.operator) {
-      lastOperatorName = data.operator;
-      lastOperatorMode = data.mode || "Solo";
-      operatorDisplay.textContent = `${lastOperatorName} (${lastOperatorMode})`;
-    }
-    handleValidScan(data.url);
+  // When another screen submits, we also update our leaderboard
+  socket.on("triage-submitted", ({ operator, human, scenarioId }) => {
+    if (!human || !operator) return;
+    const sc = scenarios.find(s => s.id === scenarioId);
+    if (!sc) return;
+    const entryScenario = sc.label;
+    const scoreText = scoreSummaryEl.textContent;
+    // scoring is local per screen; remote submissions won't affect this viewer's results,
+    // but we still list their outcome using AI comparison in their own browser.
+    leaderboard.push({
+      name: operator.name || "Unknown",
+      mode: operator.mode || "Solo",
+      scenario: entryScenario,
+      score: 0,
+      time: human.timeSeconds ?? 0
+    });
+    leaderboard.sort((a,b)=> (b.score !== a.score ? b.score-a.score : a.time-b.time));
+    renderLeaderboard();
   });
 
-  socket.on("final-score", (row) => {
-    leaderboard.push(row);
-    updateLeaderboard();
-  });
-
-  // initial
-  resetStateForScenario();
+  // Initial setup
+  populateScenarioDropdown();
+  selectScenarioById(scenarios[0].id);
 </script>
 </body>
 </html>
