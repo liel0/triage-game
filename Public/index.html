@@ -1056,4 +1056,212 @@
     resHumanTime.textContent = "—";
     resAITime.textContent = "—";
     [matchTriage,matchHospital,matchTests,matchTime].forEach(el => { el.textContent = "—"; el.className="match-cell"; });
-    scoreSummaryEl.textCon
+    scoreSummaryEl.textContent = "Score: 0 / 12 points";
+  }
+
+  triageCircles.forEach(circle => {
+    circle.addEventListener("click", () => {
+      triageCircles.forEach(c => c.classList.remove("selected"));
+      circle.classList.add("selected");
+      selectedTriage = circle.dataset.level;
+      updateSubmitState();
+    });
+  });
+
+  function renderHospitalsAndTests() {
+    hospitalListEl.innerHTML = "";
+    currentScenario.hospitals.forEach(h => {
+      const card = document.createElement("div");
+      card.className = "hospital-card";
+      card.dataset.name = h.name;
+      card.innerHTML = `<div class="hospital-name">${h.name}</div>
+                        <div class="hospital-meta">${h.meta}</div>`;
+      card.addEventListener("click", () => {
+        selectedHospital = h.name;
+        Array.from(hospitalListEl.children).forEach(c => c.classList.remove("selected"));
+        card.classList.add("selected");
+        renderTests(h.testsAvailable);
+        updateSubmitState();
+      });
+      hospitalListEl.appendChild(card);
+    });
+
+    const first = currentScenario.hospitals[0];
+    if (first) {
+      selectedHospital = first.name;
+      const firstCard = hospitalListEl.querySelector(`[data-name="${first.name}"]`);
+      if (firstCard) firstCard.classList.add("selected");
+      renderTests(first.testsAvailable);
+    } else {
+      testsListEl.innerHTML = "<div style='font-size:12px;color:var(--muted);'>No ER tests configured.</div>";
+    }
+  }
+
+  function renderTests(list) {
+    testsListEl.innerHTML = "";
+    selectedTests = new Set();
+    list.forEach(testName => {
+      const row = document.createElement("label");
+      row.className = "test-row";
+      row.innerHTML = `<input type="checkbox" value="${testName}">
+                       <span>${testName}</span>`;
+      const checkbox = row.querySelector("input");
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) selectedTests.add(testName);
+        else selectedTests.delete(testName);
+        updateSubmitState();
+      });
+      testsListEl.appendChild(row);
+    });
+  }
+
+  function updateSubmitState() {
+    // Ready only when: triage chosen, hospital chosen, at least one test, and ALL vitals scanned
+    const ready = selectedTriage && selectedHospital && selectedTests.size > 0 && haveAllVitalsForScenario();
+    submitDecisionBtn.disabled = !ready;
+    decisionHintEl.textContent = ready
+      ? "Ready to submit. Compare your plan with the AI."
+      : "Complete triage, hospital and ER tests after all vitals are collected.";
+  }
+
+  submitDecisionBtn.addEventListener("click", () => {
+    if (submitDecisionBtn.disabled) return;
+
+    // stop timer at the moment of human decision
+    if (haveAllVitalsForScenario() && timerRunning) {
+      stopDecisionTimer();
+    }
+
+    const human = {
+      triage: selectedTriage,
+      hospital: selectedHospital,
+      tests: Array.from(selectedTests),
+      timeSeconds: finalTimeMs ? finalTimeMs / 1000 : null
+    };
+    showResults(human);
+    addToLeaderboard(human);
+    socket.emit("triage-submitted", {
+      operator: currentOperator,
+      human,
+      scenarioId: currentScenario.id
+    });
+  });
+
+  // ---- Scoring & results ----
+  function showResults(human) {
+    const ai = currentScenario.ai;
+    resHumanTriage.textContent = human.triage;
+    resAITriage.textContent = ai.triage;
+    resHumanHospital.textContent = human.hospital;
+    resAIHospital.textContent = ai.hospital;
+    resHumanTests.textContent = human.tests.join(", ");
+    resAITests.textContent = ai.erTests.join(", ");
+
+    const tHuman = human.timeSeconds ?? 0;
+    resHumanTime.textContent = human.timeSeconds != null ? `${tHuman.toFixed(2)} s` : "—";
+    resAITime.textContent = `${ai.timeSeconds.toFixed(2)} s`;
+
+    let score = 0;
+
+    const triageMatch = human.triage === ai.triage;
+    markMatch(matchTriage, triageMatch);
+    if (triageMatch) score += 5;
+
+    const hospMatch = human.hospital === ai.hospital;
+    markMatch(matchHospital, hospMatch);
+    if (hospMatch) score += 3;
+
+    const aiSet = new Set(ai.erTests);
+    const humanSet = new Set(human.tests);
+    const testsMatch = ai.erTests.length === human.tests.length &&
+                       ai.erTests.every(t => humanSet.has(t));
+    markMatch(matchTests, testsMatch);
+    if (testsMatch) score += 2;
+
+    const faster = human.timeSeconds && human.timeSeconds < ai.timeSeconds;
+    markMatch(matchTime, faster);
+    if (faster) score += 2;
+
+    scoreSummaryEl.textContent = `Score: ${score} / 12 points`;
+  }
+
+  function markMatch(cell, ok) {
+    cell.className = "match-cell " + (ok ? "match-yes" : "match-no");
+    cell.textContent = ok ? "✅" : "❌";
+  }
+
+  function addToLeaderboard(human) {
+    const scoreText = scoreSummaryEl.textContent;
+    const scoreMatch = /Score:\s+(\d+)\s+\/\s+12/.exec(scoreText);
+    const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+
+    leaderboard.push({
+      name: currentOperator.name || "Unknown",
+      mode: currentOperator.mode || "Solo",
+      scenario: currentScenario.label,
+      score,
+      time: human.timeSeconds ?? 0
+    });
+
+    leaderboard.sort((a,b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.time - b.time;
+    });
+
+    renderLeaderboard();
+  }
+
+  function renderLeaderboard() {
+    leaderboardBody.innerHTML = "";
+    leaderboard.forEach((entry, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${idx+1}</td>
+                      <td>${entry.name}</td>
+                      <td>${entry.mode}</td>
+                      <td>${entry.scenario}</td>
+                      <td>${entry.score}</td>
+                      <td>${entry.time.toFixed(2)} s</td>`;
+      leaderboardBody.appendChild(tr);
+    });
+  }
+
+  resetLeaderboardBtn.addEventListener("click", () => {
+    leaderboard = [];
+    renderLeaderboard();
+    socket.emit("reset-leaderboard");
+  });
+
+  socket.on("reset-leaderboard", () => {
+    leaderboard = [];
+    renderLeaderboard();
+  });
+
+  // When another screen submits, we also update our leaderboard.
+  socket.on("triage-submitted", ({ operator, human, scenarioId }) => {
+    if (!human || !operator) return;
+    const sc = scenarios.find(s => s.id === scenarioId);
+    if (!sc) return;
+    const entryScenario = sc.label;
+
+    const scoreLocalText = scoreSummaryEl.textContent;
+    const scoreMatch = /Score:\s+(\d+)\s+\/\s+12/.exec(scoreLocalText);
+    const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+
+    leaderboard.push({
+      name: operator.name || "Unknown",
+      mode: operator.mode || "Solo",
+      scenario: entryScenario,
+      score,
+      time: human.timeSeconds ?? 0
+    });
+
+    leaderboard.sort((a,b)=> (b.score !== a.score ? b.score-a.score : a.time-b.time));
+    renderLeaderboard();
+  });
+
+  // Initial setup
+  populateScenarioDropdown();
+  selectScenarioById(scenarios[0].id);
+</script>
+</body>
+</html>
