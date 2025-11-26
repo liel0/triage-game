@@ -6,51 +6,47 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
-});
-
-// Serve static files from /Public
-app.use(express.static(path.join(__dirname, "Public")));
+const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-// Simple broadcast relays – no complex rooms (1 screen + 1 mobile in booth)
+// serve static files
+app.use(express.static(path.join(__dirname, "Public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "Public", "index.html"));
+});
+
+app.get("/mobile", (req, res) => {
+  res.sendFile(path.join(__dirname, "Public", "mobile.html"));
+});
+
+// Socket.io
 io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
-
-  // Operator joined (from mobile)
-  socket.on("operatorInfo", (payload) => {
-    io.emit("operatorInfo", payload);
+  socket.on("operator-joined", (payload) => {
+    // remember on this socket
+    socket.operatorInfo = {
+      name: payload.name || "Visitor",
+      mode: payload.mode || "Solo",
+    };
+    // notify main screen (if needed)
+    io.emit("operator-info", socket.operatorInfo);
   });
 
-  // QR scan result (from mobile)
-  socket.on("scanVital", (payload) => {
-    io.emit("scanVital", payload);
+  socket.on("qr-scanned", (data) => {
+    const info = socket.operatorInfo || { name: "Visitor", mode: "Solo" };
+    io.emit("qr-scanned", {
+      url: data.url,
+      operator: info.name,
+      mode: info.mode,
+    });
   });
 
-  // Human triage decision (from big screen)
-  socket.on("triageDecision", (payload) => {
-    io.emit("triageDecision", payload);
-  });
-
-  // Reset simulation (from big screen)
-  socket.on("resetSimulation", () => {
-    io.emit("resetSimulation");
-  });
-
-  // Reset leaderboard (from big screen)
-  socket.on("resetLeaderboard", () => {
-    io.emit("resetLeaderboard");
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+  socket.on("final-score", (data) => {
+    io.emit("final-score", data);
   });
 });
 
 server.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log(`Server running on port ${PORT}`);
 });
