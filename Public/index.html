@@ -44,7 +44,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 12px;
+      padding: 6px 16px;
       border-radius: 999px;
       background: linear-gradient(90deg, #020617, #020617, #020617);
       border: 1px solid rgba(148, 163, 184, 0.3);
@@ -64,8 +64,10 @@
     }
 
     header .operator {
-      font-size: 14px;
-      color: var(--muted);
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
     }
 
     main {
@@ -237,6 +239,21 @@
     .timer span.time {
       font-weight: 700;
       font-size: 18px;
+    }
+
+    .future-box {
+      margin-top: 10px;
+      border-radius: 16px;
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.85);
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .future-box-title {
+      font-weight: 600;
+      margin-bottom: 2px;
     }
 
     .bottom-row {
@@ -446,7 +463,7 @@
       </div>
     </div>
     <div class="operator" id="operatorLabel">
-      Operator: Waiting for mobile operator…
+      DRONE OPERATOR: <span class="glow">Waiting for mobile operator…</span>
     </div>
   </header>
 
@@ -546,11 +563,17 @@
         </div>
 
         <div class="timer">
-          <div>TRIAGE TIMER</div>
+          <div id="timerTitle">PATIENT LOADING • TRIAGE TIMER</div>
           <span class="time" id="timerDisplay">0.00 s</span>
         </div>
         <div style="margin-top:4px;font-size:12px;color:var(--muted);" id="timerHint">
-          Scan any patient tag to start the timer.
+          Awaiting patient. Scan the head tag to begin the drone scan.
+        </div>
+
+        <div class="future-box">
+          <div class="pill" style="margin-bottom:4px;">COMING SOON</div>
+          <div class="future-box-title">AI Paramedic Support Module</div>
+          <div>Drone will recommend the exact medical tools paramedics should bring from the hospital based on the injuries.</div>
         </div>
       </section>
     </div>
@@ -856,7 +879,7 @@
     scenarios.forEach((sc) => {
       const opt = document.createElement("option");
       opt.value = sc.id;
-      opt.textContent = sc.label; // No correct triage colour shown here
+      opt.textContent = sc.label; // no triage colour in label
       scenarioSelectEl.appendChild(opt);
     });
   }
@@ -879,7 +902,7 @@
     timerStart = null;
     finalTimeMs = null;
     timerDisplayEl.textContent = "0.00 s";
-    timerHintEl.textContent = "Scan any patient tag to start the timer.";
+    timerHintEl.textContent = "Awaiting patient. Scan the head tag to begin the drone scan.";
   }
 
   function updateVitalsDisplay() {
@@ -907,7 +930,7 @@
     if (timerRunning || finalTimeMs !== null) return;
     timerRunning = true;
     timerStart = performance.now();
-    timerHintEl.textContent = "Timer running… make your triage decision.";
+    timerHintEl.textContent = "Drone identifying patient… receiving visual feeds… assembling body map.";
     requestAnimationFrame(updateTimerLoop);
   }
 
@@ -929,23 +952,29 @@
     const seconds = Math.floor(finalTimeMs / 1000);
     const centis = Math.floor((finalTimeMs % 1000) / 10);
     timerDisplayEl.textContent = `${seconds}.${String(centis).padStart(2, "0")} s (final)`;
-    timerHintEl.textContent = "All vitals collected. Move to triage zone and make your decisions.";
+    timerHintEl.textContent = "All drone passes complete. Move to triage zone and make your decisions.";
   }
 
   function haveAllVitalsForScenario() {
-    const cfg = currentScenario.bodyPartVitals;
-    // All five body parts scanned -> all vitals known
     return bodyOrder.every(p => collected[p].scanned);
   }
 
   // ---- Infer body part from image URL ----
+  // Supports your current filenames: s1_head, s1_chest, s1_abdomen, s1_bp, s1_heart, s1_history, s1_pelvis
   function inferBodyPartFromUrl(url) {
     const lower = url.toLowerCase();
-    if (lower.includes("_head")) return "head";
-    if (lower.includes("_chest")) return "chest";
-    if (lower.includes("_abdomen")) return "abdomen";
-    if (lower.includes("_arms")) return "arms";
-    if (lower.includes("_legs")) return "legs";
+
+    if (lower.includes("head")) return "head";
+    if (lower.includes("chest") || lower.includes("thorax")) return "chest";
+    if (lower.includes("abdomen") || lower.includes("abdo") || lower.includes("belly")) return "abdomen";
+
+    // map BP cuff / arm close-ups to arms row
+    if (lower.includes("bp") || lower.includes("pressure") || lower.includes("arm")) return "arms";
+
+    // map pelvis / history / heart / limb close-ups to legs row
+    if (lower.includes("pelvis") || lower.includes("leg") || lower.includes("history") || lower.includes("heart") || lower.includes("limb"))
+      return "legs";
+
     return null;
   }
 
@@ -960,8 +989,8 @@
     startTimerIfNeeded();
 
     const partState = collected[part];
+    // show only first scan per part (prevents accidental double taps)
     if (!partState.scanned) {
-      // Set image in the correct row (fixes "abdomen image in head row")
       const row = document.querySelector(`.body-row[data-part="${part}"]`);
       if (!row) return;
       const slot = row.querySelector(".body-image-slot");
@@ -998,7 +1027,7 @@
   // ---- Operator info from mobile ----
   socket.on("operator-joined", ({ name, mode }) => {
     currentOperator = { name, mode };
-    operatorLabelEl.innerHTML = `Operator: <span class="glow">${name || "Unknown"}</span> (${mode || "Solo"})`;
+    operatorLabelEl.innerHTML = `DRONE OPERATOR: <span class="glow">${name || "Unknown"}</span> &nbsp;(${mode || "Solo"})`;
   });
 
   // ---- Triage decision UI ----
@@ -1035,7 +1064,6 @@
   });
 
   function renderHospitalsAndTests() {
-    // Hospitals
     hospitalListEl.innerHTML = "";
     currentScenario.hospitals.forEach(h => {
       const card = document.createElement("div");
@@ -1047,21 +1075,18 @@
         selectedHospital = h.name;
         Array.from(hospitalListEl.children).forEach(c => c.classList.remove("selected"));
         card.classList.add("selected");
-        // Update tests list to those available at this hospital
         renderTests(h.testsAvailable);
         updateSubmitState();
       });
       hospitalListEl.appendChild(card);
     });
 
-    // Tests default = first hospital if any
     const first = currentScenario.hospitals[0];
     if (first) {
       selectedHospital = first.name;
-      setTimeout(() => {
-        const firstCard = hospitalListEl.querySelector(`[data-name="${first.name}"]`);
-        if (firstCard) firstCard.classList.add("selected");
-      }, 0);
+      // visually mark first hospital as preselected
+      const firstCard = hospitalListEl.querySelector(`[data-name="${first.name}"]`);
+      if (firstCard) firstCard.classList.add("selected");
       renderTests(first.testsAvailable);
     } else {
       testsListEl.innerHTML = "<div style='font-size:12px;color:var(--muted);'>No ER tests configured.</div>";
@@ -1137,8 +1162,8 @@
 
     const aiSet = new Set(ai.erTests);
     const humanSet = new Set(human.tests);
-    let testsMatch = ai.erTests.length === human.tests.length &&
-                     ai.erTests.every(t => humanSet.has(t));
+    const testsMatch = ai.erTests.length === human.tests.length &&
+                       ai.erTests.every(t => humanSet.has(t));
     markMatch(matchTests, testsMatch);
     if (testsMatch) score += 2;
 
@@ -1200,22 +1225,25 @@
     renderLeaderboard();
   });
 
-  // When another screen submits, we also update our leaderboard
+  // When another screen submits, we also update our leaderboard.
   socket.on("triage-submitted", ({ operator, human, scenarioId }) => {
     if (!human || !operator) return;
     const sc = scenarios.find(s => s.id === scenarioId);
     if (!sc) return;
     const entryScenario = sc.label;
-    const scoreText = scoreSummaryEl.textContent;
-    // scoring is local per screen; remote submissions won't affect this viewer's results,
-    // but we still list their outcome using AI comparison in their own browser.
+
+    const scoreLocalText = scoreSummaryEl.textContent;
+    const scoreMatch = /Score:\s+(\d+)\s+\/\s+12/.exec(scoreLocalText);
+    const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+
     leaderboard.push({
       name: operator.name || "Unknown",
       mode: operator.mode || "Solo",
       scenario: entryScenario,
-      score: 0,
+      score,
       time: human.timeSeconds ?? 0
     });
+
     leaderboard.sort((a,b)=> (b.score !== a.score ? b.score-a.score : a.time-b.time));
     renderLeaderboard();
   });
