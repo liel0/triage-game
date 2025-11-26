@@ -12,7 +12,6 @@
       --accent2: #06b6d4;
       --text: #e5e7eb;
       --muted: #9ca3af;
-      --danger: #f97373;
     }
 
     * { box-sizing: border-box; margin:0; padding:0; }
@@ -25,7 +24,7 @@
       display: flex;
       justify-content: center;
       align-items: stretch;
-      padding: 16px;
+      padding: 14px;
     }
 
     .shell {
@@ -36,13 +35,13 @@
 
     .card {
       background: var(--card);
-      border-radius: 26px;
-      padding: 18px 18px 20px;
+      border-radius: 24px;
+      padding: 16px 16px 18px;
       border: 1px solid rgba(148, 163, 184, 0.45);
-      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.9);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
     }
 
-    .card + .card { margin-top: 14px; }
+    .card + .card { margin-top: 12px; }
 
     .header-row {
       display: flex;
@@ -55,29 +54,25 @@
       font-size: 20px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     h1 span {
       font-size: 24px;
     }
 
-    .hint {
+    .subtitle {
       font-size: 12px;
       color: var(--muted);
     }
 
-    .status-ok {
-      color: #4ade80;
+    .status {
       font-size: 12px;
       text-align: right;
     }
 
-    .status-bad {
-      color: var(--danger);
-      font-size: 12px;
-      text-align: right;
-    }
+    .status.ok { color: #4ade80; }
+    .status.bad { color: #f97373; }
 
     .section-title {
       font-size: 13px;
@@ -96,7 +91,7 @@
       width: 100%;
       padding: 9px 12px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.8);
       background: #020617;
       color: var(--text);
       outline: none;
@@ -109,7 +104,7 @@
       margin-bottom: 10px;
       border-radius: 999px;
       overflow: hidden;
-      border: 1px solid rgba(148, 163, 184, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.8);
     }
 
     .mode-btn {
@@ -141,7 +136,7 @@
       gap: 8px;
       color: white;
       background: linear-gradient(135deg, #22c55e, #06b6d4);
-      box-shadow: 0 14px 30px rgba(6, 182, 212, 0.55);
+      box-shadow: 0 14px 30px rgba(6, 182, 212, 0.6);
     }
 
     .btn:disabled {
@@ -153,7 +148,7 @@
     .btn-secondary {
       background: #020617;
       color: var(--text);
-      border: 1px solid rgba(148, 163, 184, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.8);
       box-shadow: none;
     }
 
@@ -167,7 +162,7 @@
       margin-top: 12px;
       border-radius: 20px;
       overflow: hidden;
-      border: 1px solid rgba(148, 163, 184, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.8);
       display: none;
     }
 
@@ -182,7 +177,7 @@
     }
 
     .tag-count {
-      margin-top: 6px;
+      margin-top: 4px;
       font-size: 12px;
       color: var(--muted);
     }
@@ -192,7 +187,7 @@
       padding: 2px 8px;
       border-radius: 999px;
       font-size: 11px;
-      background: rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.24);
       color: #bbf7d0;
       border: 1px solid rgba(16, 185, 129, 0.7);
     }
@@ -200,16 +195,14 @@
 </head>
 <body>
 <div class="shell">
-  <!-- Operator card -->
+  <!-- Operator -->
   <div class="card">
     <div class="header-row">
       <div>
         <h1><span>🟩</span>Drone Operator</h1>
-        <div class="hint">Use this phone as the AI triage drone. Scan only the tags on the mannequin.</div>
+        <div class="subtitle">Use this phone as the AI triage drone.</div>
       </div>
-      <div id="connectionStatus" class="status-bad">
-        Not connected
-      </div>
+      <div id="connectionStatus" class="status bad">Not connected</div>
     </div>
 
     <div class="section-title">OPERATOR DETAILS</div>
@@ -217,12 +210,12 @@
     <input id="operatorName" placeholder="Example: Riyadh EMS Team" />
 
     <div class="mode-toggle">
-      <div class="mode-btn active" id="modeSolo">👤 Solo</div>
-      <div class="mode-btn" id="modeGroup">👥 Group</div>
+      <div class="mode-btn active" id="modeSolo">Solo</div>
+      <div class="mode-btn" id="modeGroup">Group</div>
     </div>
 
     <button class="btn" id="connectBtn">
-      🛰️ Connect &amp; start scanning
+      Connect to main screen
     </button>
 
     <div class="status-row" id="operatorStatus">
@@ -230,19 +223,18 @@
     </div>
   </div>
 
-  <!-- Scanner card -->
+  <!-- Scanner -->
   <div class="card">
     <div class="section-title">SCAN PATIENT TAGS</div>
     <button class="btn" id="startCameraBtn">
-      📷 Start QR camera
+      Start QR camera
     </button>
     <button class="btn btn-secondary" id="stopCameraBtn" style="margin-top:6px; display:none;">
-      ✖ Stop camera
+      Stop camera
     </button>
 
-    <div class="hint" style="margin-top:8px;">
-      Scan the tags on: <strong>head, chest, abdomen, arms, legs / ID</strong>.<br/>
-      Each tag loads a different drone view and vital on the big screen.
+    <div class="status-row" style="margin-top:10px;">
+      Scan the tags on head, chest, abdomen, arms, legs / ID.
     </div>
 
     <div id="previewWrapper">
@@ -251,10 +243,6 @@
 
     <div id="scanResult"></div>
     <div class="tag-count" id="tagCount"></div>
-
-    <div class="hint" style="margin-top:12px;">
-      If camera does not open, check browser permissions for camera access and use HTTPS.
-    </div>
   </div>
 </div>
 
@@ -283,18 +271,16 @@
     let scanning = false;
     let scannedTags = 0;
 
-    // Connection indicator (socket.io)
     socket.on("connect", () => {
-      connectionStatus.textContent = "Connected to main screen ready";
-      connectionStatus.className = "status-ok";
+      connectionStatus.textContent = "Connected";
+      connectionStatus.className = "status ok";
     });
 
     socket.on("disconnect", () => {
       connectionStatus.textContent = "Disconnected";
-      connectionStatus.className = "status-bad";
+      connectionStatus.className = "status bad";
     });
 
-    // Mode toggle
     modeSoloBtn.addEventListener("click", () => {
       mode = "Solo";
       modeSoloBtn.classList.add("active");
@@ -307,16 +293,10 @@
       modeSoloBtn.classList.remove("active");
     });
 
-    // Connect & start scanning
     connectBtn.addEventListener("click", async () => {
       const name = operatorNameInput.value.trim() || "Visitor";
       socket.emit("operator-joined", { name, mode });
-
       operatorStatus.textContent = `Status: Connected as "${name}" (${mode}).`;
-      operatorStatus.style.color = "#a5b4fc";
-
-      // Optionally auto-open camera
-      await startCamera();
     });
 
     startCameraBtn.addEventListener("click", () => {
@@ -329,19 +309,18 @@
 
     async function startCamera() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        scanResult.innerHTML =
-          '<span style="color:#f97373;">This browser does not support camera access. Try Chrome / Edge on Android.</span>';
+        scanResult.innerHTML = '<span style="color:#f97373;">Camera not available in this browser.</span>';
         return;
       }
 
       try {
-        scanResult.textContent = "Opening camera…";
         scannedTags = 0;
         tagCount.textContent = "";
+        scanResult.textContent = "Opening camera…";
 
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "environment" },
-          audio: false
+          audio: false,
         });
 
         video.srcObject = stream;
@@ -351,25 +330,23 @@
         scanning = true;
         startCameraBtn.disabled = true;
         stopCameraBtn.style.display = "inline-flex";
-        scanResult.textContent = "Camera ready. Point it at a QR tag on the mannequin.";
+        scanResult.textContent = "Camera ready. Point at a QR tag.";
         requestAnimationFrame(tickScan);
       } catch (err) {
-        console.error("Camera error:", err);
-        scanResult.innerHTML =
-          '<span style="color:#f97373;">Could not open camera. Check permissions and that you are on HTTPS.</span>';
+        scanResult.innerHTML = '<span style="color:#f97373;">Cannot open camera. Check permissions.</span>';
       }
     }
 
     function stopCamera() {
       scanning = false;
       if (stream) {
-        stream.getTracks().forEach(t => t.stop());
+        stream.getTracks().forEach((t) => t.stop());
         stream = null;
       }
       previewWrapper.style.display = "none";
       startCameraBtn.disabled = false;
       stopCameraBtn.style.display = "none";
-      scanResult.textContent = "Camera stopped. Tap Start QR camera to scan again.";
+      scanResult.textContent = "Camera stopped.";
     }
 
     function tickScan() {
@@ -384,26 +361,34 @@
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
         const code = jsQR(imageData.data, canvas.width, canvas.height, {
-          inversionAttempts: "dontInvert"
+          inversionAttempts: "dontInvert",
         });
 
         if (code && code.data) {
           const url = code.data.trim();
           scannedTags += 1;
           socket.emit("qr-scanned", { url });
-
-          scanResult.innerHTML = `<span class="badge">Tag sent to main screen</span><br>${url}`;
-          tagCount.textContent = `Tags scanned this round: ${scannedTags}`;
-
-          // brief pause before scanning next frame to avoid duplicates
+          const partLabel = inferPart(url);
+          scanResult.innerHTML = `<span class="badge">Tag scanned: ${partLabel}</span>`;
+          tagCount.textContent = `Tags scanned: ${scannedTags}`;
           setTimeout(() => {
             if (scanning) requestAnimationFrame(tickScan);
-          }, 600);
+          }, 700);
           return;
         }
       }
 
       requestAnimationFrame(tickScan);
+    }
+
+    function inferPart(url) {
+      const u = url.toLowerCase();
+      if (u.includes("head")) return "Head";
+      if (u.includes("chest")) return "Chest";
+      if (u.includes("abdomen")) return "Abdomen";
+      if (u.includes("arm")) return "Arms";
+      if (u.includes("leg") || u.includes("id")) return "Legs / ID";
+      return "Unknown";
     }
   });
 </script>
