@@ -44,7 +44,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 16px;
+      padding: 6px 12px;
       border-radius: 999px;
       background: linear-gradient(90deg, #020617, #020617, #020617);
       border: 1px solid rgba(148, 163, 184, 0.3);
@@ -64,10 +64,8 @@
     }
 
     header .operator {
-      font-size: 16px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 600;
+      font-size: 14px;
+      color: var(--muted);
     }
 
     main {
@@ -102,18 +100,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      background: rgba(15, 23, 42, 0.8);
-      color: var(--muted);
     }
 
     .scenario-select {
@@ -168,7 +154,7 @@
     .body-image-slot img {
       width: 100%;
       height: 100%;
-      object-fit: cover; /* fill box, no tiny images */
+      object-fit: contain;
       border-radius: 14px;
     }
 
@@ -239,21 +225,6 @@
     .timer span.time {
       font-weight: 700;
       font-size: 18px;
-    }
-
-    .future-box {
-      margin-top: 10px;
-      border-radius: 16px;
-      border: 1px dashed rgba(148, 163, 184, 0.4);
-      background: rgba(15, 23, 42, 0.85);
-      padding: 8px 10px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .future-box-title {
-      font-weight: 600;
-      margin-bottom: 2px;
     }
 
     .bottom-row {
@@ -463,7 +434,7 @@
       </div>
     </div>
     <div class="operator" id="operatorLabel">
-      DRONE OPERATOR: <span class="glow">Waiting for mobile operator…</span>
+      Operator: Waiting for mobile operator…
     </div>
   </header>
 
@@ -480,9 +451,9 @@
 
         <div class="body-map">
           <div class="body-row" data-part="head">
-            <div class="body-label">Head</div>
+            <div class="body-label">Head / ID</div>
             <div class="body-image-slot">
-              <span class="body-placeholder">Scan head tag</span>
+              <span class="body-placeholder">Scan ID or consciousness tag</span>
             </div>
             <div class="drone-chip">
               <span class="drone-dot" data-dot="head"></span>
@@ -493,7 +464,7 @@
           <div class="body-row" data-part="chest">
             <div class="body-label">Chest</div>
             <div class="body-image-slot">
-              <span class="body-placeholder">Scan chest tag</span>
+              <span class="body-placeholder">Scan RR tag</span>
             </div>
             <div class="drone-chip">
               <span class="drone-dot" data-dot="chest"></span>
@@ -502,9 +473,9 @@
           </div>
 
           <div class="body-row" data-part="abdomen">
-            <div class="body-label">Abdomen</div>
+            <div class="body-label">Abdomen / HR</div>
             <div class="body-image-slot">
-              <span class="body-placeholder">Scan abdomen tag</span>
+              <span class="body-placeholder">Scan HR tag</span>
             </div>
             <div class="drone-chip">
               <span class="drone-dot" data-dot="abdomen"></span>
@@ -513,9 +484,9 @@
           </div>
 
           <div class="body-row" data-part="arms">
-            <div class="body-label">Arms</div>
+            <div class="body-label">Arms / BP</div>
             <div class="body-image-slot">
-              <span class="body-placeholder">Scan arms tag</span>
+              <span class="body-placeholder">Scan BP tag</span>
             </div>
             <div class="drone-chip">
               <span class="drone-dot" data-dot="arms"></span>
@@ -524,9 +495,9 @@
           </div>
 
           <div class="body-row" data-part="legs">
-            <div class="body-label">Legs</div>
+            <div class="body-label">Lower body / Injury</div>
             <div class="body-image-slot">
-              <span class="body-placeholder">Scan legs tag</span>
+              <span class="body-placeholder">Scan injury tag</span>
             </div>
             <div class="drone-chip">
               <span class="drone-dot" data-dot="legs"></span>
@@ -563,17 +534,11 @@
         </div>
 
         <div class="timer">
-          <div id="timerTitle">PATIENT LOADING • TRIAGE TIMER</div>
+          <div>PATIENT LOADING • TRIAGE TIMER</div>
           <span class="time" id="timerDisplay">0.00 s</span>
         </div>
         <div style="margin-top:4px;font-size:12px;color:var(--muted);" id="timerHint">
-          Awaiting patient. Scan the head tag to begin the drone scan.
-        </div>
-
-        <div class="future-box">
-          <div class="pill" style="margin-bottom:4px;">COMING SOON</div>
-          <div class="future-box-title">AI Paramedic Support Module</div>
-          <div>Drone will recommend the exact medical tools paramedics should bring from the hospital based on the injuries.</div>
+          Scan all patient vitals QR tags. Timer starts after all vitals are loaded.
         </div>
       </section>
     </div>
@@ -612,7 +577,7 @@
           </div>
 
           <div class="submit-row">
-            <span id="decisionHint">Complete triage + hospital + tests.</span>
+            <span id="decisionHint">Complete triage + hospital + tests after vitals load.</span>
             <button class="btn-primary" id="submitDecisionBtn" disabled>Submit Decision</button>
           </div>
         </div>
@@ -693,7 +658,7 @@
 <script>
   const socket = io();
 
-  // ---- Scenario config (no correct answer hints in labels) ----
+  // ---- Scenario config (no correct answers visible in labels) ----
   const scenarios = [
     {
       id: "s1",
@@ -704,13 +669,14 @@
         erTests: ["FAST ultrasound", "Serum lactate", "Blood typing and crossmatch"],
         timeSeconds: 1.2
       },
-      bodyPartVitals: {
-        head:   { vitalKey: "consciousness", value: "Unconscious" },
-        chest:  { vitalKey: "rr", value: "34 / min" },
-        abdomen:{ vitalKey: "hr", value: "142 bpm" },
-        arms:   { vitalKey: "bp", value: "78/45 mmHg" },
-        legs:   { vitalKey: "keyInjury", value: "Severe abdominal bleeding & suspected pelvic fracture" }
+      vitalValues: {
+        consciousness: "Unconscious",
+        rr: "34 / min",
+        hr: "142 bpm",
+        bp: "78/45 mmHg",
+        keyInjury: "Severe abdominal bleeding & suspected pelvic fracture"
       },
+      timerRequiredTags: ["conclevel", "rr", "hr", "bp"],
       hospitals: [
         {
           name: "Mina Emergency Hospital",
@@ -738,13 +704,14 @@
         erTests: ["Plain X-ray", "Carboxyhaemoglobin level (CO)", "Burn depth assessment"],
         timeSeconds: 1.4
       },
-      bodyPartVitals: {
-        head:   { vitalKey: "consciousness", value: "Alert but confused" },
-        chest:  { vitalKey: "rr", value: "26 / min" },
-        abdomen:{ vitalKey: "hr", value: "110 bpm" },
-        arms:   { vitalKey: "bp", value: "100/70 mmHg" },
-        legs:   { vitalKey: "keyInjury", value: "Partial-thickness burns, chest tightness" }
+      vitalValues: {
+        consciousness: "Alert but confused",
+        rr: "26 / min",
+        hr: "110 bpm",
+        bp: "100/70 mmHg",
+        keyInjury: "Partial-thickness burns, chest tightness"
       },
+      timerRequiredTags: ["conclevel", "rr", "hr", "bp"],
       hospitals: [
         {
           name: "King Fahad Medical City — Trauma Centre",
@@ -772,13 +739,14 @@
         erTests: ["Plain X-ray", "Intravenous (IV) fluids", "FAST ultrasound"],
         timeSeconds: 1.5
       },
-      bodyPartVitals: {
-        head:   { vitalKey: "consciousness", value: "Walking, answering appropriately" },
-        chest:  { vitalKey: "rr", value: "18 / min" },
-        abdomen:{ vitalKey: "hr", value: "92 bpm" },
-        arms:   { vitalKey: "bp", value: "118/78 mmHg" },
-        legs:   { vitalKey: "keyInjury", value: "Mild dehydration, heat stress" }
+      vitalValues: {
+        consciousness: "Walking, answering appropriately",
+        rr: "18 / min",
+        hr: "92 bpm",
+        bp: "118/78 mmHg",
+        keyInjury: "Mild dehydration, heat stress"
       },
+      timerRequiredTags: ["conclevel", "rr", "hr", "bp"],
       hospitals: [
         {
           name: "AlUla Field Medical Base",
@@ -801,13 +769,14 @@
         erTests: ["FAST ultrasound", "CT scan", "Blood typing and crossmatch"],
         timeSeconds: 1.3
       },
-      bodyPartVitals: {
-        head:   { vitalKey: "consciousness", value: "Unresponsive, fixed dilated pupils" },
-        chest:  { vitalKey: "rr", value: "No respiratory effort" },
-        abdomen:{ vitalKey: "hr", value: "No palpable pulse" },
-        arms:   { vitalKey: "bp", value: "No measurable blood pressure" },
-        legs:   { vitalKey: "keyInjury", value: "Massive head and chest trauma" }
+      vitalValues: {
+        consciousness: "Unresponsive, fixed dilated pupils",
+        rr: "No respiratory effort",
+        hr: "No palpable pulse",
+        bp: "No measurable BP",
+        keyInjury: "Massive head and chest trauma"
       },
+      timerRequiredTags: ["conclevel", "hr"],
       hospitals: [
         {
           name: "Dhahran Trauma Center",
@@ -823,16 +792,26 @@
     }
   ];
 
+  // map tag types to body parts + which vital they unlock
+  const TAG_MAP = {
+    id:        { part: "head",   vitalKey: null },                 // just shows ID image
+    conclevel: { part: "head",   vitalKey: "consciousness" },
+    rr:        { part: "chest",  vitalKey: "rr" },
+    hr:        { part: "abdomen", vitalKey: "hr" },
+    bp:        { part: "arms",   vitalKey: "bp" },
+    injury1:   { part: "legs",   vitalKey: "keyInjury" },
+    injury2:   { part: "legs",   vitalKey: "keyInjury" }
+  };
+
   // ---- State ----
   let currentScenario = scenarios[0];
-  let collected = {}; // bodyPart -> { scanned, imageUrl }
+  let collected = {};
   let vitalsState = { consciousness:null, rr:null, hr:null, bp:null, keyInjury:null };
-
   let timerRunning = false;
   let timerStart = null;
   let finalTimeMs = null;
-
   let leaderboard = [];
+  let scannedTags = new Set();
 
   const bodyOrder = ["head","chest","abdomen","arms","legs"];
 
@@ -881,17 +860,9 @@
     scenarios.forEach((sc) => {
       const opt = document.createElement("option");
       opt.value = sc.id;
-      opt.textContent = sc.label; // no triage colour in label
+      opt.textContent = sc.label;
       scenarioSelectEl.appendChild(opt);
     });
-  }
-
-  function resetTimer() {
-    timerRunning = false;
-    timerStart = null;
-    finalTimeMs = null;
-    timerDisplayEl.textContent = "0.00 s";
-    timerHintEl.textContent = "Awaiting patient. Scan the head tag to begin the drone scan.";
   }
 
   function resetBodyAndVitals() {
@@ -900,14 +871,26 @@
       collected[part] = { scanned:false, imageUrl:null };
       const row = document.querySelector(`.body-row[data-part="${part}"]`);
       const slot = row.querySelector(".body-image-slot");
-      slot.innerHTML = `<span class="body-placeholder">Scan ${part} tag</span>`;
+      let text = "Scan tag";
+      if (part === "head") text = "Scan ID or consciousness tag";
+      if (part === "chest") text = "Scan RR tag";
+      if (part === "abdomen") text = "Scan HR tag";
+      if (part === "arms") text = "Scan BP tag";
+      if (part === "legs") text = "Scan injury tag";
+      slot.innerHTML = `<span class="body-placeholder">${text}</span>`;
       const dot = row.querySelector(".drone-dot");
       dot.classList.remove("active");
     });
 
     vitalsState = { consciousness:null, rr:null, hr:null, bp:null, keyInjury:null };
     updateVitalsDisplay();
-    resetTimer();
+
+    scannedTags = new Set();
+    timerRunning = false;
+    timerStart = null;
+    finalTimeMs = null;
+    timerDisplayEl.textContent = "0.00 s";
+    timerHintEl.textContent = "Scan all patient vitals QR tags. Timer starts after all vitals are loaded.";
   }
 
   function updateVitalsDisplay() {
@@ -930,17 +913,17 @@
     selectScenarioById(scenarioSelectEl.value);
   });
 
-  // ---- Timer (starts AFTER all vitals scanned) ----
-  function startDecisionTimer() {
-    if (timerRunning || finalTimeMs !== null) return;
-    timerRunning = true;
+  // ---- Timer ----
+  function startTimer() {
+    if (timerStart !== null) return;
     timerStart = performance.now();
-    timerHintEl.textContent = "All vitals collected. Timer started – make your triage decision.";
+    timerRunning = true;
+    timerHintEl.textContent = "Vitals loaded. Timer running – make your triage decision.";
     requestAnimationFrame(updateTimerLoop);
   }
 
   function updateTimerLoop() {
-    if (!timerRunning) return;
+    if (!timerRunning || timerStart === null) return;
     const now = performance.now();
     const elapsed = now - timerStart;
     const seconds = Math.floor(elapsed / 1000);
@@ -949,90 +932,84 @@
     requestAnimationFrame(updateTimerLoop);
   }
 
-  function stopDecisionTimer() {
-    if (!timerRunning) return;
+  function finalizeTimerIfNeeded() {
+    if (timerStart === null || finalTimeMs !== null) return;
     const now = performance.now();
     finalTimeMs = now - timerStart;
     timerRunning = false;
     const seconds = Math.floor(finalTimeMs / 1000);
     const centis = Math.floor((finalTimeMs % 1000) / 10);
     timerDisplayEl.textContent = `${seconds}.${String(centis).padStart(2, "0")} s (final)`;
-    timerHintEl.textContent = "Decision locked. Compare with the AI drone.";
+    timerHintEl.textContent = "Decision submitted.";
   }
 
-  function haveAllVitalsForScenario() {
-    return bodyOrder.every(p => collected[p].scanned);
+  function maybeStartTimerAfterVitals() {
+    if (timerStart !== null) return;
+    const needed = currentScenario.timerRequiredTags || [];
+    const hasAll = needed.length === 0 || needed.every(t => scannedTags.has(t));
+    if (hasAll && needed.length > 0) {
+      startTimer();
+    }
   }
 
-  // ---- Infer body part from image URL ----
-  // Use these exact filenames for tags:
-  // head:   s1_head.jpg or s1_history.jpg
-  // chest:  s1_chest.jpg
-  // abdomen:s1_abdomen.jpg
-  // arms:   s1_bp.jpg
-  // legs:   s1_pelvis.jpg
-  function inferBodyPartFromUrl(url) {
+  // ---- QR helper ----
+  function getTagTypeFromUrl(url) {
     const lower = url.toLowerCase();
-
-    if (lower.includes("s1_head") || lower.includes("history")) return "head";
-    if (lower.includes("chest")) return "chest";
-    if (lower.includes("abdomen") || lower.includes("abdo")) return "abdomen";
-    if (lower.includes("bp")) return "arms";
-    if (lower.includes("pelvis") || lower.includes("leg")) return "legs";
-
-    // ignore other images (e.g. heart) so they don't go to the wrong box
+    const filenameWithQuery = lower.split("/").pop() || "";
+    const filename = filenameWithQuery.split("?")[0];
+    const known = ["id","conclevel","hr","bp","rr","injury1","injury2"];
+    for (const key of known) {
+      if (filename.includes(`_${key}`)) return key;
+    }
     return null;
   }
 
   // ---- Handling QR scans from mobile ----
   socket.on("qr-scanned", ({ url }) => {
-    const part = inferBodyPartFromUrl(url);
-    if (!part) {
-      // Unknown tag – ignore silently on big screen
-      return;
+    const tagType = getTagTypeFromUrl(url);
+    if (!tagType) {
+      return; // unknown tag type
     }
+    const tagCfg = TAG_MAP[tagType];
+    if (!tagCfg) return;
 
-    const partState = collected[part];
-    // only first scan per part (prevents accidental double taps)
-    if (!partState.scanned) {
-      const row = document.querySelector(`.body-row[data-part="${part}"]`);
-      if (!row) return;
-      const slot = row.querySelector(".body-image-slot");
-      slot.innerHTML = "";
-      const img = document.createElement("img");
-      img.src = url;
-      img.alt = `${part} image`;
-      slot.appendChild(img);
+    const { part, vitalKey } = tagCfg;
+    const row = document.querySelector(`.body-row[data-part="${part}"]`);
+    if (!row) return;
+    const slot = row.querySelector(".body-image-slot");
+    slot.innerHTML = "";
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = tagType;
+    slot.appendChild(img);
 
-      const dot = row.querySelector(".drone-dot");
-      dot.classList.add("active");
+    const dot = row.querySelector(".drone-dot");
+    dot.classList.add("active");
 
-      partState.scanned = true;
-      partState.imageUrl = url;
+    if (!collected[part]) collected[part] = {};
+    collected[part].scanned = true;
+    collected[part].imageUrl = url;
+    collected[part].lastTag = tagType;
 
-      // Reveal the associated vital for this body part and this scenario
-      const mapping = currentScenario.bodyPartVitals[part];
-      if (mapping) {
-        const { vitalKey, value } = mapping;
-        if (vitalKey === "consciousness") vitalsState.consciousness = value;
-        if (vitalKey === "rr") vitalsState.rr = value;
-        if (vitalKey === "hr") vitalsState.hr = value;
-        if (vitalKey === "bp") vitalsState.bp = value;
-        if (vitalKey === "keyInjury") vitalsState.keyInjury = value;
+    if (vitalKey) {
+      const val = currentScenario.vitalValues[vitalKey];
+      vitalsState[vitalKey] = val;
+      updateVitalsDisplay();
+      if (vitalKey === "keyInjury") {
+        // if injury vital not set before, make sure text appears even if only injury2 scanned
+        vitalsState.keyInjury = currentScenario.vitalValues.keyInjury;
         updateVitalsDisplay();
       }
-
-      // once all five body parts are scanned, THEN start the timer
-      if (haveAllVitalsForScenario()) {
-        startDecisionTimer();
-      }
     }
+
+    scannedTags.add(tagType);
+    maybeStartTimerAfterVitals();
   });
 
-  // ---- Operator info from mobile ----
-  socket.on("operator-joined", ({ name, mode }) => {
-    currentOperator = { name, mode };
-    operatorLabelEl.innerHTML = `DRONE OPERATOR: <span class="glow">${name || "Unknown"}</span> &nbsp;(${mode || "Solo"})`;
+  // ---- Operator info from mobile (fixed event name) ----
+  socket.on("operator-info", ({ name, mode }) => {
+    currentOperator = { name: name || "Unknown", mode: mode || "Solo" };
+    operatorLabelEl.innerHTML = `Operator: <span class="glow">${currentOperator.name}</span> (${currentOperator.mode})`;
   });
 
   // ---- Triage decision UI ----
@@ -1041,7 +1018,7 @@
     selectedHospital = null;
     selectedTests = new Set();
     triageCircles.forEach(c => c.classList.remove("selected"));
-    decisionHintEl.textContent = "Complete triage + hospital + tests.";
+    decisionHintEl.textContent = "Complete triage + hospital + tests after vitals load.";
     submitDecisionBtn.disabled = true;
     renderHospitalsAndTests();
   }
@@ -1116,27 +1093,25 @@
   }
 
   function updateSubmitState() {
-    // Ready only when: triage chosen, hospital chosen, at least one test, and ALL vitals scanned
-    const ready = selectedTriage && selectedHospital && selectedTests.size > 0 && haveAllVitalsForScenario();
+    const vitalsLoaded = timerStart !== null || (currentScenario.timerRequiredTags || []).length === 0;
+    const ready = selectedTriage && selectedHospital && selectedTests.size > 0 && vitalsLoaded;
     submitDecisionBtn.disabled = !ready;
     decisionHintEl.textContent = ready
       ? "Ready to submit. Compare your plan with the AI."
-      : "Complete triage, hospital and ER tests after all vitals are collected.";
+      : "Complete triage, hospital and ER tests after vitals are loaded.";
   }
 
   submitDecisionBtn.addEventListener("click", () => {
     if (submitDecisionBtn.disabled) return;
 
-    // stop timer at the moment of human decision
-    if (haveAllVitalsForScenario() && timerRunning) {
-      stopDecisionTimer();
-    }
+    finalizeTimerIfNeeded();
 
+    const humanTimeSeconds = finalTimeMs ? finalTimeMs / 1000 : 0;
     const human = {
       triage: selectedTriage,
       hospital: selectedHospital,
       tests: Array.from(selectedTests),
-      timeSeconds: finalTimeMs ? finalTimeMs / 1000 : null
+      timeSeconds: humanTimeSeconds
     };
     showResults(human);
     addToLeaderboard(human);
@@ -1158,7 +1133,7 @@
     resAITests.textContent = ai.erTests.join(", ");
 
     const tHuman = human.timeSeconds ?? 0;
-    resHumanTime.textContent = human.timeSeconds != null ? `${tHuman.toFixed(2)} s` : "—";
+    resHumanTime.textContent = `${tHuman.toFixed(2)} s`;
     resAITime.textContent = `${ai.timeSeconds.toFixed(2)} s`;
 
     let score = 0;
@@ -1236,25 +1211,17 @@
     renderLeaderboard();
   });
 
-  // When another screen submits, we also update our leaderboard.
   socket.on("triage-submitted", ({ operator, human, scenarioId }) => {
     if (!human || !operator) return;
     const sc = scenarios.find(s => s.id === scenarioId);
-    if (!sc) return;
-    const entryScenario = sc.label;
-
-    const scoreLocalText = scoreSummaryEl.textContent;
-    const scoreMatch = /Score:\s+(\d+)\s+\/\s+12/.exec(scoreLocalText);
-    const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
-
+    const label = sc ? sc.label : scenarioId;
     leaderboard.push({
       name: operator.name || "Unknown",
       mode: operator.mode || "Solo",
-      scenario: entryScenario,
-      score,
+      scenario: label,
+      score: 0,
       time: human.timeSeconds ?? 0
     });
-
     leaderboard.sort((a,b)=> (b.score !== a.score ? b.score-a.score : a.time-b.time));
     renderLeaderboard();
   });
