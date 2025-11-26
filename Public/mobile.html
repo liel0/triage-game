@@ -270,10 +270,11 @@
       const code = jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: "dontInvert" });
 
       if (code && code.data) {
-        // We got a QR payload – treat as URL and send to big screen.
         const url = code.data.trim();
-        scanResult.innerHTML = `<span class="badge">Tag sent</span> &nbsp; ${url}`;
-        scanStatus.textContent = "Tag scanned successfully. You can scan another one.";
+
+        // Send to big screen – mobile does NOT show medical data, only a status badge
+        scanResult.innerHTML = `<span class="badge">Tag sent to main screen</span>`;
+        scanStatus.textContent = "Tag scanned successfully. You can scan another body region.";
         socket.emit("qr-scanned", { url });
 
         // Small delay before allowing another scan
@@ -290,4 +291,3 @@
 </script>
 </body>
 </html>
-
