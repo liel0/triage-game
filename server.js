@@ -28,7 +28,6 @@ io.on("connection", (socket) => {
       name: payload.name || "Visitor",
       mode: payload.mode || "Solo",
     };
-    // notify big screen(s)
     io.emit("operator-info", socket.operatorInfo);
   });
 
@@ -41,7 +40,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  // leaderboard + results sharing between screens
   socket.on("triage-submitted", (data) => {
     io.emit("triage-submitted", data);
   });
@@ -50,7 +48,6 @@ io.on("connection", (socket) => {
     io.emit("reset-leaderboard");
   });
 
-  // kept for future use if needed
   socket.on("final-score", (data) => {
     io.emit("final-score", data);
   });
