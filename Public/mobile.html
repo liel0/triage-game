@@ -271,10 +271,8 @@
 
       if (code && code.data) {
         const url = code.data.trim();
-
-        // Send to big screen – mobile does NOT show medical data, only a status badge
-        scanResult.innerHTML = `<span class="badge">Tag sent to main screen</span>`;
-        scanStatus.textContent = "Tag scanned successfully. You can scan another body region.";
+        scanResult.innerHTML = `<span class="badge">Tag sent</span> &nbsp; ${url}`;
+        scanStatus.textContent = "Tag scanned successfully. You can scan another one.";
         socket.emit("qr-scanned", { url });
 
         setTimeout(() => {
