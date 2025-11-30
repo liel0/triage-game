@@ -232,8 +232,6 @@
       box-shadow: none;
     }
 
-    /* FIGURE */
-
     .figure-wrapper {
       display: flex;
       flex-direction: column;
@@ -533,7 +531,6 @@
       text-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
     }
 
-    /* Modal for viewing photos */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -606,9 +603,7 @@
   </header>
 
   <main>
-    <!-- TOP ROW -->
     <div class="top-row">
-      <!-- BODY MAP + FIGURE -->
       <section class="panel" id="bodyPanel">
         <h2>Patient Body Map &amp; Drone Feed</h2>
 
@@ -617,7 +612,6 @@
         </div>
 
         <div class="scan-layout">
-          <!-- Scan list -->
           <div class="scan-list">
             <div class="scan-row" data-scan="id">
               <div class="scan-label">Eyes / ID</div>
@@ -668,7 +662,6 @@
             </div>
           </div>
 
-          <!-- Figure -->
           <div class="figure-wrapper">
             <div class="figure-visual" id="figureVisual">
               <div class="figure-silhouette">
@@ -676,7 +669,6 @@
                 <img src="images/body_silhouette.png" alt="" class="figure-img-fill" id="figureFill" />
               </div>
 
-              <!-- hotspots for envelopes -->
               <button class="figure-hotspot hotspot-id" data-scan="id" title="Eyes / ID"><span>✉</span></button>
               <button class="figure-hotspot hotspot-conc" data-scan="conclevel" title="Consciousness"><span>✉</span></button>
               <button class="figure-hotspot hotspot-hr" data-scan="hr" title="Heart rate"><span>✉</span></button>
@@ -693,7 +685,6 @@
         </div>
       </section>
 
-      <!-- VITALS PANEL -->
       <section class="panel">
         <h2>Live Vitals (from drone)</h2>
         <div class="vitals-list" style="display:flex;flex-direction:column;gap:6px;font-size:14px;">
@@ -735,9 +726,7 @@
       </section>
     </div>
 
-    <!-- BOTTOM ROW -->
     <div class="bottom-row">
-      <!-- TRIAGE DECISION -->
       <section class="panel">
         <h2>Human Triage Decision</h2>
         <div class="triage-controls">
@@ -775,7 +764,6 @@
         </div>
       </section>
 
-      <!-- RESULTS + LEADERBOARD -->
       <section class="panel">
         <h2>Human vs AI Results</h2>
 
@@ -849,7 +837,6 @@
   </main>
 </div>
 
-<!-- Modal for images -->
 <div class="modal-backdrop" id="imageModal">
   <div class="modal">
     <div class="modal-header">
@@ -866,7 +853,6 @@
 <script>
   const socket = io();
 
-  // ---- Scenario config ----
   const scenarios = [
     {
       id: "s1",
@@ -1058,7 +1044,6 @@
 
   const scanTypes = ["id","conclevel","hr","bp","rr","injury1","injury2"];
 
-  // ---- State ----
   let currentScenario = scenarios[0];
   let scanState = {};
   let imageState = {};
@@ -1076,7 +1061,6 @@
   let leaderboard = [];
   let currentOperator = { name: "Unknown", mode: "Solo" };
 
-  // ---- DOM refs ----
   const operatorLabelEl = document.getElementById("operatorLabel");
   const scenarioSelectEl = document.getElementById("scenarioSelect");
   const scanRows = Array.from(document.querySelectorAll(".scan-row"));
@@ -1124,7 +1108,6 @@
   const modalTitle = document.getElementById("modalTitle");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
 
-  // ---- Scenario dropdown ----
   function populateScenarioDropdown() {
     scenarioSelectEl.innerHTML = "";
     scenarios.forEach(s => {
@@ -1146,7 +1129,6 @@
     selectScenarioById(scenarioSelectEl.value);
   });
 
-  // ---- Vitals ----
   function updateVitalsDisplay() {
     vConEl.textContent = vitalsState.consciousness || "—";
     vRREl.textContent = vitalsState.rr || "—";
@@ -1160,7 +1142,6 @@
     updateVitalsDisplay();
   }
 
-  // ---- Timer ----
   function resetTimer() {
     timerRunning = false;
     timerStart = null;
@@ -1200,7 +1181,6 @@
     timerHintEl.textContent = "Triage finished. Compare your decision with the AI.";
   }
 
-  // ---- Silhouette fill ----
   function updateBodyFill() {
     if (!figureFill) return;
     const expected = currentScenario.expectedScans;
@@ -1218,12 +1198,11 @@
     const table = (steps === 7) ? seven : six;
 
     const idx = Math.min(done - 1, table.length - 1);
-    const revealed = table[idx]; // percentage from head downward
+    const revealed = table[idx];
     figureFill.style.opacity = "1";
     figureFill.style.clipPath = `inset(0 0 ${100 - revealed}% 0)`;
   }
 
-  // ---- Scan / silhouette state ----
   function resetScanState() {
     scanTypes.forEach(t => {
       scanState[t] = false;
@@ -1239,7 +1218,6 @@
     figureVisual.classList.remove("review-mode");
     figureHotspots.forEach(h => h.classList.remove("active"));
 
-    // BP row / hotspot special handling for Scenario 4 (no BP)
     const bpRow = document.querySelector('.scan-row[data-scan="bp"]');
     const bpHot = document.querySelector('.figure-hotspot[data-scan="bp"]');
     if (currentScenario.id === "s4") {
@@ -1279,7 +1257,6 @@
     figureVisual.classList.add("review-mode");
     scanHintEl.querySelector("ol").style.opacity = "0.6";
     scanStatusLabel.textContent = "In triage mode. Use the envelopes to review images.";
-    // enable hotspots for scanned regions
     figureHotspots.forEach(h => {
       const t = h.dataset.scan;
       if (scanState[t]) h.classList.add("active");
@@ -1298,7 +1275,6 @@
     resetSimulationState();
   });
 
-  // ---- QR handling ----
   function inferScanTypeFromUrl(url) {
     const lower = url.toLowerCase();
     if (lower.includes("_id")) return "id";
@@ -1315,14 +1291,12 @@
     const scanType = inferScanTypeFromUrl(url);
     if (!scanType) return;
 
-    // ignore scan types that are not expected in this scenario (e.g., BP in s4)
     if (!currentScenario.expectedScans.includes(scanType)) return;
 
     if (!scanState[scanType]) {
       scanState[scanType] = true;
       imageState[scanType] = url;
 
-      // update row
       const row = document.querySelector(`.scan-row[data-scan="${scanType}"]`);
       if (row) {
         row.classList.add("filled");
@@ -1330,7 +1304,6 @@
         if (s) s.textContent = "Scan received";
       }
 
-      // vitals
       const mapping = currentScenario.scanVitals[scanType];
       if (mapping) {
         if (mapping.vitalKey === "consciousness") vitalsState.consciousness = mapping.value;
@@ -1352,13 +1325,11 @@
     }
   });
 
-  // ---- Operator info ----
   socket.on("operator-info", ({ name, mode }) => {
     currentOperator = { name: name || "Visitor", mode: mode || "Solo" };
     operatorLabelEl.innerHTML = `Operator: <span class="glow">${currentOperator.name}</span> (${currentOperator.mode})`;
   });
 
-  // ---- Hotspots -> modal ----
   figureHotspots.forEach(h => {
     h.addEventListener("click", () => {
       const scanType = h.dataset.scan;
@@ -1383,7 +1354,6 @@
     }
   });
 
-  // ---- Triage decision ----
   function resetDecision() {
     selectedTriage = null;
     selectedHospital = null;
@@ -1466,7 +1436,6 @@
   submitDecisionBtn.addEventListener("click", () => {
     if (submitDecisionBtn.disabled) return;
 
-    // freeze timer and compute final time
     stopTimer();
     const timeSeconds = finalTimeMs ? finalTimeMs / 1000 : 0;
 
@@ -1479,13 +1448,6 @@
 
     showResults(human);
     const score = extractScoreFromSummary();
-    addToLeaderboard({
-      name: currentOperator.name || "Unknown",
-      mode: currentOperator.mode || "Solo",
-      scenarioLabel: currentScenario.label,
-      score,
-      timeSeconds: human.timeSeconds ?? 0
-    });
 
     socket.emit("final-score", {
       operator: currentOperator,
@@ -1495,7 +1457,6 @@
     });
   });
 
-  // ---- Scoring & results ----
   function showResults(human) {
     const ai = currentScenario.ai;
     resHumanTriage.textContent = human.triage;
@@ -1544,7 +1505,6 @@
     return m ? parseInt(m[1], 10) : 0;
   }
 
-  // ---- Leaderboard ----
   function addToLeaderboard(entry) {
     leaderboard.push(entry);
     leaderboard.sort((a, b) => {
@@ -1552,6 +1512,9 @@
       return a.timeSeconds - b.timeSeconds;
     });
     renderLeaderboard();
+    try {
+      localStorage.setItem("triageLeaderboard", JSON.stringify(leaderboard));
+    } catch (e) {}
   }
 
   function renderLeaderboard() {
@@ -1568,15 +1531,35 @@
     });
   }
 
+  function loadLeaderboardFromStorage() {
+    let saved = null;
+    try {
+      saved = localStorage.getItem("triageLeaderboard");
+    } catch (e) {
+      saved = null;
+    }
+    if (saved) {
+      try {
+        const arr = JSON.parse(saved);
+        if (Array.isArray(arr)) {
+          leaderboard = arr;
+          renderLeaderboard();
+        }
+      } catch (e) {}
+    }
+  }
+
   resetLeaderboardBtn.addEventListener("click", () => {
     leaderboard = [];
     renderLeaderboard();
+    try { localStorage.removeItem("triageLeaderboard"); } catch (e) {}
     socket.emit("reset-leaderboard");
   });
 
   socket.on("reset-leaderboard", () => {
     leaderboard = [];
     renderLeaderboard();
+    try { localStorage.removeItem("triageLeaderboard"); } catch (e) {}
   });
 
   socket.on("final-score", (payload) => {
@@ -1592,7 +1575,6 @@
     });
   });
 
-  // ---- Reset everything for scenario ----
   function clearResultsOnly() {
     resHumanTriage.textContent = "—";
     resAITriage.textContent = "—";
@@ -1617,10 +1599,18 @@
     clearResultsOnly();
   }
 
-  // ---- Init ----
+  socket.on("final-score-initial", (entries) => {
+    // if your server ever sends an initial full board, you could handle here
+  });
+
+  socket.on("connect", () => {
+    // nothing special; leaderboard is already loaded from localStorage
+  });
+
   function populateAndInit() {
     populateScenarioDropdown();
     selectScenarioById(scenarios[0].id);
+    loadLeaderboardFromStorage();
   }
 
   populateAndInit();
