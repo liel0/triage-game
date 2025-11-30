@@ -40,12 +40,12 @@
 
     body {
       font-family: var(--font-sans);
-      background: radial-gradient(circle at 20% 0, #1a2440 0, #040715 45%)
-        fixed;
+      background: radial-gradient(circle at 20% 0, #1a2440 0, #040715 45%) fixed;
       color: var(--text-main);
       min-height: 100vh;
       padding: 18px 18px 26px;
       overflow-x: hidden;
+      overflow-y: auto;
     }
 
     /* ---------- LAYOUT ---------- */
@@ -56,7 +56,6 @@
       gap: 12px;
       max-width: 1920px;
       margin: 0 auto;
-      /* remove fixed height so content can grow & scroll */
       min-height: calc(100vh - 36px);
     }
 
@@ -131,10 +130,9 @@
     .grid-main {
       display: grid;
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-      /* let rows size to content instead of fixed fractions */
-      grid-template-rows: auto auto;
+      grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr);
       gap: 12px;
-      /* remove height:100% to avoid overlap on zoom */
+      min-height: 0;
     }
 
     .card {
@@ -145,7 +143,7 @@
       padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      min-height: 0;
     }
 
     .card-header {
@@ -172,10 +170,11 @@
 
     .body-map {
       display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
       gap: 16px;
       flex: 1;
       min-height: 0;
+      align-items: stretch;
     }
 
     .scan-list {
@@ -273,6 +272,7 @@
       align-items: center;
       justify-content: center;
       padding: 8px 4px 8px 8px;
+      min-height: 0;
     }
 
     .body-silhouette-shell {
@@ -285,29 +285,24 @@
       padding: 16px 18px;
       box-shadow: 0 22px 60px rgba(0, 0, 0, 0.9);
       border: 1px solid rgba(132, 168, 255, 0.25);
+      overflow: hidden;
     }
 
     .body-silhouette-base {
       position: absolute;
       inset: 12px 20px;
-      background: url("images/body-silhouette-base.png") center/contain
-        no-repeat;
-      opacity: 0.35;
-      filter: drop-shadow(0 0 18px rgba(71, 111, 190, 0.7));
-      pointer-events: none;
-    }
-
-    /* fallback text if PNGs are missing */
-    .body-silhouette-placeholder {
-      position: absolute;
-      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
-      color: var(--text-muted);
+      opacity: 0.45;
+      filter: drop-shadow(0 0 18px rgba(71, 111, 190, 0.8));
       pointer-events: none;
-      text-align: center;
+      z-index: 1;
+    }
+
+    .body-silhouette-base svg {
+      width: 100%;
+      height: 100%;
     }
 
     .body-segments {
@@ -316,15 +311,16 @@
       display: flex;
       flex-direction: column;
       justify-content: stretch;
-      gap: 4px;
+      gap: 5px;
+      z-index: 2;
     }
 
     .body-segment {
       flex: 1;
       border-radius: 999px;
-      background: radial-gradient(circle at 50% 0, rgba(72, 125, 255, 0.0), rgba(4, 7, 21, 0.9));
-      border: 1px solid rgba(80, 115, 210, 0.35);
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.85);
+      background: radial-gradient(circle at 50% 0, rgba(72, 125, 255, 0.0), rgba(4, 7, 21, 0.92));
+      border: 1px solid rgba(80, 115, 210, 0.38);
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9);
       overflow: hidden;
       position: relative;
     }
@@ -332,10 +328,10 @@
     .body-segment-fill {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 20% 0, rgba(90, 200, 255, 0.22), rgba(32, 247, 179, 0.28));
+      background: radial-gradient(circle at 20% 0, rgba(90, 200, 255, 0.25), rgba(32, 247, 179, 0.35));
       opacity: 0;
       transform: translateY(18%);
-      transition: opacity 0.5s ease-out, transform 0.55s cubic-bezier(0.15, 0.8, 0.25, 1);
+      transition: opacity 0.55s ease-out, transform 0.6s cubic-bezier(0.15, 0.8, 0.25, 1);
       pointer-events: none;
     }
 
@@ -347,16 +343,18 @@
     .body-silhouette-outline {
       position: absolute;
       inset: 22px 32px;
-      background: url("images/body-silhouette-fill.png") center/contain
-        no-repeat;
+      border-radius: 60px;
+      box-shadow: 0 0 35px rgba(88, 200, 255, 0.45);
+      border: 1px solid rgba(137, 210, 255, 0.35);
       mix-blend-mode: screen;
-      opacity: 0.0;
+      opacity: 0;
       pointer-events: none;
       transition: opacity 0.4s ease-out;
+      z-index: 0;
     }
 
     .body-silhouette-shell.all-filled .body-silhouette-outline {
-      opacity: 0.32;
+      opacity: 0.35;
     }
 
     .body-silhouette-footer {
@@ -368,6 +366,7 @@
       color: var(--text-muted);
       text-align: center;
       max-width: 90%;
+      z-index: 3;
     }
 
     /* ENVELOPES VIEW */
@@ -378,6 +377,7 @@
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.35s ease-out;
+      z-index: 4;
     }
 
     .body-silhouette-shell.envelope-mode .envelope-layer {
@@ -509,6 +509,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      min-height: 0;
     }
 
     .section-label {
@@ -1034,16 +1035,33 @@
         </div>
         <div class="body-silhouette-wrapper">
           <div class="body-silhouette-shell" id="bodyShell">
-            <div class="body-silhouette-base"></div>
+            <div class="body-silhouette-base">
+              <!-- Inline SVG human silhouette -->
+              <svg viewBox="0 0 100 260" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#7fd3ff" stop-opacity="0.95"/>
+                    <stop offset="40%" stop-color="#4bc3ff" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="#2af0b5" stop-opacity="0.7"/>
+                  </linearGradient>
+                </defs>
+                <g fill="url(#bodyGrad)" stroke="#0c1229" stroke-width="2">
+                  <circle cx="50" cy="28" r="14"/>
+                  <rect x="34" y="42" width="32" height="52" rx="12"/>
+                  <rect x="24" y="50" width="10" height="55" rx="5"/>
+                  <rect x="66" y="50" width="10" height="55" rx="5"/>
+                  <rect x="36" y="94" width="28" height="62" rx="12"/>
+                  <rect x="32" y="150" width="14" height="80" rx="10"/>
+                  <rect x="54" y="150" width="14" height="80" rx="10"/>
+                </g>
+              </svg>
+            </div>
             <div class="body-segments" id="bodySegments">
               <!-- segments injected -->
             </div>
             <div class="body-silhouette-outline"></div>
             <div class="envelope-layer" id="envelopeLayer">
               <!-- envelopes injected -->
-            </div>
-            <div class="body-silhouette-placeholder">
-              Patient silhouette
             </div>
             <div class="body-silhouette-footer" id="silhouetteFooter">
               Scan all body regions in order. When complete, continue to triage.
@@ -1558,7 +1576,7 @@
       const sc = scenarios.find((s) => s.id === scenarioId);
       if (sc) {
         currentScenario = sc;
-        resetSimulationState(false);
+        resetSimulationState(true);
         renderScenario(currentScenario);
       }
     });
@@ -1857,8 +1875,8 @@
 
   function getElapsedTimeSeconds() {
     if (!timerStart) return null;
-    const value = parseFloat(timerValueEl.textContent);
-    return Number.isFinite(value) ? value : null;
+    const seconds = parseFloat(timerValueEl.textContent);
+    return Number.isFinite(seconds) ? seconds : null;
   }
 
   // ---------- TRIAGE / SUBMIT ----------
@@ -1953,7 +1971,6 @@
         ? "Strong alignment with AI; review any differences."
         : "Significant differences vs AI — discuss in debrief.";
 
-    // Leaderboard entry
     const playerName = prompt(
       "Enter your name for the leaderboard:",
       "Guest"
@@ -1968,7 +1985,6 @@
       timeSeconds: timeSeconds
     });
 
-    // mark that this run has been submitted to avoid duplicates
     btnSubmitDecision.disabled = true;
   }
 
@@ -2046,7 +2062,6 @@
       timeSeconds: entry.timeSeconds
     });
 
-    // sort by score desc then time asc
     entries.sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       return a.timeSeconds - b.timeSeconds;
@@ -2077,7 +2092,6 @@
     selectedHospitalId = null;
     selectedTests = new Set();
 
-    // UI
     renderScanList();
     renderSilhouette();
     document
@@ -2105,7 +2119,6 @@
         "Scan all QR tags first. The timer will start when you continue to triage.";
     }
 
-    // reset result table
     humanTriageCell.textContent = "—";
     humanHospitalCell.textContent = "—";
     humanTestsCell.textContent = "—";
