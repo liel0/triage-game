@@ -55,17 +55,18 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: 700;
     }
 
     header .title span {
-      font-size: 20px;
+      font-size: 22px;
     }
 
     header .operator {
       font-size: 14px;
       color: var(--muted);
+      font-weight: 600;
     }
 
     main {
@@ -94,8 +95,8 @@
     }
 
     .panel h2 {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: 700;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
@@ -117,6 +118,7 @@
       color: var(--text);
       font-size: 14px;
       outline: none;
+      font-weight: 600;
     }
 
     .scan-layout {
@@ -149,7 +151,7 @@
     }
 
     .scan-row .scan-label {
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .scan-row .scan-status {
@@ -204,7 +206,7 @@
       border-radius: 999px;
       border: none;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -381,6 +383,7 @@
       font-size: 11px;
       white-space: nowrap;
       color: var(--muted);
+      font-weight: 600;
     }
 
     .triage-circle.selected {
@@ -392,6 +395,7 @@
     .triage-steps-label {
       font-size: 12px;
       color: var(--muted);
+      font-weight: 600;
     }
 
     .hospital-tests {
@@ -417,7 +421,7 @@
     }
 
     .hospital-name {
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 3px;
     }
 
@@ -471,7 +475,7 @@
     }
 
     .results-table th {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--muted);
     }
 
@@ -486,6 +490,7 @@
     .score-summary {
       margin-top: 6px;
       font-size: 13px;
+      font-weight: 700;
     }
 
     .leaderboard {
@@ -506,7 +511,7 @@
     }
 
     .leaderboard th {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--muted);
     }
 
@@ -520,11 +525,12 @@
       justify-content: space-between;
       font-size: 14px;
       border: 1px solid rgba(148, 163, 184, 0.4);
+      font-weight: 600;
     }
 
     .timer span.time {
-      font-weight: 700;
-      font-size: 18px;
+      font-weight: 800;
+      font-size: 20px;
     }
 
     .glow {
@@ -564,6 +570,7 @@
       align-items: center;
       font-size: 13px;
       color: var(--muted);
+      font-weight: 600;
     }
 
     .modal-close {
@@ -594,7 +601,7 @@
       <span>🚁</span>
       <div>
         <div>AI Triage Drone 2040</div>
-        <div style="font-size:12px;color:var(--muted);">Mass casualty triage training • Human vs AI</div>
+        <div style="font-size:12px;color:var(--muted);font-weight:500;">Mass casualty triage training • Human vs AI</div>
       </div>
     </div>
     <div class="operator" id="operatorLabel">
@@ -719,8 +726,8 @@
         </div>
 
         <div style="margin-top:10px;font-size:11px;color:var(--muted);border-radius:14px;border:1px dashed rgba(148,163,184,0.5);padding:8px 10px;">
-          <div style="font-weight:600;margin-bottom:4px;">COMING SOON</div>
-          <div style="font-weight:600;">AI Paramedic Support Module</div>
+          <div style="font-weight:700;margin-bottom:4px;">COMING SOON</div>
+          <div style="font-weight:700;">AI Paramedic Support Module</div>
           <div>Drone will recommend the exact medical tools paramedics should bring from the hospital based on the injuries.</div>
         </div>
       </section>
@@ -752,7 +759,7 @@
               <div id="hospitalList"></div>
             </div>
             <div>
-              <div class="triage-steps-label" style="margin-bottom:4px;">Step 3 — choose ER tests</div>
+              <div class="triage-steps-label" style="margin-bottom:4px;">Step 3 — choose ER tests / actions</div>
               <div class="tests-list" id="testsList"></div>
             </div>
           </div>
@@ -790,7 +797,7 @@
             <td class="match-cell" id="matchHospital">—</td>
           </tr>
           <tr>
-            <td>ER tests</td>
+            <td>ER tests / actions</td>
             <td id="resHumanTests">—</td>
             <td id="resAITests">—</td>
             <td class="match-cell" id="matchTests">—</td>
@@ -808,11 +815,12 @@
           Score: 0 / 12 points
         </div>
 
+        <!-- MINI LEADERBOARD (TOP 5) -->
         <div class="leaderboard">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <div style="font-weight:600;">Live Leaderboard</div>
+            <div style="font-weight:700;">Mini Leaderboard (Top 5)</div>
             <div style="display:flex;gap:6px;">
-              <button class="btn-secondary" id="resetSimBtn">Reset simulation</button>
+              <button class="btn-secondary" id="resetSimBtn">Play new game</button>
               <button class="btn-primary" style="padding:4px 10px;font-size:11px;background:linear-gradient(135deg,#ef4444,#f97316);" id="resetLeaderboardBtn">
                 Reset board
               </button>
@@ -829,7 +837,25 @@
               <th>Time</th>
             </tr>
             </thead>
-            <tbody id="leaderboardBody"></tbody>
+            <tbody id="leaderboardMiniBody"></tbody>
+          </table>
+        </div>
+
+        <!-- FULL LEADERBOARD (ALL SCORES) -->
+        <div class="leaderboard" style="margin-top:10px;">
+          <div style="font-weight:700;margin-bottom:4px;">Full Leaderboard</div>
+          <table>
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Mode</th>
+              <th>Scenario</th>
+              <th>Score</th>
+              <th>Time</th>
+            </tr>
+            </thead>
+            <tbody id="leaderboardFullBody"></tbody>
           </table>
         </div>
       </section>
@@ -837,6 +863,7 @@
   </main>
 </div>
 
+<!-- IMAGE MODAL -->
 <div class="modal-backdrop" id="imageModal">
   <div class="modal">
     <div class="modal-header">
@@ -852,6 +879,8 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
+
+  // --- SCENARIO DEFINITIONS (with corrected hospitals & ER actions) ---
 
   const scenarios = [
     {
@@ -904,6 +933,14 @@
             "Serum lactate",
             "ECG"
           ]
+        },
+        {
+          name: "Hydration & First Aid Station",
+          meta: "Out-of-hospital care (NOT ideal for this red patient)",
+          testsAvailable: [
+            "Oral rehydration",
+            "Observation"
+          ]
         }
       ]
     },
@@ -927,6 +964,16 @@
       },
       hospitals: [
         {
+          name: "Mina Emergency Hospital",
+          meta: "Mass-casualty capable unit",
+          testsAvailable: [
+            "Plain X-ray",
+            "Burn depth assessment",
+            "FAST ultrasound",
+            "Pregnancy test"
+          ]
+        },
+        {
           name: "King Fahad Medical City — Trauma Centre",
           meta: "Level 1 trauma centre",
           testsAvailable: [
@@ -938,16 +985,6 @@
           ]
         },
         {
-          name: "Mina Emergency Hospital",
-          meta: "Mass-casualty capable unit",
-          testsAvailable: [
-            "Plain X-ray",
-            "Burn depth assessment",
-            "FAST ultrasound",
-            "Pregnancy test"
-          ]
-        },
-        {
           name: "Dhahran Trauma Center",
           meta: "High-capacity burn and trauma",
           testsAvailable: [
@@ -955,6 +992,14 @@
             "CT scan",
             "Burn depth assessment",
             "ECG"
+          ]
+        },
+        {
+          name: "Hydration & First Aid Station",
+          meta: "Basic field care only",
+          testsAvailable: [
+            "Oral rehydration",
+            "Observation"
           ]
         }
       ]
@@ -964,38 +1009,55 @@
       label: "Scenario 3 — Desert Rally (Green)",
       ai: {
         triage: "Green",
-        hospital: "AlUla Field Medical Base",
-        erTests: ["Plain X-ray", "Intravenous (IV) fluids", "FAST ultrasound"],
+        hospital: "Hydration & First Aid Station",
+        erTests: ["Oral rehydration", "IV fluids if symptomatic", "Observation"],
         timeSeconds: 1.5
       },
       expectedScans: ["id","conclevel","hr","bp","rr","injury1","injury2"],
       scanVitals: {
-        conclevel: { vitalKey: "consciousness", value: "Walking, answering appropriately" },
+        conclevel: { vitalKey: "consciousness", value: "Alert, walking, answering appropriately" },
         rr:        { vitalKey: "rr",           value: "18 / min" },
         hr:        { vitalKey: "hr",           value: "92 bpm" },
         bp:        { vitalKey: "bp",           value: "118/78 mmHg" },
         injury1:   { vitalKey: "keyInjury",    value: "Mild dehydration" },
-        injury2:   { vitalKey: "keyInjury",    value: "Mild dehydration & heat stress" }
+        injury2:   { vitalKey: "keyInjury",    value: "Mild dehydration & mild heat stress" }
       },
       hospitals: [
         {
-          name: "AlUla Field Medical Base",
-          meta: "Desert response unit",
+          name: "Hydration & First Aid Station",
+          meta: "Out-of-hospital care zone (correct for mild dehydration)",
           testsAvailable: [
-            "Plain X-ray",
-            "Intravenous (IV) fluids",
+            "Oral rehydration",
+            "IV fluids if symptomatic",
+            "Observation"
+          ]
+        },
+        {
+          name: "Mina Emergency Hospital",
+          meta: "Closest high-emergency facility (too aggressive for this case)",
+          testsAvailable: [
             "FAST ultrasound",
-            "ECG"
+            "Serum lactate",
+            "Blood typing and crossmatch"
           ]
         },
         {
           name: "King Fahad Medical City — Trauma Centre",
-          meta: "Definitive care (if required)",
+          meta: "Level 1 trauma centre (over-triage for this patient)",
           testsAvailable: [
             "Plain X-ray",
             "CT scan abdomen",
-            "ECG",
-            "Serum lactate"
+            "IV fluids",
+            "Observation"
+          ]
+        },
+        {
+          name: "Dhahran Trauma Center",
+          meta: "Highway critical care hub (not needed here)",
+          testsAvailable: [
+            "FAST ultrasound",
+            "CT scan",
+            "Intravenous (IV) fluids"
           ]
         }
       ]
@@ -1005,8 +1067,8 @@
       label: "Scenario 4 — Highway Collision (Black)",
       ai: {
         triage: "Black",
-        hospital: "Dhahran Trauma Center",
-        erTests: ["FAST ultrasound", "CT scan", "Blood typing and crossmatch"],
+        hospital: "Morgue / Forensic Services",
+        erTests: ["Identification & documentation only"],
         timeSeconds: 1.3
       },
       expectedScans: ["id","conclevel","hr","rr","injury1","injury2"], // no BP
@@ -1019,23 +1081,37 @@
       },
       hospitals: [
         {
-          name: "Dhahran Trauma Center",
-          meta: "Highway critical care",
+          name: "Morgue / Forensic Services",
+          meta: "Post-mortem care / Disaster Victim Management Team",
+          testsAvailable: [
+            "Identification & documentation only"
+          ]
+        },
+        {
+          name: "Mina Emergency Hospital",
+          meta: "High-emergency facility for living casualties",
           testsAvailable: [
             "FAST ultrasound",
-            "CT scan",
-            "Blood typing and crossmatch",
-            "ECG"
+            "Serum lactate",
+            "Blood typing and crossmatch"
           ]
         },
         {
           name: "King Fahad Medical City — Trauma Centre",
-          meta: "Level 1 trauma, tertiary review",
+          meta: "Definitive trauma care (not appropriate for black triage)",
           testsAvailable: [
             "FAST ultrasound",
             "CT scan",
-            "Serum lactate",
-            "Plain X-ray"
+            "Blood typing and crossmatch"
+          ]
+        },
+        {
+          name: "Dhahran Trauma Center",
+          meta: "Highway critical care hub",
+          testsAvailable: [
+            "FAST ultrasound",
+            "CT scan",
+            "ECG"
           ]
         }
       ]
@@ -1100,7 +1176,8 @@
   const matchTests = document.getElementById("matchTests");
   const matchTime = document.getElementById("matchTime");
   const scoreSummaryEl = document.getElementById("scoreSummary");
-  const leaderboardBody = document.getElementById("leaderboardBody");
+  const leaderboardMiniBody = document.getElementById("leaderboardMiniBody");
+  const leaderboardFullBody = document.getElementById("leaderboardFullBody");
   const resetLeaderboardBtn = document.getElementById("resetLeaderboardBtn");
 
   const imageModal = document.getElementById("imageModal");
@@ -1405,6 +1482,10 @@
   function renderTests(list) {
     testsListEl.innerHTML = "";
     selectedTests = new Set();
+    if (!list || list.length === 0) {
+      testsListEl.innerHTML = "<div style='font-size:12px;color:var(--muted);'>No ER tests – documentation only.</div>";
+      return;
+    }
     list.forEach(testName => {
       const row = document.createElement("label");
       row.className = "test-row";
@@ -1462,7 +1543,9 @@
     resHumanTriage.textContent = human.triage;
     resAITriage.textContent = ai.triage;
     resHumanHospital.textContent = human.hospital;
-    resAIHospital.textContent = ai.hospital;
+    resAIHospital.textContent = ai.hospital === "Morgue / Forensic Services"
+      ? "Morgue / Forensic Services (or DVI Team)"
+      : ai.hospital;
     resHumanTests.textContent = human.tests.join(", ");
     resAITests.textContent = ai.erTests.join(", ");
 
@@ -1476,7 +1559,14 @@
     markMatch(matchTriage, triageMatch);
     if (triageMatch) score += 5;
 
-    const hospMatch = human.hospital === ai.hospital;
+    // hospital: treat Morgue / Forensic vs DVI wording as equivalent
+    const hospMatch = (() => {
+      if (currentScenario.id === "s4") {
+        const h = (human.hospital || "").toLowerCase();
+        return h.includes("morgue") || h.includes("forensic") || h.includes("disaster victim");
+      }
+      return human.hospital === ai.hospital;
+    })();
     markMatch(matchHospital, hospMatch);
     if (hospMatch) score += 3;
 
@@ -1518,17 +1608,22 @@
   }
 
   function renderLeaderboard() {
-    leaderboardBody.innerHTML = "";
-    leaderboard.forEach((e, idx) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${idx+1}</td>
-                      <td>${e.name}</td>
-                      <td>${e.mode}</td>
-                      <td>${e.scenarioLabel}</td>
-                      <td>${e.score}</td>
-                      <td>${e.timeSeconds.toFixed(2)} s</td>`;
-      leaderboardBody.appendChild(tr);
-    });
+    function fill(bodyEl, maxEntries) {
+      if (!bodyEl) return;
+      bodyEl.innerHTML = "";
+      leaderboard.slice(0, maxEntries).forEach((e, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${idx+1}</td>
+                        <td>${e.name}</td>
+                        <td>${e.mode}</td>
+                        <td>${e.scenarioLabel}</td>
+                        <td>${e.score}</td>
+                        <td>${e.timeSeconds.toFixed(2)} s</td>`;
+        bodyEl.appendChild(tr);
+      });
+    }
+    fill(leaderboardMiniBody, 5);           // mini leaderboard (top 5)
+    fill(leaderboardFullBody, leaderboard.length || 0); // full board
   }
 
   function loadLeaderboardFromStorage() {
@@ -1599,12 +1694,8 @@
     clearResultsOnly();
   }
 
-  socket.on("final-score-initial", (entries) => {
-    // if your server ever sends an initial full board, you could handle here
-  });
-
   socket.on("connect", () => {
-    // nothing special; leaderboard is already loaded from localStorage
+    // no-op; leaderboard loaded from localStorage
   });
 
   function populateAndInit() {
