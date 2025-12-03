@@ -71,18 +71,58 @@
 
     main {
       flex: 1;
-      display: grid;
-      grid-template-rows: 60% 40%;
-      gap: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       min-height: 0;
     }
 
-    .top-row {
-      display: grid;
-      grid-template-columns: 52% 48%;
-      gap: 10px;
+    /* Global timer bar visible on all screens */
+    .timer-global {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 12px 25px rgba(15, 23, 42, 0.7);
+    }
+
+    .timer-global span.time {
+      font-weight: 800;
+      font-size: 20px;
+    }
+
+    .timer-global-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Screens */
+
+    .screen {
+      flex: 1;
+      display: none;
       min-height: 0;
     }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .screen-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      min-height: 0;
+    }
+
+    /* Panels */
 
     .panel {
       background: radial-gradient(circle at top left, #111827 0, #020617 55%);
@@ -121,9 +161,20 @@
       font-weight: 600;
     }
 
+    /* SCREEN 1 layout */
+
+    .screen1-layout {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      gap: 10px;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+
     .scan-layout {
       display: grid;
-      grid-template-columns: 52% 48%;
+      grid-template-columns: 55% 45%;
       gap: 12px;
       height: calc(100% - 40px);
       min-height: 0;
@@ -339,11 +390,20 @@
       text-align: center;
     }
 
-    .bottom-row {
-      display: grid;
-      grid-template-columns: 55% 45%;
-      gap: 10px;
+    /* SCREEN 2 – triage layout */
+
+    .screen2-layout {
+      width: 100%;
+      height: 100%;
       min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .triage-full-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     .triage-controls {
@@ -404,6 +464,8 @@
       grid-template-columns: 55% 45%;
       gap: 8px;
       font-size: 13px;
+      flex: 1;
+      min-height: 0;
     }
 
     .hospital-card {
@@ -438,6 +500,7 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
+      min-height: 0;
     }
 
     .test-row {
@@ -459,6 +522,17 @@
       align-items: center;
       font-size: 12px;
       color: var(--muted);
+    }
+
+    /* SCREEN 3 – results + leaderboard */
+
+    .screen3-layout {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 55% 45%;
+      gap: 10px;
     }
 
     .results-table {
@@ -515,27 +589,11 @@
       color: var(--muted);
     }
 
-    .timer {
-      margin-top: 12px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 14px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      font-weight: 600;
-    }
-
-    .timer span.time {
-      font-weight: 800;
-      font-size: 20px;
-    }
-
     .glow {
       text-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
     }
+
+    /* Modal */
 
     .modal-backdrop {
       position: fixed;
@@ -610,255 +668,282 @@
   </header>
 
   <main>
-    <div class="top-row">
-      <section class="panel" id="bodyPanel">
-        <h2>Patient Body Map &amp; Drone Feed</h2>
-
-        <div class="scenario-select">
-          <select id="scenarioSelect"></select>
-        </div>
-
-        <div class="scan-layout">
-          <div class="scan-list">
-            <div class="scan-row" data-scan="id">
-              <div class="scan-label">Eyes / ID</div>
-              <div class="scan-status">Waiting for scan…</div>
-            </div>
-            <div class="scan-row" data-scan="conclevel">
-              <div class="scan-label">Face – Consciousness</div>
-              <div class="scan-status">Waiting for scan…</div>
-            </div>
-            <div class="scan-row" data-scan="hr">
-              <div class="scan-label">Neck – Heart rate</div>
-              <div class="scan-status">Waiting for scan…</div>
-            </div>
-            <div class="scan-row" data-scan="rr">
-              <div class="scan-label">Chest – Respiratory rate</div>
-              <div class="scan-status">Waiting for scan…</div>
-            </div>
-            <div class="scan-row" data-scan="bp">
-              <div class="scan-label">Arms – Blood pressure</div>
-              <div class="scan-status">Waiting for scan…</div>
-            </div>
-            <div class="scan-row" data-scan="injury1">
-              <div class="scan-label">Pelvis / Abdomen – Injury 1</div>
-              <div class="scan-status">Waiting for scan…</div>
-            </div>
-            <div class="scan-row" data-scan="injury2">
-              <div class="scan-label">Legs / Feet – Injury 2</div>
-              <div class="scan-status">Waiting for scan…</div>
-            </div>
-
-            <div class="scan-instructions" id="scanHint">
-              Scan from head to toe in this order. The silhouette will light up with each scan.
-              When all scans are done you can continue to the triage decision.
-              <ol>
-                <li>Eyes – ID</li>
-                <li>Face – consciousness level</li>
-                <li>Neck – heart rate</li>
-                <li>Chest – respiratory rate</li>
-                <li>Arms – blood pressure (not used in Scenario 4)</li>
-                <li>Pelvis / Abdomen – main injury</li>
-                <li>Legs / Feet – secondary injury</li>
-              </ol>
-            </div>
-
-            <div class="scan-actions">
-              <span id="scanStatusLabel">Waiting for scans…</span>
-              <button class="btn-primary" id="continueBtn" disabled>Continue to triage</button>
-            </div>
-          </div>
-
-          <div class="figure-wrapper">
-            <div class="figure-visual" id="figureVisual">
-              <div class="figure-silhouette">
-                <img src="images/body_silhouette.png" alt="Patient silhouette" class="figure-img-base" />
-                <img src="images/body_silhouette.png" alt="" class="figure-img-fill" id="figureFill" />
-              </div>
-
-              <button class="figure-hotspot hotspot-id" data-scan="id" title="Eyes / ID"><span>✉</span></button>
-              <button class="figure-hotspot hotspot-conc" data-scan="conclevel" title="Consciousness"><span>✉</span></button>
-              <button class="figure-hotspot hotspot-hr" data-scan="hr" title="Heart rate"><span>✉</span></button>
-              <button class="figure-hotspot hotspot-rr" data-scan="rr" title="Respiratory rate"><span>✉</span></button>
-              <button class="figure-hotspot hotspot-bp" data-scan="bp" title="Blood pressure"><span>✉</span></button>
-              <button class="figure-hotspot hotspot-inj1" data-scan="injury1" title="Injury 1"><span>✉</span></button>
-              <button class="figure-hotspot hotspot-inj2" data-scan="injury2" title="Injury 2"><span>✉</span></button>
-            </div>
-            <div class="figure-caption">
-              During scanning, the body fills from head to toe.  
-              After Continue, tap an envelope to view that region’s photo.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>Live Vitals (from drone)</h2>
-        <div class="vitals-list" style="display:flex;flex-direction:column;gap:6px;font-size:14px;">
-          <div class="vital-row">
-            <div class="vital-label">Consciousness</div>
-            <div class="vital-value" id="vConsciousness">—</div>
-          </div>
-          <div class="vital-row">
-            <div class="vital-label">Respiratory rate (RR)</div>
-            <div class="vital-value" id="vRR">—</div>
-          </div>
-          <div class="vital-row">
-            <div class="vital-label">Heart rate (HR)</div>
-            <div class="vital-value" id="vHR">—</div>
-          </div>
-          <div class="vital-row">
-            <div class="vital-label">Blood pressure (BP)</div>
-            <div class="vital-value" id="vBP">—</div>
-          </div>
-          <div class="vital-row">
-            <div class="vital-label">Key injury / problem</div>
-            <div class="vital-value" id="vKeyInjury">—</div>
-          </div>
-        </div>
-
-        <div class="timer">
-          <div>PATIENT LOADING • TRIAGE TIMER</div>
-          <span class="time" id="timerDisplay">0.00 s</span>
-        </div>
-        <div style="margin-top:4px;font-size:12px;color:var(--muted);" id="timerHint">
-          Scan all QR tags first. The timer will start when you continue to triage.
-        </div>
-
-        <div style="margin-top:10px;font-size:11px;color:var(--muted);border-radius:14px;border:1px dashed rgba(148,163,184,0.5);padding:8px 10px;">
-          <div style="font-weight:700;margin-bottom:4px;">COMING SOON</div>
-          <div style="font-weight:700;">AI Paramedic Support Module</div>
-          <div>Drone will recommend the exact medical tools paramedics should bring from the hospital based on the injuries.</div>
-        </div>
-      </section>
+    <!-- Global timer bar -->
+    <div>
+      <div class="timer-global">
+        <div>PATIENT LOADING • TRIAGE TIMER</div>
+        <span class="time" id="timerDisplay">0.00 s</span>
+      </div>
+      <div class="timer-global-sub" id="timerHint">
+        Scan all QR tags first. The timer will start when you continue to triage.
+      </div>
     </div>
 
-    <div class="bottom-row">
-      <section class="panel">
-        <h2>Human Triage Decision</h2>
-        <div class="triage-controls">
-          <div class="triage-steps-label">Step 1 — choose triage category</div>
-          <div class="triage-circles">
-            <div class="triage-circle" data-level="Red">
-              <span>Red</span>
-            </div>
-            <div class="triage-circle" data-level="Yellow">
-              <span>Yellow</span>
-            </div>
-            <div class="triage-circle" data-level="Green">
-              <span>Green</span>
-            </div>
-            <div class="triage-circle" data-level="Black">
-              <span>Black</span>
-            </div>
-          </div>
+    <!-- SCREEN 1 – Scan & Data Collection -->
+    <div class="screen active" id="screen1">
+      <div class="screen-column">
+        <div class="screen1-layout">
+          <section class="panel" id="bodyPanel">
+            <h2>Patient Body Map &amp; Drone Scan Feed</h2>
 
-          <div class="hospital-tests">
-            <div>
-              <div class="triage-steps-label" style="margin-bottom:4px;">Step 2 — choose receiving hospital</div>
-              <div id="hospitalList"></div>
+            <div class="scenario-select">
+              <select id="scenarioSelect"></select>
             </div>
-            <div>
-              <div class="triage-steps-label" style="margin-bottom:4px;">Step 3 — choose ER tests / actions</div>
-              <div class="tests-list" id="testsList"></div>
-            </div>
-          </div>
 
-          <div class="submit-row">
-            <span id="decisionHint">Complete triage, hospital and tests after scanning all regions and pressing Continue.</span>
-            <button class="btn-primary" id="submitDecisionBtn" disabled>Submit Decision</button>
-          </div>
+            <div class="scan-layout">
+              <div class="scan-list">
+                <div class="scan-row" data-scan="id">
+                  <div class="scan-label">Eyes / ID</div>
+                  <div class="scan-status">Waiting for scan…</div>
+                </div>
+                <div class="scan-row" data-scan="conclevel">
+                  <div class="scan-label">Face – Consciousness</div>
+                  <div class="scan-status">Waiting for scan…</div>
+                </div>
+                <div class="scan-row" data-scan="hr">
+                  <div class="scan-label">Neck – Heart rate</div>
+                  <div class="scan-status">Waiting for scan…</div>
+                </div>
+                <div class="scan-row" data-scan="rr">
+                  <div class="scan-label">Chest – Respiratory rate</div>
+                  <div class="scan-status">Waiting for scan…</div>
+                </div>
+                <div class="scan-row" data-scan="bp">
+                  <div class="scan-label">Arms – Blood pressure</div>
+                  <div class="scan-status">Waiting for scan…</div>
+                </div>
+                <div class="scan-row" data-scan="injury1">
+                  <div class="scan-label">Pelvis / Abdomen – Injury 1</div>
+                  <div class="scan-status">Waiting for scan…</div>
+                </div>
+                <div class="scan-row" data-scan="injury2">
+                  <div class="scan-label">Legs / Feet – Injury 2</div>
+                  <div class="scan-status">Waiting for scan…</div>
+                </div>
+
+                <div class="scan-instructions" id="scanHint">
+                  Scan from head to toe in this order. The silhouette will light up with each scan.
+                  When all scans are done you can continue to the triage decision.
+                  <ol>
+                    <li>Eyes – ID</li>
+                    <li>Face – consciousness level</li>
+                    <li>Neck – heart rate</li>
+                    <li>Chest – respiratory rate</li>
+                    <li>Arms – blood pressure (not used in Scenario 4)</li>
+                    <li>Pelvis / Abdomen – main injury</li>
+                    <li>Legs / Feet – secondary injury</li>
+                  </ol>
+                </div>
+
+                <div class="scan-actions">
+                  <span id="scanStatusLabel">Waiting for scans…</span>
+                  <button class="btn-primary" id="continueBtn" disabled>Continue to triage</button>
+                </div>
+              </div>
+
+              <div class="figure-wrapper">
+                <div class="figure-visual" id="figureVisual">
+                  <div class="figure-silhouette">
+                    <img src="images/body_silhouette.png" alt="Patient silhouette" class="figure-img-base" />
+                    <img src="images/body_silhouette.png" alt="" class="figure-img-fill" id="figureFill" />
+                  </div>
+
+                  <button class="figure-hotspot hotspot-id" data-scan="id" title="Eyes / ID"><span>✉</span></button>
+                  <button class="figure-hotspot hotspot-conc" data-scan="conclevel" title="Consciousness"><span>✉</span></button>
+                  <button class="figure-hotspot hotspot-hr" data-scan="hr" title="Heart rate"><span>✉</span></button>
+                  <button class="figure-hotspot hotspot-rr" data-scan="rr" title="Respiratory rate"><span>✉</span></button>
+                  <button class="figure-hotspot hotspot-bp" data-scan="bp" title="Blood pressure"><span>✉</span></button>
+                  <button class="figure-hotspot hotspot-inj1" data-scan="injury1" title="Injury 1"><span>✉</span></button>
+                  <button class="figure-hotspot hotspot-inj2" data-scan="injury2" title="Injury 2"><span>✉</span></button>
+                </div>
+                <div class="figure-caption">
+                  During scanning, the body fills gradually from head to toe.  
+                  After all scans are complete you can move to the triage decision.
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Live Vitals (from drone)</h2>
+            <div class="vitals-list" style="display:flex;flex-direction:column;gap:6px;font-size:14px;">
+              <div class="vital-row">
+                <div class="vital-label">Consciousness</div>
+                <div class="vital-value" id="vConsciousness">—</div>
+              </div>
+              <div class="vital-row">
+                <div class="vital-label">Respiratory rate (RR)</div>
+                <div class="vital-value" id="vRR">—</div>
+              </div>
+              <div class="vital-row">
+                <div class="vital-label">Heart rate (HR)</div>
+                <div class="vital-value" id="vHR">—</div>
+              </div>
+              <div class="vital-row">
+                <div class="vital-label">Blood pressure (BP)</div>
+                <div class="vital-value" id="vBP">—</div>
+              </div>
+              <div class="vital-row">
+                <div class="vital-label">Key injury / problem</div>
+                <div class="vital-value" id="vKeyInjury">—</div>
+              </div>
+            </div>
+
+            <div style="margin-top:10px;font-size:11px;color:var(--muted);border-radius:14px;border:1px dashed rgba(148,163,184,0.5);padding:8px 10px;">
+              <div style="font-weight:700;margin-bottom:4px;">COMING SOON</div>
+              <div style="font-weight:700;">AI Paramedic Support Module</div>
+              <div>Drone will recommend the exact medical tools paramedics should bring to the scene before ambulance arrival.</div>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
+    </div>
 
-      <section class="panel">
-        <h2>Human vs AI Results</h2>
+    <!-- SCREEN 2 – Human triage decision -->
+    <div class="screen" id="screen2">
+      <div class="screen2-layout">
+        <section class="panel triage-full-panel">
+          <h2>Human Triage Decision</h2>
+          <div class="triage-controls">
+            <div class="triage-steps-label">Step 1 — choose triage category</div>
+            <div class="triage-circles">
+              <div class="triage-circle" data-level="Red">
+                <span>Red</span>
+              </div>
+              <div class="triage-circle" data-level="Yellow">
+                <span>Yellow</span>
+              </div>
+              <div class="triage-circle" data-level="Green">
+                <span>Green</span>
+              </div>
+              <div class="triage-circle" data-level="Black">
+                <span>Black</span>
+              </div>
+            </div>
 
-        <table class="results-table">
-          <thead>
-          <tr>
-            <th>Category</th>
-            <th>Human</th>
-            <th>AI</th>
-            <th class="match-cell">Match</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td>Triage</td>
-            <td id="resHumanTriage">—</td>
-            <td id="resAITriage">—</td>
-            <td class="match-cell" id="matchTriage">—</td>
-          </tr>
-          <tr>
-            <td>Hospital</td>
-            <td id="resHumanHospital">—</td>
-            <td id="resAIHospital">—</td>
-            <td class="match-cell" id="matchHospital">—</td>
-          </tr>
-          <tr>
-            <td>ER tests / actions</td>
-            <td id="resHumanTests">—</td>
-            <td id="resAITests">—</td>
-            <td class="match-cell" id="matchTests">—</td>
-          </tr>
-          <tr>
-            <td>Time</td>
-            <td id="resHumanTime">—</td>
-            <td id="resAITime">—</td>
-            <td class="match-cell" id="matchTime">—</td>
-          </tr>
-          </tbody>
-        </table>
+            <div class="hospital-tests">
+              <div>
+                <div class="triage-steps-label" style="margin-bottom:4px;">Step 2 — choose receiving hospital</div>
+                <div id="hospitalList"></div>
+              </div>
+              <div>
+                <div class="triage-steps-label" style="margin-bottom:4px;">Step 3 — choose ER tests / care actions</div>
+                <div class="tests-list" id="testsList"></div>
+              </div>
+            </div>
 
-        <div class="score-summary" id="scoreSummary">
-          Score: 0 / 12 points
-        </div>
+            <div class="submit-row">
+              <span id="decisionHint">Complete triage, hospital and tests after scanning all regions and pressing Continue.</span>
+              <button class="btn-primary" id="submitDecisionBtn" disabled>Submit Decision</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
 
-        <!-- MINI LEADERBOARD (TOP 5) -->
-        <div class="leaderboard">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <div style="font-weight:700;">Mini Leaderboard (Top 5)</div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn-secondary" id="resetSimBtn">Play new game</button>
+    <!-- SCREEN 3 – Results, Leaderboard & Coming Soon -->
+    <div class="screen" id="screen3">
+      <div class="screen3-layout">
+        <section class="panel">
+          <h2>Human vs AI Final Results</h2>
+          <table class="results-table">
+            <thead>
+            <tr>
+              <th>Category</th>
+              <th>Human</th>
+              <th>AI</th>
+              <th class="match-cell">Match</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>Triage</td>
+              <td id="resHumanTriage">—</td>
+              <td id="resAITriage">—</td>
+              <td class="match-cell" id="matchTriage">—</td>
+            </tr>
+            <tr>
+              <td>Hospital</td>
+              <td id="resHumanHospital">—</td>
+              <td id="resAIHospital">—</td>
+              <td class="match-cell" id="matchHospital">—</td>
+            </tr>
+            <tr>
+              <td>ER tests / actions</td>
+              <td id="resHumanTests">—</td>
+              <td id="resAITests">—</td>
+              <td class="match-cell" id="matchTests">—</td>
+            </tr>
+            <tr>
+              <td>Time</td>
+              <td id="resHumanTime">—</td>
+              <td id="resAITime">—</td>
+              <td class="match-cell" id="matchTime">—</td>
+            </tr>
+            </tbody>
+          </table>
+
+          <div class="score-summary" id="scoreSummary">
+            Score: 0 / 12 points
+          </div>
+
+          <div style="margin-top:12px;">
+            <button class="btn-primary" id="resetSimBtn">▶ Play new game</button>
+          </div>
+
+          <div style="margin-top:12px;font-size:11px;color:var(--muted);border-radius:14px;border:1px dashed rgba(148,163,184,0.5);padding:8px 10px;">
+            <div style="font-weight:700;margin-bottom:4px;">COMING SOON</div>
+            <div style="font-weight:700;">AI Paramedic Support Module</div>
+            <div>Drone will recommend tools and equipment before ambulance arrival, based on injuries and vitals.</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Live Leaderboard</h2>
+          <div class="leaderboard">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <div style="font-weight:700;">Top Scores (persistent)</div>
               <button class="btn-primary" style="padding:4px 10px;font-size:11px;background:linear-gradient(135deg,#ef4444,#f97316);" id="resetLeaderboardBtn">
                 Reset board
               </button>
             </div>
-          </div>
-          <table>
-            <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Mode</th>
-              <th>Scenario</th>
-              <th>Score</th>
-              <th>Time</th>
-            </tr>
-            </thead>
-            <tbody id="leaderboardMiniBody"></tbody>
-          </table>
-        </div>
 
-        <!-- FULL LEADERBOARD (ALL SCORES) -->
-        <div class="leaderboard" style="margin-top:10px;">
-          <div style="font-weight:700;margin-bottom:4px;">Full Leaderboard</div>
-          <table>
-            <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Mode</th>
-              <th>Scenario</th>
-              <th>Score</th>
-              <th>Time</th>
-            </tr>
-            </thead>
-            <tbody id="leaderboardFullBody"></tbody>
-          </table>
-        </div>
-      </section>
+            <!-- Mini (top 5) -->
+            <div style="margin-bottom:6px;font-size:12px;font-weight:600;">Top 5</div>
+            <table>
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Mode</th>
+                <th>Scenario</th>
+                <th>Score</th>
+                <th>Time</th>
+              </tr>
+              </thead>
+              <tbody id="leaderboardMiniBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Full leaderboard -->
+          <div class="leaderboard" style="margin-top:10px;">
+            <div style="font-weight:700;margin-bottom:4px;">Full board</div>
+            <table>
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Mode</th>
+                <th>Scenario</th>
+                <th>Score</th>
+                <th>Time</th>
+              </tr>
+              </thead>
+              <tbody id="leaderboardFullBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </div>
   </main>
 </div>
@@ -880,7 +965,7 @@
 <script>
   const socket = io();
 
-  // --- SCENARIO DEFINITIONS (with corrected hospitals & ER actions) ---
+  /* ---------- SCENARIOS (with corrected destinations/tests) ---------- */
 
   const scenarios = [
     {
@@ -1137,14 +1222,14 @@
   let leaderboard = [];
   let currentOperator = { name: "Unknown", mode: "Solo" };
 
+  /* DOM references */
+
   const operatorLabelEl = document.getElementById("operatorLabel");
   const scenarioSelectEl = document.getElementById("scenarioSelect");
   const scanRows = Array.from(document.querySelectorAll(".scan-row"));
-  const figureVisual = document.getElementById("figureVisual");
   const figureFill = document.getElementById("figureFill");
   const figureHotspots = Array.from(document.querySelectorAll(".figure-hotspot"));
   const continueBtn = document.getElementById("continueBtn");
-  const resetSimBtn = document.getElementById("resetSimBtn");
   const scanHintEl = document.getElementById("scanHint");
   const scanStatusLabel = document.getElementById("scanStatusLabel");
 
@@ -1176,35 +1261,31 @@
   const matchTests = document.getElementById("matchTests");
   const matchTime = document.getElementById("matchTime");
   const scoreSummaryEl = document.getElementById("scoreSummary");
+
   const leaderboardMiniBody = document.getElementById("leaderboardMiniBody");
   const leaderboardFullBody = document.getElementById("leaderboardFullBody");
   const resetLeaderboardBtn = document.getElementById("resetLeaderboardBtn");
+
+  const resetSimBtn = document.getElementById("resetSimBtn");
 
   const imageModal = document.getElementById("imageModal");
   const modalImage = document.getElementById("modalImage");
   const modalTitle = document.getElementById("modalTitle");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
 
-  function populateScenarioDropdown() {
-    scenarioSelectEl.innerHTML = "";
-    scenarios.forEach(s => {
-      const opt = document.createElement("option");
-      opt.value = s.id;
-      opt.textContent = s.label;
-      scenarioSelectEl.appendChild(opt);
-    });
+  const screen1El = document.getElementById("screen1");
+  const screen2El = document.getElementById("screen2");
+  const screen3El = document.getElementById("screen3");
+
+  /* ---------- Screen navigation ---------- */
+
+  function gotoScreen(index) {
+    screen1El.classList.toggle("active", index === 1);
+    screen2El.classList.toggle("active", index === 2);
+    screen3El.classList.toggle("active", index === 3);
   }
 
-  function selectScenarioById(id) {
-    const sc = scenarios.find(s => s.id === id) || scenarios[0];
-    currentScenario = sc;
-    scenarioSelectEl.value = sc.id;
-    resetSimulationState();
-  }
-
-  scenarioSelectEl.addEventListener("change", () => {
-    selectScenarioById(scenarioSelectEl.value);
-  });
+  /* ---------- Vitals & timer ---------- */
 
   function updateVitalsDisplay() {
     vConEl.textContent = vitalsState.consciousness || "—";
@@ -1280,6 +1361,8 @@
     figureFill.style.clipPath = `inset(0 0 ${100 - revealed}% 0)`;
   }
 
+  /* ---------- Scan state ---------- */
+
   function resetScanState() {
     scanTypes.forEach(t => {
       scanState[t] = false;
@@ -1292,7 +1375,6 @@
       if (s) s.textContent = "Waiting for scan…";
     });
 
-    figureVisual.classList.remove("review-mode");
     figureHotspots.forEach(h => h.classList.remove("active"));
 
     const bpRow = document.querySelector('.scan-row[data-scan="bp"]');
@@ -1330,14 +1412,7 @@
     return currentScenario.expectedScans.every(t => scanState[t]);
   }
 
-  function enterReviewMode() {
-    figureVisual.classList.add("review-mode");
-    scanHintEl.querySelector("ol").style.opacity = "0.6";
-    scanStatusLabel.textContent = "In triage mode. Use the envelopes to review images.";
-    figureHotspots.forEach(h => {
-      const t = h.dataset.scan;
-      if (scanState[t]) h.classList.add("active");
-    });
+  function enterTriageMode() {
     triageModeStarted = true;
     startTimer();
     updateSubmitState();
@@ -1345,12 +1420,34 @@
 
   continueBtn.addEventListener("click", () => {
     if (continueBtn.disabled) return;
-    enterReviewMode();
+    enterTriageMode();
+    gotoScreen(2);
   });
 
-  resetSimBtn.addEventListener("click", () => {
+  /* ---------- Scenario selection ---------- */
+
+  function populateScenarioDropdown() {
+    scenarioSelectEl.innerHTML = "";
+    scenarios.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.label;
+      scenarioSelectEl.appendChild(opt);
+    });
+  }
+
+  function selectScenarioById(id) {
+    const sc = scenarios.find(s => s.id === id) || scenarios[0];
+    currentScenario = sc;
+    scenarioSelectEl.value = sc.id;
     resetSimulationState();
+  }
+
+  scenarioSelectEl.addEventListener("change", () => {
+    selectScenarioById(scenarioSelectEl.value);
   });
+
+  /* ---------- QR handling ---------- */
 
   function inferScanTypeFromUrl(url) {
     const lower = url.toLowerCase();
@@ -1402,10 +1499,14 @@
     }
   });
 
+  /* ---------- Operator info ---------- */
+
   socket.on("operator-info", ({ name, mode }) => {
     currentOperator = { name: name || "Visitor", mode: mode || "Solo" };
     operatorLabelEl.innerHTML = `Operator: <span class="glow">${currentOperator.name}</span> (${currentOperator.mode})`;
   });
+
+  /* ---------- Image modal ---------- */
 
   figureHotspots.forEach(h => {
     h.addEventListener("click", () => {
@@ -1430,6 +1531,8 @@
       modalImage.src = "";
     }
   });
+
+  /* ---------- Triage controls ---------- */
 
   function resetDecision() {
     selectedTriage = null;
@@ -1536,7 +1639,11 @@
       score,
       timeSeconds: human.timeSeconds ?? 0
     });
+
+    gotoScreen(3);
   });
+
+  /* ---------- Results comparison ---------- */
 
   function showResults(human) {
     const ai = currentScenario.ai;
@@ -1559,7 +1666,6 @@
     markMatch(matchTriage, triageMatch);
     if (triageMatch) score += 5;
 
-    // hospital: treat Morgue / Forensic vs DVI wording as equivalent
     const hospMatch = (() => {
       if (currentScenario.id === "s4") {
         const h = (human.hospital || "").toLowerCase();
@@ -1595,6 +1701,8 @@
     return m ? parseInt(m[1], 10) : 0;
   }
 
+  /* ---------- Leaderboard (persistent) ---------- */
+
   function addToLeaderboard(entry) {
     leaderboard.push(entry);
     leaderboard.sort((a, b) => {
@@ -1622,8 +1730,8 @@
         bodyEl.appendChild(tr);
       });
     }
-    fill(leaderboardMiniBody, 5);           // mini leaderboard (top 5)
-    fill(leaderboardFullBody, leaderboard.length || 0); // full board
+    fill(leaderboardMiniBody, 5);
+    fill(leaderboardFullBody, leaderboard.length || 0);
   }
 
   function loadLeaderboardFromStorage() {
@@ -1670,6 +1778,8 @@
     });
   });
 
+  /* ---------- Simulation reset ---------- */
+
   function clearResultsOnly() {
     resHumanTriage.textContent = "—";
     resAITriage.textContent = "—";
@@ -1692,11 +1802,18 @@
     resetTimer();
     resetDecision();
     clearResultsOnly();
+    gotoScreen(1);
   }
 
-  socket.on("connect", () => {
-    // no-op; leaderboard loaded from localStorage
+  resetSimBtn.addEventListener("click", () => {
+    resetSimulationState();
   });
+
+  socket.on("connect", () => {
+    // no-op; leaderboard loaded from storage
+  });
+
+  /* ---------- Init ---------- */
 
   function populateAndInit() {
     populateScenarioDropdown();
