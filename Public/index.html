@@ -8,12 +8,13 @@
     :root {
       --bg: #040814;
       --panel: #0b1020;
-      --accent: #3fbcff;
-      --accent-soft: rgba(63, 188, 255, 0.18);
-      --danger: #ff4b5c;
-      --warning: #ffc857;
-      --success: #4ade80;
+      --accent: #38bdf8;          /* cyan – main accent */
+      --accent-soft: rgba(56, 189, 248, 0.18);
+      --danger: #f97373;          /* soft red */
+      --warning: #facc15;         /* triage yellow */
+      --success: #22c55e;         /* triage green */
       --muted: #9ca3af;
+      --muted-soft: #6b7280;
       --text: #e5e7eb;
       --text-strong: #f9fafb;
       --card-radius: 18px;
@@ -27,7 +28,7 @@
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #111827 0, #020617 40%, #000 100%);
+      background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
       color: var(--text);
       overflow: hidden;
     }
@@ -41,16 +42,19 @@
       gap: 10px;
     }
 
+    /* ---------- HEADER ---------- */
+
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 999px;
-      background: linear-gradient(90deg, #020617, #020617, #020617);
-      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: radial-gradient(circle at top left, #020617 0, #020617 40%, #020617 100%);
+      border: 1px solid rgba(148, 163, 184, 0.35);
       font-size: 14px;
       color: var(--text);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.8);
     }
 
     header .title {
@@ -64,23 +68,34 @@
 
     header .title span {
       font-size: 22px;
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
     }
 
     header .title div div:nth-child(2) {
-      color: var(--muted);
+      color: var(--muted-soft);
       font-weight: 500;
+      font-size: 12px;
+      letter-spacing: 0.02em;
     }
 
     header .operator {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--muted);
       font-weight: 600;
+    }
+
+    #operatorLabel span {
+      color: var(--accent);
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
     }
 
     .glow {
       color: var(--accent);
       text-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
     }
+
+    /* ---------- MAIN LAYOUT ---------- */
 
     main {
       flex: 1;
@@ -91,11 +106,12 @@
     }
 
     /* Global timer bar visible on all screens */
+
     .timer-global {
       padding: 8px 12px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.45);
+      background: linear-gradient(90deg, #020617, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.55);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -113,11 +129,16 @@
 
     .timer-global-sub {
       font-size: 11px;
-      color: var(--muted);
+      color: var(--muted-soft);
       margin-top: 2px;
     }
 
-    /* Screens */
+    .timer-global-sub strong {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ---------- SCREENS ---------- */
 
     .screen {
       flex: 1;
@@ -137,14 +158,14 @@
       min-height: 0;
     }
 
-    /* Panels */
+    /* ---------- PANELS ---------- */
 
     .panel {
       background: radial-gradient(circle at top left, #111827 0, #020617 55%);
       border-radius: var(--card-radius);
       border: 1px solid rgba(148, 163, 184, 0.25);
       padding: 14px 16px;
-      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.8);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
       min-height: 0;
       overflow: hidden;
       color: var(--text);
@@ -158,7 +179,27 @@
       align-items: center;
       gap: 8px;
       color: var(--text-strong);
-      text-shadow: 0 0 8px rgba(15, 23, 42, 0.8);
+      text-shadow: 0 0 8px rgba(15, 23, 42, 0.9);
+    }
+
+    .panel h2::before {
+      content: "";
+      width: 6px;
+      height: 18px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--accent), #22c55e);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
+    }
+
+    .panel h2 span.tag {
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     .scenario-select {
@@ -171,7 +212,7 @@
       width: 100%;
       padding: 8px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.6);
       background: #020617;
       color: var(--accent);
       font-size: 14px;
@@ -179,7 +220,12 @@
       font-weight: 600;
     }
 
-    /* SCREEN 1 layout */
+    .scenario-select select option {
+      background: #020617;
+      color: var(--text);
+    }
+
+    /* ---------- SCREEN 1 LAYOUT ---------- */
 
     .screen1-layout {
       display: grid;
@@ -209,8 +255,8 @@
     .scan-row {
       border-radius: 16px;
       padding: 8px 10px;
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(31, 41, 55, 0.8);
+      background: rgba(15, 23, 42, 0.96);
       display: flex;
       flex-direction: column;
       gap: 2px;
@@ -222,12 +268,12 @@
 
     .scan-row .scan-label {
       font-weight: 600;
-      color: var(--text-strong);
+      color: #dbeafe;
     }
 
     .scan-row .scan-status {
       font-size: 11px;
-      color: var(--muted);
+      color: var(--muted-soft);
     }
 
     .scan-row::before {
@@ -256,13 +302,21 @@
     .scan-instructions {
       margin-top: 4px;
       font-size: 11px;
-      color: var(--muted);
+      color: var(--muted-soft);
       line-height: 1.5;
+    }
+
+    .scan-instructions strong {
+      color: var(--accent);
     }
 
     .scan-instructions ol {
       margin-left: 16px;
       margin-top: 4px;
+    }
+
+    .scan-instructions li {
+      margin-bottom: 1px;
     }
 
     .scan-actions {
@@ -278,7 +332,7 @@
       flex-direction: column;
       gap: 2px;
       font-size: 11px;
-      color: var(--muted);
+      color: var(--muted-soft);
     }
 
     #scanStatusLabel {
@@ -287,7 +341,7 @@
 
     #scanPercentLabel {
       color: var(--accent);
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .btn-primary,
@@ -312,17 +366,19 @@
     }
 
     .btn-primary:disabled {
-      opacity: 0.4;
+      opacity: 0.35;
       cursor: default;
       box-shadow: none;
     }
 
     .btn-secondary {
-      background: #111827;
+      background: #0b1120;
       border: 1px solid rgba(148, 163, 184, 0.6);
       color: var(--muted);
       box-shadow: none;
     }
+
+    /* ---------- FIGURE ---------- */
 
     .figure-wrapper {
       display: flex;
@@ -330,7 +386,7 @@
       gap: 6px;
       align-items: center;
       justify-content: space-between;
-      color: var(--muted);
+      color: var(--muted-soft);
     }
 
     .figure-visual {
@@ -388,8 +444,8 @@
       width: 28px;
       height: 28px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
-      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      background: radial-gradient(circle at top, #020617 0, #020617 70%);
       color: var(--accent);
       font-size: 14px;
       display: flex;
@@ -413,7 +469,7 @@
     }
 
     .figure-hotspot:hover {
-      transform: scale(1.04);
+      transform: scale(1.06);
     }
 
     .hotspot-id      { top: 7%;  left: 50%; transform: translate(-50%, -50%); }
@@ -426,11 +482,15 @@
 
     .figure-caption {
       font-size: 11px;
-      color: var(--muted);
+      color: var(--muted-soft);
       text-align: center;
     }
 
-    /* Vitals styling */
+    .figure-caption strong {
+      color: var(--accent);
+    }
+
+    /* ---------- VITALS PANEL ---------- */
 
     .vitals-list {
       color: var(--text);
@@ -440,11 +500,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 3px 0;
     }
 
     .vital-label {
       font-size: 13px;
-      color: var(--muted);
+      color: var(--muted-soft);
     }
 
     .vital-value {
@@ -453,7 +514,7 @@
       color: var(--accent);
     }
 
-    /* SCREEN 2 – triage layout */
+    /* ---------- SCREEN 2 – TRIAGE ---------- */
 
     .screen2-layout {
       width: 100%;
@@ -476,10 +537,19 @@
       height: 100%;
     }
 
+    .triage-steps-label {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
     .triage-circles {
       display: flex;
       gap: 14px;
       align-items: center;
+      margin-bottom: 6px;
     }
 
     .triage-circle {
@@ -493,10 +563,19 @@
       transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, border-color 0.12s ease-out;
     }
 
-    .triage-circle[data-level="Red"] { background: var(--danger); }
-    .triage-circle[data-level="Yellow"] { background: var(--warning); }
-    .triage-circle[data-level="Green"] { background: var(--success); }
-    .triage-circle[data-level="Black"] { background: #020617; border: 1px solid #6b7280; }
+    .triage-circle[data-level="Red"] {
+      background: radial-gradient(circle at top, #fecaca 0, #ef4444 80%);
+    }
+    .triage-circle[data-level="Yellow"] {
+      background: radial-gradient(circle at top, #fef9c3 0, #f59e0b 80%);
+    }
+    .triage-circle[data-level="Green"] {
+      background: radial-gradient(circle at top, #bbf7d0 0, #16a34a 80%);
+    }
+    .triage-circle[data-level="Black"] {
+      background: radial-gradient(circle at top, #020617 0, #020617 80%);
+      border: 1px solid #6b7280;
+    }
 
     .triage-circle span {
       position: absolute;
@@ -515,14 +594,8 @@
       border-color: #e5e7eb;
     }
 
-    .triage-steps-label {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
     .hospital-tests {
-      margin-top: 8px;
+      margin-top: 4px;
       display: grid;
       grid-template-columns: 55% 45%;
       gap: 8px;
@@ -534,11 +607,17 @@
     .hospital-card {
       border-radius: 16px;
       padding: 8px 10px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(31, 41, 55, 0.8);
+      background: rgba(15, 23, 42, 0.96);
       cursor: pointer;
       margin-bottom: 6px;
       color: var(--text);
+      transition: border-color 0.12s ease-out, box-shadow 0.12s ease-out, transform 0.12s ease-out;
+    }
+
+    .hospital-card:hover {
+      border-color: rgba(56, 189, 248, 0.6);
+      transform: translateY(-1px);
     }
 
     .hospital-card.selected {
@@ -548,19 +627,31 @@
 
     .hospital-name {
       font-weight: 700;
-      margin-bottom: 3px;
-      color: var(--text-strong);
+      margin-bottom: 2px;
+      color: #e0f2fe;
     }
 
     .hospital-meta {
       font-size: 11px;
-      color: var(--muted);
+      color: var(--muted-soft);
+    }
+
+    .hospital-tag {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--accent);
     }
 
     .tests-list {
       border-radius: 16px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(31, 41, 55, 0.8);
+      background: rgba(15, 23, 42, 0.98);
       padding: 8px 10px;
       display: flex;
       flex-direction: column;
@@ -577,6 +668,11 @@
       color: var(--text);
     }
 
+    .test-label-primary {
+      color: #e0f2fe;
+      font-weight: 500;
+    }
+
     .test-row input {
       accent-color: var(--accent);
     }
@@ -587,11 +683,15 @@
       justify-content: space-between;
       gap: 8px;
       align-items: center;
-      font-size: 12px;
-      color: var(--muted);
+      font-size: 11px;
+      color: var(--muted-soft);
     }
 
-    /* SCREEN 3 – results + leaderboard */
+    #decisionHint strong {
+      color: var(--accent);
+    }
+
+    /* ---------- SCREEN 3 – RESULTS + LEADERBOARD ---------- */
 
     .screen3-layout {
       width: 100%;
@@ -618,6 +718,13 @@
 
     .results-table th {
       font-weight: 700;
+      color: var(--muted-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 11px;
+    }
+
+    .results-table td.label {
       color: var(--muted);
     }
 
@@ -626,14 +733,18 @@
       font-size: 14px;
     }
 
-    .match-yes { color: #4ade80; }
-    .match-no { color: #f97373; }
+    .match-yes { color: var(--success); }
+    .match-no  { color: var(--danger); }
 
     .score-summary {
       margin-top: 6px;
       font-size: 13px;
       font-weight: 700;
       color: var(--accent);
+    }
+
+    .score-summary span {
+      color: var(--text-strong);
     }
 
     .leaderboard {
@@ -656,10 +767,27 @@
 
     .leaderboard th {
       font-weight: 700;
-      color: var(--muted);
+      color: var(--muted-soft);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
-    /* Modal */
+    .leaderboard tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .leaderboard-name {
+      color: #e0f2fe;
+      font-weight: 600;
+    }
+
+    .leaderboard-score-high {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    /* ---------- MODAL ---------- */
 
     .modal-backdrop {
       position: fixed;
@@ -694,8 +822,12 @@
       justify-content: space-between;
       align-items: center;
       font-size: 13px;
-      color: var(--muted);
+      color: var(--muted-soft);
       font-weight: 600;
+    }
+
+    .modal-header span {
+      color: var(--accent);
     }
 
     .modal-close {
@@ -730,7 +862,7 @@
       </div>
     </div>
     <div class="operator" id="operatorLabel">
-      Operator: Waiting for mobile operator…
+      Operator: <span>Waiting for mobile operator…</span>
     </div>
   </header>
 
@@ -742,7 +874,7 @@
         <span class="time" id="timerDisplay">0.00 s</span>
       </div>
       <div class="timer-global-sub" id="timerHint">
-        Scan all QR tags first. The timer will start when you continue to triage.
+        Scan all QR tags first. <strong>The timer will start when you continue to triage.</strong>
       </div>
     </div>
 
@@ -751,13 +883,14 @@
       <div class="screen-column">
         <div class="screen1-layout">
           <section class="panel" id="bodyPanel">
-            <h2>Patient Body Map &amp; Drone Scan Feed</h2>
+            <h2>Patient Body Map &amp; Drone Scan Feed <span class="tag">Screen 1 • Scan</span></h2>
 
             <div class="scenario-select">
               <select id="scenarioSelect"></select>
             </div>
 
             <div class="scan-layout">
+              <!-- LEFT: SCAN LIST -->
               <div class="scan-list">
                 <div class="scan-row" data-scan="id">
                   <div class="scan-label">Eyes / ID</div>
@@ -789,10 +922,10 @@
                 </div>
 
                 <div class="scan-instructions" id="scanHint">
-                  Scan from head to toe in this order. The silhouette will light up with each scan.
+                  <strong>Scan from head to toe</strong> in this order. The silhouette will light up with each scan.
                   When all scans are done you can continue to the triage decision.
                   <ol>
-                    <li>Eyes – ID</li>
+                    <li>Eyes – ID / demographics</li>
                     <li>Face – consciousness level</li>
                     <li>Neck – heart rate</li>
                     <li>Chest – respiratory rate</li>
@@ -811,6 +944,7 @@
                 </div>
               </div>
 
+              <!-- RIGHT: FIGURE -->
               <div class="figure-wrapper">
                 <div class="figure-visual" id="figureVisual">
                   <div class="figure-silhouette">
@@ -818,6 +952,7 @@
                     <img src="images/body_silhouette.png" alt="" class="figure-img-fill" id="figureFill" />
                   </div>
 
+                  <!-- Hotspot envelope buttons -->
                   <button class="figure-hotspot hotspot-id" data-scan="id" title="Eyes / ID"><span>✉</span></button>
                   <button class="figure-hotspot hotspot-conc" data-scan="conclevel" title="Consciousness"><span>✉</span></button>
                   <button class="figure-hotspot hotspot-hr" data-scan="hr" title="Heart rate"><span>✉</span></button>
@@ -828,14 +963,15 @@
                 </div>
                 <div class="figure-caption">
                   During scanning, the body fills gradually from head to toe.  
-                  After all scans are complete you can review the images, then move to the triage decision.
+                  After all scans are complete you can <strong>tap the glowing envelopes</strong> to review images before making your triage choice.
                 </div>
               </div>
             </div>
           </section>
 
+          <!-- LIVE VITALS -->
           <section class="panel">
-            <h2>Live Vitals (from drone)</h2>
+            <h2>Live Vitals (from drone) <span class="tag">Real-time</span></h2>
             <div class="vitals-list" style="display:flex;flex-direction:column;gap:6px;font-size:14px;">
               <div class="vital-row">
                 <div class="vital-label">Consciousness</div>
@@ -859,7 +995,7 @@
               </div>
             </div>
 
-            <div style="margin-top:10px;font-size:11px;color:var(--muted);border-radius:14px;border:1px dashed rgba(148,163,184,0.5);padding:8px 10px;">
+            <div style="margin-top:10px;font-size:11px;color:var(--muted-soft);border-radius:14px;border:1px dashed rgba(148,163,184,0.5);padding:8px 10px;">
               <div style="font-weight:700;margin-bottom:4px;color:var(--accent);">COMING SOON</div>
               <div style="font-weight:700;color:var(--text-strong);">AI Paramedic Support Module</div>
               <div>Drone will recommend the exact medical tools paramedics should bring to the scene before ambulance arrival.</div>
@@ -873,27 +1009,27 @@
     <div class="screen" id="screen2">
       <div class="screen2-layout">
         <section class="panel triage-full-panel">
-          <h2>Human Triage Decision</h2>
+          <h2>Human Triage Decision <span class="tag">Screen 2 • Triage</span></h2>
           <div class="triage-controls">
             <div class="triage-steps-label">Step 1 — choose triage category</div>
             <div class="triage-circles">
               <div class="triage-circle" data-level="Red">
-                <span>Red</span>
+                <span>Red – Immediate</span>
               </div>
               <div class="triage-circle" data-level="Yellow">
-                <span>Yellow</span>
+                <span>Yellow – Delayed</span>
               </div>
               <div class="triage-circle" data-level="Green">
-                <span>Green</span>
+                <span>Green – Minimal</span>
               </div>
               <div class="triage-circle" data-level="Black">
-                <span>Black</span>
+                <span>Black – Expectant</span>
               </div>
             </div>
 
             <div class="hospital-tests">
               <div>
-                <div class="triage-steps-label" style="margin-bottom:4px;">Step 2 — choose receiving hospital</div>
+                <div class="triage-steps-label" style="margin-bottom:4px;">Step 2 — choose receiving hospital / care site</div>
                 <div id="hospitalList"></div>
               </div>
               <div>
@@ -903,8 +1039,8 @@
             </div>
 
             <div class="submit-row">
-              <span id="decisionHint">Complete triage, hospital and tests after scanning all regions and pressing Continue.</span>
-              <button class="btn-primary" id="submitDecisionBtn" disabled>Submit Decision</button>
+              <span id="decisionHint">Complete <strong>triage colour</strong>, <strong>hospital</strong> and <strong>tests / care</strong> before submitting.</span>
+              <button class="btn-primary" id="submitDecisionBtn" disabled>Submit decision</button>
             </div>
           </div>
         </section>
@@ -915,7 +1051,7 @@
     <div class="screen" id="screen3">
       <div class="screen3-layout">
         <section class="panel">
-          <h2>Human vs AI Final Results</h2>
+          <h2>Human vs AI Final Results <span class="tag">Screen 3 • Results</span></h2>
           <table class="results-table">
             <thead>
             <tr>
@@ -927,25 +1063,25 @@
             </thead>
             <tbody>
             <tr>
-              <td>Triage</td>
+              <td class="label">Triage</td>
               <td id="resHumanTriage">—</td>
               <td id="resAITriage">—</td>
               <td class="match-cell" id="matchTriage">—</td>
             </tr>
             <tr>
-              <td>Hospital</td>
+              <td class="label">Hospital / care site</td>
               <td id="resHumanHospital">—</td>
               <td id="resAIHospital">—</td>
               <td class="match-cell" id="matchHospital">—</td>
             </tr>
             <tr>
-              <td>ER tests / actions</td>
+              <td class="label">ER tests / actions</td>
               <td id="resHumanTests">—</td>
               <td id="resAITests">—</td>
               <td class="match-cell" id="matchTests">—</td>
             </tr>
             <tr>
-              <td>Time</td>
+              <td class="label">Time</td>
               <td id="resHumanTime">—</td>
               <td id="resAITime">—</td>
               <td class="match-cell" id="matchTime">—</td>
@@ -954,14 +1090,14 @@
           </table>
 
           <div class="score-summary" id="scoreSummary">
-            Score: 0 / 12 points
+            Score: <span>0 / 12</span> points
           </div>
 
           <div style="margin-top:12px;">
             <button class="btn-primary" id="resetSimBtn">▶ Play new game</button>
           </div>
 
-          <div style="margin-top:12px;font-size:11px;color:var(--muted);border-radius:14px;border:1px dashed rgba(148,163,184,0.5);padding:8px 10px;">
+          <div style="margin-top:12px;font-size:11px;color:var(--muted-soft);border-radius:14px;border:1px dashed rgba(148,163,184,0.5);padding:8px 10px;">
             <div style="font-weight:700;margin-bottom:4px;color:var(--accent);">COMING SOON</div>
             <div style="font-weight:700;color:var(--text-strong);">AI Paramedic Support Module</div>
             <div>Drone will recommend tools and equipment before ambulance arrival, based on injuries and vitals.</div>
@@ -972,14 +1108,14 @@
           <h2>Live Leaderboard</h2>
           <div class="leaderboard">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <div style="font-weight:700;">Top Scores (persistent)</div>
-              <button class="btn-primary" style="padding:4px 10px;font-size:11px;background:linear-gradient(135deg,#ef4444,#f97316);" id="resetLeaderboardBtn">
+              <div style="font-weight:700;color:var(--accent);">Top scores (persistent)</div>
+              <button class="btn-secondary" style="padding:4px 10px;font-size:11px;border-color:rgba(248,113,113,0.8);color:#fecaca;" id="resetLeaderboardBtn">
                 Reset board
               </button>
             </div>
 
             <!-- Mini (top 5) -->
-            <div style="margin-bottom:6px;font-size:12px;font-weight:600;color:var(--accent);">Top 5</div>
+            <div style="margin-bottom:6px;font-size:12px;font-weight:600;color:var(--muted);">Top 5</div>
             <table>
               <thead>
               <tr>
@@ -1031,22 +1167,17 @@
   </div>
 </div>
 
+<!-- Your original JS loader / socket.io if you use it -->
 <script src="/socket.io/socket.io.js"></script>
 <script>
-/*  JS IS IDENTICAL TO THE PREVIOUS VERSION  */
-/*  (all functionality preserved; only CSS colors were changed)  */
-
-/* ---------- SCENARIOS (same as before, corrected 3 & 4) ---------- */
-
-const socket = io();
-
-const scenarios = [
-  /* … keep the same JS from your previous working version here … */
-];
-
-//  ❗ To keep this message short, I didn't repeat the entire JS block.
-//  Replace the <script> content with the exact JS from the previous answer.
-//  No changes are needed in the JavaScript – only the CSS colors above were updated.
+  // ⬇️ Paste your existing JavaScript here (unchanged).
+  // Keep all your current logic for:
+  // - socket.io events
+  // - silhouette filling
+  // - scan percentage
+  // - screen 1 → 2 → 3 flow
+  // - scenario AI logic
+  // - persistent leaderboard (localStorage / backend)
 </script>
 </body>
 </html>
