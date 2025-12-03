@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI Triage Drone 2040 – Control Screen</title>
+  <title>MISSON: SAVE ME!! – Control Screen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
@@ -15,9 +15,9 @@
       --success: #22c55e;
       --muted: #9ca3af;
       --text: #f9fafb;
-      --text-medical-main: #a5f3fc;   /* clinical cyan */
-      --text-medical-soft: #7dd3fc;   /* softer cyan for labels */
-      --text-medical-strong: #2dd4bf; /* teal for important values */
+      --text-medical-main: #a5f3fc;
+      --text-medical-soft: #7dd3fc;
+      --text-medical-strong: #2dd4bf;
       --card-radius: 18px;
     }
 
@@ -81,7 +81,6 @@
       min-height: 0;
     }
 
-    /* Global timer bar visible on all screens */
     .timer-global {
       padding: 8px 12px;
       border-radius: 999px;
@@ -108,8 +107,6 @@
       margin-top: 2px;
     }
 
-    /* Screens */
-
     .screen {
       flex: 1;
       display: none;
@@ -127,8 +124,6 @@
       width: 100%;
       min-height: 0;
     }
-
-    /* Panels */
 
     .panel {
       background: radial-gradient(circle at top left, #111827 0, #020617 55%);
@@ -168,8 +163,6 @@
       outline: none;
       font-weight: 600;
     }
-
-    /* SCREEN 1 layout */
 
     .screen1-layout {
       display: grid;
@@ -236,7 +229,7 @@
     }
 
     .scan-row.filled .scan-status {
-      color: #bbf7d0; /* soft medical green */
+      color: #bbf7d0;
     }
 
     .scan-row.filled::before {
@@ -420,8 +413,6 @@
       text-align: center;
     }
 
-    /* Vitals styling */
-
     .vitals-list {
       color: var(--text-medical-soft);
     }
@@ -442,8 +433,6 @@
       font-weight: 700;
       color: var(--text-medical-strong);
     }
-
-    /* SCREEN 2 – triage layout */
 
     .screen2-layout {
       width: 100%;
@@ -581,8 +570,6 @@
       color: var(--muted);
     }
 
-    /* SCREEN 3 – results + leaderboard */
-
     .screen3-layout {
       width: 100%;
       height: 100%;
@@ -654,8 +641,6 @@
       color: var(--text-medical-main);
     }
 
-    /* Modal */
-
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -720,7 +705,7 @@
     <div class="title">
       <span>🚁</span>
       <div>
-        <div>AI Triage Drone 2040</div>
+        <div>MISSON: SAVE ME!!</div>
         <div style="font-size:12px;color:var(--muted);font-weight:500;">Mass casualty triage training • Human vs AI</div>
       </div>
     </div>
@@ -730,7 +715,6 @@
   </header>
 
   <main>
-    <!-- Global timer bar -->
     <div>
       <div class="timer-global">
         <div>PATIENT LOADING • TRIAGE TIMER</div>
@@ -741,7 +725,7 @@
       </div>
     </div>
 
-    <!-- SCREEN 1 – Scan & Data Collection -->
+    <!-- SCREEN 1 -->
     <div class="screen active" id="screen1">
       <div class="screen-column">
         <div class="screen1-layout">
@@ -822,7 +806,7 @@
                   <button class="figure-hotspot hotspot-inj2" data-scan="injury2" title="Injury 2"><span>✉</span></button>
                 </div>
                 <div class="figure-caption">
-                  During scanning, the body fills gradually from head to toe.  
+                  During scanning, the body fills gradually from head to toe.
                   After all scans are complete you can review the images, then move to the triage decision.
                 </div>
               </div>
@@ -853,18 +837,12 @@
                 <div class="vital-value" id="vKeyInjury">—</div>
               </div>
             </div>
-
-            <div style="margin-top:10px;font-size:11px;color:var(--muted);border-radius:14px;border:1px dashed rgba(148,163,184,0.5);padding:8px 10px;">
-              <div style="font-weight:700;margin-bottom:4px;">COMING SOON</div>
-              <div style="font-weight:700;color:var(--text-medical-main);">AI Paramedic Support Module</div>
-              <div>Drone will recommend the exact medical tools paramedics should bring to the scene before ambulance arrival.</div>
-            </div>
           </section>
         </div>
       </div>
     </div>
 
-    <!-- SCREEN 2 – Human triage decision -->
+    <!-- SCREEN 2 -->
     <div class="screen" id="screen2">
       <div class="screen2-layout">
         <section class="panel triage-full-panel">
@@ -906,7 +884,7 @@
       </div>
     </div>
 
-    <!-- SCREEN 3 – Results, Leaderboard & Coming Soon -->
+    <!-- SCREEN 3 -->
     <div class="screen" id="screen3">
       <div class="screen3-layout">
         <section class="panel">
@@ -973,7 +951,6 @@
               </button>
             </div>
 
-            <!-- Mini (top 5) -->
             <div style="margin-bottom:6px;font-size:12px;font-weight:600;color:var(--text-medical-soft);">Top 5</div>
             <table>
               <thead>
@@ -990,7 +967,6 @@
             </table>
           </div>
 
-          <!-- Full leaderboard -->
           <div class="leaderboard" style="margin-top:10px;">
             <div style="font-weight:700;margin-bottom:4px;color:var(--text-medical-soft);">Full board</div>
             <table>
@@ -1013,7 +989,6 @@
   </main>
 </div>
 
-<!-- IMAGE MODAL -->
 <div class="modal-backdrop" id="imageModal">
   <div class="modal">
     <div class="modal-header">
@@ -1030,12 +1005,10 @@
 <script>
   const socket = io();
 
-  /* ---------- SCENARIOS (same as previously, including corrected 3 & 4) ---------- */
-
   const scenarios = [
     {
       id: "s1",
-      label: "Scenario 1 — Hajj Stampede (Red)",
+      label: "Scenario 1 — Hajj Stampede",
       ai: {
         triage: "Red",
         hospital: "Mina Emergency Hospital",
@@ -1096,7 +1069,7 @@
     },
     {
       id: "s2",
-      label: "Scenario 2 — Industrial Explosion (Yellow)",
+      label: "Scenario 2 — Industrial Explosion",
       ai: {
         triage: "Yellow",
         hospital: "King Fahad Medical City — Trauma Centre",
@@ -1156,7 +1129,7 @@
     },
     {
       id: "s3",
-      label: "Scenario 3 — Desert Rally (Green)",
+      label: "Scenario 3 — Desert Rally",
       ai: {
         triage: "Green",
         hospital: "Hydration & First Aid Station",
@@ -1214,14 +1187,14 @@
     },
     {
       id: "s4",
-      label: "Scenario 4 — Highway Collision (Black)",
+      label: "Scenario 4 — Highway Collision",
       ai: {
         triage: "Black",
         hospital: "Morgue / Forensic Services",
         erTests: ["Identification & documentation only"],
         timeSeconds: 1.3
       },
-      expectedScans: ["id","conclevel","hr","rr","injury1","injury2"], // no BP
+      expectedScans: ["id","conclevel","hr","rr","injury1","injury2"],
       scanVitals: {
         conclevel: { vitalKey: "consciousness", value: "Unresponsive, fixed dilated pupils" },
         rr:        { vitalKey: "rr",           value: "No respiratory effort" },
@@ -1280,7 +1253,7 @@
   let finalTimeMs = null;
   let triageModeStarted = false;
 
-  let reviewMode = false; // first click on Continue = review images
+  let reviewMode = false;
 
   let selectedTriage = null;
   let selectedHospital = null;
@@ -1288,8 +1261,6 @@
 
   let leaderboard = [];
   let currentOperator = { name: "Unknown", mode: "Solo" };
-
-  /* DOM references */
 
   const operatorLabelEl = document.getElementById("operatorLabel");
   const scenarioSelectEl = document.getElementById("scenarioSelect");
@@ -1345,15 +1316,11 @@
   const screen2El = document.getElementById("screen2");
   const screen3El = document.getElementById("screen3");
 
-  /* ---------- Screen navigation ---------- */
-
   function gotoScreen(index) {
     screen1El.classList.toggle("active", index === 1);
     screen2El.classList.toggle("active", index === 2);
     screen3El.classList.toggle("active", index === 3);
   }
-
-  /* ---------- Vitals & timer ---------- */
 
   function updateVitalsDisplay() {
     vConEl.textContent = vitalsState.consciousness || "—";
@@ -1454,8 +1421,6 @@
     }
   }
 
-  /* ---------- Scan state ---------- */
-
   function resetScanState() {
     scanTypes.forEach(t => {
       scanState[t] = false;
@@ -1511,7 +1476,6 @@
   continueBtn.addEventListener("click", () => {
     if (continueBtn.disabled) return;
 
-    // First click after all scans -> review mode
     if (!reviewMode) {
       reviewMode = true;
       scanStatusLabel.textContent = "Review scans: click any glowing envelope to view images, then press Continue to triage.";
@@ -1523,12 +1487,9 @@
       return;
     }
 
-    // Second click -> actually go to triage
     enterTriageMode();
     gotoScreen(2);
   });
-
-  /* ---------- Scenario selection ---------- */
 
   function populateScenarioDropdown() {
     scenarioSelectEl.innerHTML = "";
@@ -1550,8 +1511,6 @@
   scenarioSelectEl.addEventListener("change", () => {
     selectScenarioById(scenarioSelectEl.value);
   });
-
-  /* ---------- QR handling ---------- */
 
   function inferScanTypeFromUrl(url) {
     const lower = url.toLowerCase();
@@ -1607,14 +1566,10 @@
     }
   });
 
-  /* ---------- Operator info ---------- */
-
   socket.on("operator-info", ({ name, mode }) => {
     currentOperator = { name: name || "Visitor", mode: mode || "Solo" };
     operatorLabelEl.innerHTML = `Operator: <span class="glow">${currentOperator.name}</span> (${currentOperator.mode})`;
   });
-
-  /* ---------- Image modal ---------- */
 
   figureHotspots.forEach(h => {
     h.addEventListener("click", () => {
@@ -1639,8 +1594,6 @@
       modalImage.src = "";
     }
   });
-
-  /* ---------- Triage controls ---------- */
 
   function resetDecision() {
     selectedTriage = null;
@@ -1751,8 +1704,6 @@
     gotoScreen(3);
   });
 
-  /* ---------- Results comparison ---------- */
-
   function showResults(human) {
     const ai = currentScenario.ai;
     resHumanTriage.textContent = human.triage;
@@ -1808,8 +1759,6 @@
     const m = /Score:\s+(\d+)\s+\/\s+12/.exec(text);
     return m ? parseInt(m[1], 10) : 0;
   }
-
-  /* ---------- Leaderboard (persistent) ---------- */
 
   function addToLeaderboard(entry) {
     leaderboard.push(entry);
@@ -1886,8 +1835,6 @@
     });
   });
 
-  /* ---------- Simulation reset ---------- */
-
   function clearResultsOnly() {
     resHumanTriage.textContent = "—";
     resAITriage.textContent = "—";
@@ -1917,11 +1864,9 @@
     resetSimulationState();
   });
 
-  socket.on("connect", () => {
-    // no-op
-  });
+  socket.on("connect", () => {});
 
-  /* ---------- Init ---------- */
+  const imageModalEl = document.getElementById("imageModal");
 
   function populateAndInit() {
     populateScenarioDropdown();
