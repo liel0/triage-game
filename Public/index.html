@@ -141,6 +141,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      color: #e5e7eb;
     }
 
     .scenario-select {
@@ -199,6 +200,7 @@
       font-size: 13px;
       position: relative;
       overflow: hidden;
+      color: #e5e7eb;
     }
 
     .scan-row .scan-label {
@@ -225,6 +227,10 @@
       box-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
     }
 
+    .scan-row.filled .scan-status {
+      color: #bbf7d0;
+    }
+
     .scan-row.filled::before {
       opacity: 1;
     }
@@ -247,8 +253,18 @@
       justify-content: space-between;
       gap: 8px;
       align-items: center;
+    }
+
+    .scan-status-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
       font-size: 11px;
       color: var(--muted);
+    }
+
+    .scan-status-block span:first-child {
+      font-weight: 600;
     }
 
     .btn-primary,
@@ -291,6 +307,7 @@
       gap: 6px;
       align-items: center;
       justify-content: space-between;
+      color: var(--muted);
     }
 
     .figure-visual {
@@ -390,6 +407,25 @@
       text-align: center;
     }
 
+    /* Vitals styling */
+
+    .vital-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .vital-label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .vital-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e5e7eb;
+    }
+
     /* SCREEN 2 – triage layout */
 
     .screen2-layout {
@@ -475,6 +511,7 @@
       background: rgba(15, 23, 42, 0.92);
       cursor: pointer;
       margin-bottom: 6px;
+      color: #e5e7eb;
     }
 
     .hospital-card.selected {
@@ -501,6 +538,7 @@
       flex-direction: column;
       gap: 4px;
       min-height: 0;
+      color: #e5e7eb;
     }
 
     .test-row {
@@ -539,6 +577,7 @@
       width: 100%;
       font-size: 12px;
       border-collapse: collapse;
+      color: #e5e7eb;
     }
 
     .results-table th,
@@ -565,11 +604,13 @@
       margin-top: 6px;
       font-size: 13px;
       font-weight: 700;
+      color: #e5e7eb;
     }
 
     .leaderboard {
       margin-top: 8px;
       font-size: 12px;
+      color: #e5e7eb;
     }
 
     .leaderboard table {
@@ -620,6 +661,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      color: #e5e7eb;
     }
 
     .modal-header {
@@ -736,7 +778,10 @@
                 </div>
 
                 <div class="scan-actions">
-                  <span id="scanStatusLabel">Waiting for scans…</span>
+                  <div class="scan-status-block">
+                    <span id="scanStatusLabel">Waiting for scans…</span>
+                    <span id="scanPercentLabel">Body scanned: 0%</span>
+                  </div>
                   <button class="btn-primary" id="continueBtn" disabled>Continue to triage</button>
                 </div>
               </div>
@@ -758,7 +803,7 @@
                 </div>
                 <div class="figure-caption">
                   During scanning, the body fills gradually from head to toe.  
-                  After all scans are complete you can move to the triage decision.
+                  After all scans are complete you can review the images, then move to the triage decision.
                 </div>
               </div>
             </div>
@@ -965,7 +1010,7 @@
 <script>
   const socket = io();
 
-  /* ---------- SCENARIOS (with corrected destinations/tests) ---------- */
+  /* ---------- SCENARIOS (same as before, corrected 3 & 4) ---------- */
 
   const scenarios = [
     {
@@ -1215,6 +1260,8 @@
   let finalTimeMs = null;
   let triageModeStarted = false;
 
+  let reviewMode = false; // first click on Continue = review images
+
   let selectedTriage = null;
   let selectedHospital = null;
   let selectedTests = new Set();
@@ -1232,6 +1279,7 @@
   const continueBtn = document.getElementById("continueBtn");
   const scanHintEl = document.getElementById("scanHint");
   const scanStatusLabel = document.getElementById("scanStatusLabel");
+  const scanPercentLabel = document.getElementById("scanPercentLabel");
 
   const vConEl = document.getElementById("vConsciousness");
   const vRREl = document.getElementById("vRR");
@@ -1361,6 +1409,31 @@
     figureFill.style.clipPath = `inset(0 0 ${100 - revealed}% 0)`;
   }
 
+  function updateHotspotsVisibility() {
+    figureHotspots.forEach(h => {
+      const s = h.dataset.scan;
+      const isExpected = currentScenario.expectedScans.includes(s);
+      const scanned = !!scanState[s];
+      const shouldShow = reviewMode && scanned && isExpected;
+      if (shouldShow) h.classList.add("active");
+      else h.classList.remove("active");
+    });
+  }
+
+  function updateScanProgressUI() {
+    const steps = currentScenario.expectedScans.length;
+    const done = currentScenario.expectedScans.filter(t => scanState[t]).length;
+    const percent = Math.round((done / steps) * 100);
+    if (scanPercentLabel) {
+      scanPercentLabel.textContent = `Body scanned: ${percent}%`;
+    }
+    if (done === steps) {
+      scanStatusLabel.style.color = "#bbf7d0";
+    } else {
+      scanStatusLabel.style.color = "var(--muted)";
+    }
+  }
+
   /* ---------- Scan state ---------- */
 
   function resetScanState() {
@@ -1375,19 +1448,15 @@
       if (s) s.textContent = "Waiting for scan…";
     });
 
-    figureHotspots.forEach(h => h.classList.remove("active"));
+    reviewMode = false;
+    updateHotspotsVisibility();
 
     const bpRow = document.querySelector('.scan-row[data-scan="bp"]');
-    const bpHot = document.querySelector('.figure-hotspot[data-scan="bp"]');
     if (currentScenario.id === "s4") {
       if (bpRow) {
         bpRow.style.opacity = "0.25";
         bpRow.style.pointerEvents = "none";
         bpRow.querySelector(".scan-status").textContent = "Not used in this scenario";
-      }
-      if (bpHot) {
-        bpHot.style.opacity = "0";
-        bpHot.style.pointerEvents = "none";
       }
     } else {
       if (bpRow) {
@@ -1395,17 +1464,18 @@
         bpRow.style.pointerEvents = "auto";
         bpRow.querySelector(".scan-status").textContent = "Waiting for scan…";
       }
-      if (bpHot) {
-        bpHot.style.opacity = "";
-        bpHot.style.pointerEvents = "";
-      }
     }
 
     continueBtn.disabled = true;
+    continueBtn.textContent = "Continue to triage";
     scanStatusLabel.textContent = "Waiting for scans…";
-    scanHintEl.querySelector("ol").style.opacity = "1";
+    scanStatusLabel.style.color = "var(--muted)";
+    if (scanHintEl && scanHintEl.querySelector("ol")) {
+      scanHintEl.querySelector("ol").style.opacity = "1";
+    }
 
     updateBodyFill();
+    updateScanProgressUI();
   }
 
   function haveAllExpectedScans() {
@@ -1420,6 +1490,20 @@
 
   continueBtn.addEventListener("click", () => {
     if (continueBtn.disabled) return;
+
+    // First click after all scans -> review mode
+    if (!reviewMode) {
+      reviewMode = true;
+      scanStatusLabel.textContent = "Review scans: click any glowing envelope to view images, then press Continue to triage.";
+      if (scanHintEl && scanHintEl.querySelector("ol")) {
+        scanHintEl.querySelector("ol").style.opacity = "0.75";
+      }
+      continueBtn.textContent = "Continue to triage";
+      updateHotspotsVisibility();
+      return;
+    }
+
+    // Second click -> actually go to triage
     enterTriageMode();
     gotoScreen(2);
   });
@@ -1489,13 +1573,17 @@
       }
 
       updateBodyFill();
+      updateScanProgressUI();
 
       scanStatusLabel.textContent = "Keep scanning from head to toe…";
 
       if (haveAllExpectedScans()) {
         continueBtn.disabled = false;
-        scanStatusLabel.textContent = "All scans done. Press Continue to move to triage.";
+        continueBtn.textContent = "Review body map & images";
+        scanStatusLabel.textContent = "All scans done. Click to review images, then continue to triage.";
       }
+
+      updateHotspotsVisibility();
     }
   });
 
@@ -1810,7 +1898,7 @@
   });
 
   socket.on("connect", () => {
-    // no-op; leaderboard loaded from storage
+    // no-op
   });
 
   /* ---------- Init ---------- */
